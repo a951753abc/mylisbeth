@@ -43,6 +43,9 @@ module.exports = function (weaponName, name) {
     let text = npc + "，拿著" + name + "鑄造的" + weaponName + "，前往第" + floor + "層的" + place
     + "，最後" + end;
     console.log(text);
-    exampleEmbed.addFields({name:'經過', value:text});
-    return exampleEmbed;
+    let newNovel = new Discord.MessageEmbed()
+        .setColor('#0099ff')
+        .setTimestamp();
+    newNovel.addFields({name:'經過', value:text});
+    return newNovel;
 }
