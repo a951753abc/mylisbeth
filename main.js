@@ -4,7 +4,7 @@ const auth = require("./auth.js");
 const move = require("./move.js");
 const create = require("./create.js");
 const help = require("./help.js");
-const cmdList = {create:create, help:help};
+const cmdList = {create:create, help:help, move:move};
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
