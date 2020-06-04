@@ -84,7 +84,8 @@ module.exports = async function (weaponName, name, userId) {
             {name: '武器製造經過', value: weapon.text}
         );
     //先隨機取得要給武器的人
-    let npc = npcNameList[Math.floor(Math.random() * npcNameList.length)];
+    let npcExample = npcNameList[Math.floor(Math.random() * npcNameList.length)];
+    let npc = _.clone(npcExample);
     //隨機冒險地點
     let place = placeList[Math.floor(Math.random() * placeList.length)];
     //隨機層數
@@ -92,6 +93,7 @@ module.exports = async function (weaponName, name, userId) {
     let battleResult = battle(weapon, npc, npcNameList);
     let text = npc.name + "，拿著" + name + "鑄造的" + weaponName + "，前往第" + floor + "層的" + place
         + "。\n " + npc.name + "碰到 " + battleResult.name + " 發生不得不戰鬥的危機！"
+    console.log(battleResult.text);
     console.log(text);
     newNovel.addFields({name: '經過', value: text});
     newNovel.addFields({name: '戰鬥過程', value: battleResult.text});

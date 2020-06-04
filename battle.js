@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const roll = require("./roll");
-//status [0->lose 1->win
+//status [0->lose 1->win 2->平手
 const battle = {"text":"", "status":0, "name":""};
 const eneExample = {
     "hp":0,
@@ -23,7 +23,7 @@ const eneExample = {
  */
 
 module.exports = function (weapon, npc, npcNameList) {
-    let roundLimit = 100;
+    let roundLimit = 5;
     let round = 1;
     let enemy = npcNameList[Math.floor(Math.random() * npcNameList.length)];
     let ene = _.clone(eneExample);
@@ -49,7 +49,7 @@ module.exports = function (weapon, npc, npcNameList) {
     battle.text = "";
     battle.status = 0;
     battle.name = enemy.name;
-    while (npc.hp > 0 || ene.hp > 0 || round <= roundLimit) {
+    while (npc.hp > 0 && ene.hp > 0 && round <= roundLimit) {
         battle.text += "第" + round + "回合\n";
         //骰雙方行動骰 2D6+敏捷
         let npcAct = roll.d66() + weapon.agi;
@@ -87,6 +87,9 @@ module.exports = function (weapon, npc, npcNameList) {
             }
         }
         round++;
+    }
+    if (round > roundLimit) {
+        battle.text += "雙方不分勝負。";
     }
     return battle;
 }
