@@ -2,33 +2,14 @@ const _ = require('lodash');
 const Discord = require('discord.js');
 const category = require("./weapon/category.json");
 const roll = require("./roll.js");
-const npcNameList = [
-    "黑色劍士",
-    "KOB的閃光",
-    "叫黑色劍士爸爸的小女孩",
-    "叫黑色劍士哥哥的金髮妖精",
-    "拿著狙擊槍的少女",
-    "牙王",
-    "愛麗絲",
-    "尤吉歐",
-    "克萊因",
-    "艾基爾",
-    "畢娜",
-    "克拉帝爾"
-];
+const npcNameList = require("./npc/list.json");
+const battle = require("./battle");
 const placeList = [
     "迷宮",
     "深山",
     "沼澤",
     "樹林",
     "城鎮外",
-];
-const endList = [
-    "死於惡意PK下，從此登出艾恩葛朗特。",
-    "意外發現茅場晶彥的存在，被滅口。",
-    "由於武器數值過於低落，不幸身亡，從此登出艾恩葛朗特。",
-    "由於武器數值過於低落，武器就此損毀，所幸人無事逃回城鎮。",
-    "成功擊敗BOSS，解放當前區域。",
 ];
 const weaponPer = ["atk", "def", "agi"];
 function createWeapon(weaponName) {
@@ -102,12 +83,11 @@ module.exports = function (weaponName, name) {
     let place = placeList[Math.floor(Math.random() * placeList.length)];
     //隨機層數
     let floor = Math.floor(Math.random() * 100 + 1);
-    //隨機結局
-    let end = endList[Math.floor(Math.random() * endList.length)];
-    let text = npc + "，拿著" + name + "鑄造的" + weaponName + "，前往第" + floor + "層的" + place
-    + "，最後" + end;
+    let battleResult = battle(weapon, npc, npcNameList);
+    let text = npc.name + "，拿著" + name + "鑄造的" + weaponName + "，前往第" + floor + "層的" + place
+    + "。\n " + npc.name + "碰到 " + battleResult.name +" 發生不得不戰鬥的危機！"
     console.log(text);
-
     newNovel.addFields({name:'經過', value:text});
+    newNovel.addFields({name:'戰鬥過程', value:battleResult.text});
     return newNovel;
 }
