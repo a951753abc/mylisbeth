@@ -3,6 +3,7 @@ const roll = require("./roll");
 //status [0->lose 1->win 2->平手
 const battle = {"text":"", "status":0, "name":""};
 const eneExample = {
+    "category":"[HELL]",
     "hp":0,
     "atk":0,
     "def":0,
@@ -30,16 +31,19 @@ module.exports = function (weapon, npc, npcNameList) {
     let enemyRoll = Math.floor(Math.random() * 100) + 1;
     console.log(enemyRoll);
     if (enemyRoll > 50) {
+        ene.category = "[Hell]";
         ene.hp = 100;
         ene.atk = 4;
         ene.def = 2;
         ene.agi = 2;
     } else if (enemyRoll > 10) {
+        ene.category = "[Normal]";
         ene.hp = 22;
         ene.atk  = 2;
         ene.def = 4;
         ene.agi = 4;
     } else {
+        ene.category = "[Easy]";
         ene.hp = 10;
         ene.atk  = 1;
         ene.def = 0;
@@ -48,7 +52,7 @@ module.exports = function (weapon, npc, npcNameList) {
     console.log(ene);
     battle.text = "";
     battle.status = 0;
-    battle.name = enemy.name;
+    battle.name = ene.category + enemy.name;
     while (npc.hp > 0 && ene.hp > 0 && round <= roundLimit) {
         battle.text += "第" + round + "回合\n";
         //骰雙方行動骰 2D6+敏捷
@@ -58,30 +62,30 @@ module.exports = function (weapon, npc, npcNameList) {
         console.log("eneAct"+eneAct);
         let damResult;
         if (npcAct >= eneAct) {
-            damResult = atkCheck(npc.name, enemy.name, weapon.agi, ene.agi, weapon.atk, weapon.cri, ene.def);
+            damResult = atkCheck(npc.name, battle.name, weapon.agi, ene.agi, weapon.atk, weapon.cri, ene.def);
             ene.hp = ene.hp - damResult;
             if (ene.hp <= 0) {
-                battle.text +=  enemy.name + "倒下了。 \n";
+                battle.text +=  battle.name + "倒下了。 \n";
                 battle.status = 1;
                 break;
             }
-            damResult = atkCheck(enemy.name, npc.name, ene.agi, weapon.agi, ene.atk , ene.cri, weapon.def);
+            damResult = atkCheck(battle.name, npc.name, ene.agi, weapon.agi, ene.atk , ene.cri, weapon.def);
             npc.hp = npc.hp - damResult;
             if (npc.hp <= 0) {
                 battle.text +=  npc.name + "倒下了。 \n";
                 break;
             }
         } else {
-            damResult = atkCheck(enemy.name, npc.name, ene.agi, weapon.agi, ene.atk , ene.cri, weapon.def);
+            damResult = atkCheck(battle.name, npc.name, ene.agi, weapon.agi, ene.atk , ene.cri, weapon.def);
             npc.hp = npc.hp - damResult;
             if (npc.hp <= 0) {
                 battle.text +=  npc.name + "倒下了。 \n";
                 break;
             }
-            damResult = atkCheck(npc.name, enemy.name, weapon.agi, ene.agi, weapon.atk, weapon.cri, ene.def);
+            damResult = atkCheck(npc.name, battle.name, weapon.agi, ene.agi, weapon.atk, weapon.cri, ene.def);
             ene.hp = ene.hp - damResult;
             if (ene.hp <= 0) {
-                battle.text +=  enemy.name + "倒下了。 \n";
+                battle.text +=  battle.name + "倒下了。 \n";
                 battle.status = 1;
                 break;
             }
