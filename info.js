@@ -1,12 +1,11 @@
+const _ = require('lodash');
+const Discord = require('discord.js');
 const auth = require("./auth.js");
-const weapon = require("./weapon_test.js");
 const mongoClient = require('mongodb').MongoClient;
 const uri = auth.uri;
-
 module.exports = async function (cmd, userId) {
-    if (cmd[1] === undefined || cmd[1] === null) {
-        return "必須輸入武器姓名";
-    }
+    let lose = 0;
+    let cName = "";
     const client = await mongoClient.connect(uri, {useUnifiedTopology: true})
         .catch(err => {
             console.log(err);
@@ -19,14 +18,18 @@ module.exports = async function (cmd, userId) {
         let collection = db.collection('user');
         let query = {userId: userId}
         let user = await collection.findOne(query);
-        if (user === null) {
-            return "請先建立角色";
-        }
-        return await weapon(cmd[1], user.name, userId);
+        lose = _.get(user, "lost", 0);
+        cName = _.get(user, "name", "");
     } catch (err) {
         console.log(err);
     } finally {
         client.close();
     }
+    return new Discord.MessageEmbed()
+        .setColor('#0099ff')
+        .setTitle("鍛造師"+cName)
+        .addFields(
+            {name: '拿著你鍛造武器冒險死亡人數', value: lose},
+        )
+        .setTimestamp();
 }
-
