@@ -43,7 +43,7 @@ slack_client.on('message', async function (message) {
     }
     slack_client.getUsers()._value.members.forEach(function (elem) {
         if (elem.id === message.user) {
-            realName = elem.real_name;
+            realName = elem.name;
         }
     });
     //指定使用-l 開頭
@@ -62,17 +62,37 @@ slack_client.on('message', async function (message) {
     if (title) {
         text += "*" + title + "*\n";
     }
+    text += "```";
     let fields = _.get(res, "fields", null);
     if (!fields) {
         text = res;
     } else {
         _.forEach(fields, function (value) {
-            text += "• " + value.name + " \n";
-            text += value.value + " \n";
+            if (value.value !== '\u200B') {
+                text += "• " + value.name;
+                if (_.includes(["武器名稱", "武器分類"], value.name)) {
+                    text += " : ";
+                } else if (_.includes(["攻擊力", "防禦力", "敏捷", "暴擊率"], value.name)) {
+                    text += " : ";
+                } else {
+                    text += " \n";
+                }
+                if (_.includes(["攻擊力", "防禦力", "敏捷", "暴擊率"], value.name)) {
+                    text += value.value + " | ";
+                    if (value.name === "暴擊率") {
+                        text += "\n";
+                    }
+                } else {
+                    text += value.value + " \n";
+                }
+
+
+            }
         });
     }
+    text += "```";
     console.log(res);
-    slack_client.postMessage(message.channel, ">" + realName + "\n" + text);
+    slack_client.postMessage(message.channel, "@" + realName + "\n" + text);
 });
 
 client.login(auth.token);

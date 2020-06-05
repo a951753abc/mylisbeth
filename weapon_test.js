@@ -90,7 +90,7 @@ module.exports = async function (weaponName, name, userId) {
     let place = placeList[Math.floor(Math.random() * placeList.length)];
     //隨機層數
     let floor = Math.floor(Math.random() * 100 + 1);
-    let battleResult = battle(weapon, npc, npcNameList);
+    let battleResult = await battle(weapon, npc, npcNameList);
     let text = npc.name + "，拿著" + name + "鑄造的" + weaponName + "，前往第" + floor + "層的" + place
         + "。\n " + npc.name + "碰到 " + battleResult.name + " 發生不得不戰鬥的危機！"
     console.log(battleResult.text);

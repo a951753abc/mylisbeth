@@ -1,0 +1,26 @@
+[
+  {
+    "category": "[Hell]",
+    "hp": 100,
+    "atk": 4,
+    "def": 2,
+    "agi": 2,
+    "cri": 10
+  },
+  {
+    "category": "[Normal]",
+    "hp": 22,
+    "atk": 2,
+    "def": 1,
+    "agi": 1,
+    "cri": 10
+  },
+  {
+    "category": "[Easy]",
+    "hp": 10,
+    "atk": 1,
+    "def": 0,
+    "agi": 0,
+    "cri": 10
+  }
+]
