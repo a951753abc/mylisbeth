@@ -27,7 +27,7 @@ module.exports = async function (cmd, userId) {
     }
     return new Discord.MessageEmbed()
         .setColor('#0099ff')
-        .setTitle("鍛造師"+cName)
+        .setTitle("鍛造師" + cName)
         .addFields(
             {name: '拿著你鍛造武器冒險死亡人數', value: lose},
         )

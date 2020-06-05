@@ -1,7 +1,9 @@
+const _ = require('lodash');
 const auth = require("./auth.js");
 const weapon = require("./weapon_test.js");
 const mongoClient = require('mongodb').MongoClient;
 const uri = auth.uri;
+const coolTime = 15 * 1000;// 15秒
 
 module.exports = async function (cmd, userId) {
     if (cmd[1] === undefined || cmd[1] === null) {
@@ -21,6 +23,17 @@ module.exports = async function (cmd, userId) {
         let user = await collection.findOne(query);
         if (user === null) {
             return "請先建立角色";
+        }
+        let m = (+new Date());
+        let moveTime = _.get(user, "move_time", 0);
+        console.log(m);
+        console.log(moveTime);
+        console.log(m - moveTime);
+        if ((moveTime > 0) && (m - moveTime < coolTime)) {
+            console.log(m);
+            console.log(moveTime);
+            console.log(m - moveTime);
+            return "CD時間還有" + Math.floor((moveTime + coolTime - m) / 1000) + "秒";
         }
         return await weapon(cmd[1], user.name, userId);
     } catch (err) {
