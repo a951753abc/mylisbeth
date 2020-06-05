@@ -15,23 +15,21 @@ const eneExample = require("./ene/list.json");
  * 暴擊骰 = 2D6>暴擊率
  * 傷害骰總和在暴擊率之上的時候，繼續骰傷害骰
  */
-async function getEne() {
-    let eneList = await _.clone(eneExample);
-    console.log(eneList);
+function getEne() {
     let enemyRoll = Math.floor(Math.random() * 100) + 1;
     if (enemyRoll > 50) {
-        return eneList[0];
+        return _.clone(eneExample[0]);
     } else if (enemyRoll > 10) {
-        return eneList[1];
+        return  _.clone(eneExample[1]);
     } else {
-        return eneList[2];
+        return _.clone(eneExample[2]);
     }
 }
 module.exports = async function (weapon, npc, npcNameList) {
     let roundLimit = 5;
     let round = 1;
     let enemy = npcNameList[Math.floor(Math.random() * npcNameList.length)];
-    let ene = await getEne();
+    let ene = getEne();
     //骰 2D6+敏捷
     let agiAct = function(agi) {
         return roll.d66() + agi;
@@ -41,8 +39,8 @@ module.exports = async function (weapon, npc, npcNameList) {
     battle.name = ene.category + enemy.name;
     while (npc.hp > 0 && ene.hp > 0 && round <= roundLimit) {
         battle.text += "第" + round + "回合\n";
-        let npcAct = await agiAct(weapon.agi);
-        let eneAct = await agiAct(ene.agi);
+        let npcAct = agiAct(weapon.agi);
+        let eneAct = agiAct(ene.agi);
         //battle.text += npc.name + "行動值" + npcAct + " ，";
         //battle.text += battle.name + "行動值" + eneAct + " ，";
         let npcAttack = function () {
@@ -57,27 +55,28 @@ module.exports = async function (weapon, npc, npcNameList) {
         };
         if (npcAct >= eneAct) {
             //battle.text += npc.name + " 率先行動。";
-            if (await npcAttack() <= 0) {
+            if (npcAttack() <= 0) {
                 battle.text +=  battle.name + "倒下了。 \n";
                 battle.status = 1;
                 break;
             }
-            if (await eneAttack() <= 0) {
+            if (eneAttack() <= 0) {
                 battle.text +=  npc.name + "倒下了。 \n";
                 break;
             }
         } else {
             //battle.text += battle.name + " 率先行動。";
-            if (await eneAttack() <= 0) {
+            if (eneAttack() <= 0) {
                 battle.text +=  npc.name + "倒下了。 \n";
                 break;
             }
-            if (await npcAttack() <= 0) {
+            if (npcAttack() <= 0) {
                 battle.text +=  battle.name + "倒下了。 \n";
                 battle.status = 1;
                 break;
             }
         }
+        battle.text += "\n";
         round++;
     }
     if (round > roundLimit) {
