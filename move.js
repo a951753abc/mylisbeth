@@ -26,13 +26,7 @@ module.exports = async function (cmd, userId) {
         }
         let m = (+new Date());
         let moveTime = _.get(user, "move_time", 0);
-        console.log(m);
-        console.log(moveTime);
-        console.log(m - moveTime);
         if ((moveTime > 0) && (m - moveTime < coolTime)) {
-            console.log(m);
-            console.log(moveTime);
-            console.log(m - moveTime);
             return "CD時間還有" + Math.floor((moveTime + coolTime - m) / 1000) + "秒";
         }
         return await weapon(cmd[1], user.name, userId);
