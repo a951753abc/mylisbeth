@@ -26,6 +26,7 @@ function getEne() {
     }
 }
 module.exports = async function (weapon, npc, npcNameList) {
+    npc.hp += weapon.hp;
     let roundLimit = 5;
     let round = 1;
     let enemy = npcNameList[Math.floor(Math.random() * npcNameList.length)];

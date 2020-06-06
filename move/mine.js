@@ -49,8 +49,8 @@ async function mineSave(user, mine) {
     let query = {userId: user.userId};
     let newValue;
     let item = _.filter(user.itemStock, {itemId:mine.itemId, itemLevel:mine.level.itemLevel});
-    let itemNum = _.get(item[0], "itemNum", 0);
-    if (itemNum === 0) {
+    let itemNum = _.get(item[0], "itemNum", undefined);
+    if (itemNum === undefined) {
         newValue = {$push: {"itemStock":{itemId:mine.itemId, itemLevel:mine.level.itemLevel, itemNum:1, itemName:mine.name}}};
         await db.update("user", query, newValue);
     } else {
