@@ -15,7 +15,7 @@ module.exports = async function (cmd, userId) {
         itemListText = "無";
     } else {
         _.forEach(user.itemStock, function (value, key) {
-            itemListText += "編號:" + (key + 1) + " ";
+            itemListText += "編號:" + key + " ";
             itemListText += "[" + type.ssrList(value.itemLevel) + "]" + value.itemName + " 數量:" + value.itemNum + "\n";
         });
     }

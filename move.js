@@ -4,7 +4,7 @@ const weapon = require("./weapon_test.js");
 const coolTime = 5 * 1000;// 15秒
 const mine = require("./move/mine.js");
 const forge = require("./move/forge.js");
-const cmdList = {mine: mine};
+const cmdList = {mine: mine, forge:forge};
 module.exports = async function (cmd, userId) {
     if (!(cmd[1] in cmdList)) {
         return "指令錯誤\n 可用 -l help 查詢指令一覽";
