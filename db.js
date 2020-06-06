@@ -74,3 +74,21 @@ module.exports.update = async function (collectName, filter, newValue) {
         client.close();
     }
 }
+module.exports.aggregate = async function (collectName, filter) {
+    let client = await mongoClient.connect(uri, {useUnifiedTopology: true})
+        .catch(err => {
+            console.log(err);
+        });
+    if (!client) {
+        return false;
+    }
+    let db = client.db("lisbeth");
+    let collection = db.collection(collectName);
+    try {
+        return await collection.aggregate(filter).toArray();
+    } catch (err) {
+        console.log(err);
+    } finally {
+        client.close();
+    }
+}

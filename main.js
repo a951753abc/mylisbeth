@@ -65,7 +65,7 @@ slack_client.on('message', async function (message) {
     text += "```";
     let fields = _.get(res, "fields", null);
     if (!fields) {
-        text = res;
+        text += res;
     } else {
         _.forEach(fields, function (value) {
             if (value.value !== '\u200B') {

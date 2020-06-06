@@ -4,17 +4,31 @@ const level = require("../level");
 const db = require("../db.js");
 const drawLevelList = [
     [
-        {itemLevel:3, less:4, text:"SSR"},
-        {itemLevel:2, less:20, text:"SR"},
-        {itemLevel:1, less:100, text:"R"}
+        {itemLevel:3, less:4, text:"★★★"},
+        {itemLevel:2, less:20, text:"★★"},
+        {itemLevel:1, less:100, text:"★"}
     ],
     [
-        {itemLevel:3, less:6, text:"SSR"},
-        {itemLevel:2, less:24, text:"SR"},
-        {itemLevel:1, less:100, text:"R"}
+        {itemLevel:3, less:6, text:"★★★"},
+        {itemLevel:2, less:24, text:"★★"},
+        {itemLevel:1, less:100, text:"★"}
     ]
 ];
+const itemLimit = 5;
 module.exports = async function (cmd, user) {
+    //判斷素材庫滿了沒有
+    let filter = [
+        { $match : { userId : user.userId}},
+        { $project: {
+                "values": { "$sum": "$itemStock.itemNum" },
+                "name": 1,
+            } },
+    ];
+    let item = await db.aggregate("user", filter);
+    let nowItems = itemLimit + user.mineLevel;
+    if (item[0].values > nowItems) {
+        return "無法繼續挖礦 \n 目前素材數:" + item[0].values + " \n 素材儲存上限 " + nowItems;
+    }
     let mineList = await db.find("item", "");
     let mine = mineList[Math.floor(Math.random() * mineList.length)];
     let mineLevel = _.get(user, "mineLevel", 1);
@@ -24,6 +38,10 @@ module.exports = async function (cmd, user) {
     await mineSave(user, mine);
     //獲得挖礦經驗
     text += await level(cmd[1], user);
+    //寫入CD時間
+    let m = (+new Date());
+    let query = {userId: user.userId};
+    await db.update("user", query, {$set: {move_time:m}})
     return text;
 }
 
@@ -37,7 +55,6 @@ async function mineSave(user, mine) {
         await db.update("user", query, newValue);
     } else {
         query = {userId: user.userId, itemStock:{itemId:mine.itemId, itemLevel:mine.level.itemLevel, itemNum:itemNum, itemName:mine.name}};
-        let res = await db.findOne("user", query);
         newValue = {$inc: {"itemStock.$.itemNum":1}};
         await db.update("user", query, newValue);
     }

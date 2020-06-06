@@ -1,5 +1,5 @@
 const typeList = {mine:"挖礦"};
-const ssrList = {3:"SSR", 2:"SR", 1:"R"};
+const ssrList = {3:"★★★", 2:"★★", 1:"★"};
 module.exports = function (type) {
     return typeList[type];
 }

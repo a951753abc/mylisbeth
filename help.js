@@ -6,7 +6,8 @@ const exampleEmbed = new Discord.MessageEmbed()
     .addFields(
         { name: 'help', value: '呼叫這個選單' },
         { name: 'create [人物名稱]', value: '建立你的人物' },
-        { name: 'move [武器名稱]', value: '鍛造你的武器給人去冒險' },
+        { name: 'move mine', value: '挖掘素材' },
+        { name: 'move forge [素材1編號] [素材2編號]', value: '鍛造武器' },
         { name: 'info', value: '觀看人物資訊' },
     )
     .setTimestamp();
