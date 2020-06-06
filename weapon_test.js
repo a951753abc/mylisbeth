@@ -121,11 +121,7 @@ async function dbProcess(userId) {
         let lose = _.get(user, "lost", 0);
         lose++;
         let newValue = {$set: {lost: lose, move_time:m}};
-        await collection.updateOne({userId: userId}, newValue, function (err, res) {
-            if (err) {
-                console.log(err);
-            }
-        });
+        await collection.updateOne({userId: userId}, newValue);
     } catch (err) {
         console.log(err);
     } finally {
