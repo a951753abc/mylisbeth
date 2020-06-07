@@ -64,6 +64,7 @@ module.exports = async function (cmd, user) {
     newNovel.addFields(
         {name: '武器名稱', value: weaponName, inline: true},
         {name: '武器分類', value: thisWeapon.name, inline: true},
+        {name: '武器編號', value: cmd[2], inline: true},
         {name: '\u200B', value: '\u200B', inline: true},
     ).addFields(
         {name: '攻擊力', value: thisWeapon.atk, inline: true},
