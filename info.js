@@ -20,10 +20,21 @@ module.exports = async function (cmd, userId) {
         itemNums = "無";
     } else {
         _.forEach(user.itemStock, function (value, key) {
-            itemListKey += key + "\n";
-            itemListText += "[" + type.ssrList(value.itemLevel) + "]" + value.itemName + "\n";
-            itemNums += value.itemNum + "\n";
+            if (value.itemNum > 0) {
+                itemListKey += key + "\n";
+                itemListText += "[" + type.ssrList(value.itemLevel) + "]" + value.itemName + "\n";
+                itemNums += value.itemNum + "\n";
+            }
         });
+    }
+    if (_.isEmpty(itemListText)) {
+        itemListText = "無";
+    }
+    if (_.isEmpty(itemListKey)) {
+        itemListKey = "無";
+    }
+    if (_.isEmpty(itemNums)) {
+        itemNums = "無";
     }
     if (_.get(user, "weaponStock", 0) === 0) {
         weaponListText = "無";

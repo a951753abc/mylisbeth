@@ -88,6 +88,7 @@ module.exports = async function (cmd, user) {
             {name: '武器製造經過', value: thisWeapon.text}
         );
 //取得道具列表重新顯示
+    /**
     user = await db.findOne("user", {userId: user.userId});
     let itemListText = "";
     let itemListKey = "";
@@ -108,7 +109,7 @@ module.exports = async function (cmd, user) {
         {name: '編號', value: itemListKey, inline:true},
         {name: '名稱', value: itemListText, inline:true},
         {name: '數量', value: itemNums, inline:true},
-    )
+    )*/
     return newNovel;
 }
 

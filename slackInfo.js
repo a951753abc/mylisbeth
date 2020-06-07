@@ -15,9 +15,14 @@ module.exports = async function (cmd, userId) {
         itemListText = "無";
     } else {
         _.forEach(user.itemStock, function (value, key) {
-            itemListText += "編號:" + key + " ";
-            itemListText += "[" + type.ssrList(value.itemLevel) + "]" + value.itemName + " 數量:" + value.itemNum + "\n";
+            if (value.itemNum > 0) {
+                itemListText += "編號:" + key + " ";
+                itemListText += "[" + type.ssrList(value.itemLevel) + "]" + value.itemName + " 數量:" + value.itemNum + "\n";
+            }
         });
+    }
+    if (_.isEmpty(itemListText)) {
+        itemListText = "無";
     }
     let weaponListText = "";
     if (_.get(user, "weaponStock", 0) === 0) {

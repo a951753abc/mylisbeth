@@ -23,7 +23,7 @@ module.exports.buffWeapon = function (cmd, user) {
         thisWeapon.text += "武器強化失敗！\n";
     }
     //強化有2D6 < (10-鍛造等級) 減少耐久
-    let durabilityCheck = 10 - forgeLevel;
+    let durabilityCheck = 9 - forgeLevel;
     if (durabilityCheck < 3) {
         durabilityCheck = 2;
     }
@@ -50,7 +50,7 @@ module.exports.createWeapon = async function (cmd, user) {
     _.set(weapon, 'weaponName', cmd[4]);
     _.set(weapon, 'weaponName', cmd[4]);
     _.set(weapon, 'hp', 0);
-    _.set(weapon, 'durability', roll.d6());
+    _.set(weapon, 'durability', roll.d66());
     _.set(weapon, 'text', "");
     weapon.text += "使用" + user.itemStock[cmd[2]].itemName + "和" + user.itemStock[cmd[3]].itemName + "製作完成\n";
     //五種屬性全部都是20%機率起跳
