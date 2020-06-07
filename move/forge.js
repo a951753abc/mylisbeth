@@ -57,7 +57,7 @@ module.exports = async function (cmd, user) {
     //寫回user
     db.update("user", {userId:user.userId}, {$set: {itemStock:user.itemStock}});
     //如果武器耐久為0就爆炸
-    if (thisWeapon.durability === 0) {
+    if (thisWeapon.durability <= 0) {
         thisWeapon.text += thisWeapon.weaponName + " 爆發四散了。";
     } else {
         let query = {userId: user.userId};

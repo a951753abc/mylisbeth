@@ -8,7 +8,8 @@ const move = require("./move.js");
 const create = require("./create.js");
 const help = require("./help.js");
 const info = require("./info.js");
-const cmdList = {create: create, help: help, move: move, info: info};
+const slack = require("./slackInfo.js");
+const cmdList = {create: create, help: help, move: move, info: info, slack:slack};
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);

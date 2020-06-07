@@ -3,9 +3,39 @@ const db = require("../db.js");
 const randWeapon = require("../weapon/category.json");
 const roll = require("../roll.js");
 const weaponPer = ["hp", "atk", "def", "agi", "durability"];
+module.exports.buffWeapon = function (cmd, user) {
+    let thisWeapon = user.weaponStock[cmd[2]];
+    let forgeLevel = _.get(user, "forgeLevel", 1);
+    //武器文字清空
+    thisWeapon.text = "";
+    //基底10%
+    //高階素材，額外增加5%機率
+    let per = 20 + ((user.itemStock[cmd[3]].itemLevel) * 5);
+    if (roll.d100Check(per)) {
+        //強化成功
+        let perName = weaponPer[parseInt(user.itemStock[cmd[3]].itemId, 10) - 1];
+        thisWeapon.text += "強化成功！\n";
+        thisWeapon.text += perName;
+        thisWeapon.text += " 提升" + forgeLevel + "點。 \n";
+        thisWeapon[perName] += forgeLevel;
+    } else {
+        thisWeapon.text += "武器強化失敗！\n";
+    }
+    //強化有2D6 < (10-鍛造等級) 減少耐久
+    let durabilityCheck = 10 - forgeLevel;
+    if (durabilityCheck < 3) {
+        durabilityCheck = 2;
+    }
+    if (roll.d66() <= durabilityCheck) {
+        let changeValue = roll.d6();
+        thisWeapon.durability = thisWeapon.durability - changeValue;
+        thisWeapon.text += "武器的耐久值下降:"  + changeValue + "點\n";
+    }
+    return thisWeapon;
+}
 module.exports.createWeapon = async function (cmd, user) {
     let forceLevel = _.get(user, "forceLevel", 1);
-    let query = {forge1:user.itemStock[cmd[2]].itemId, forge2:user.itemStock[cmd[3]].itemId};
+    let query = {forge1: user.itemStock[cmd[2]].itemId, forge2: user.itemStock[cmd[3]].itemId};
     let weapon = await db.findOne("weapon", query);
     if (!weapon) {
         //不在既定合成表上，隨機產生
@@ -74,6 +104,7 @@ module.exports.createWeapon = async function (cmd, user) {
     }
     return weapon;
 }
+
 function changeWeapon(weapon, type) {
     let per = weaponPer[Math.floor(Math.random() * weaponPer.length)];
     let changeValue = roll.d6();
