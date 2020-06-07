@@ -1,14 +1,16 @@
 const _ = require('lodash');
 const roll = require("./roll");
 //status [0->lose 1->win 2->平手
-const battle = {"text":"", "status":0, "name":""};
+const battle = {"text":"", "win":0, "dead":0, "category":"", "name":""};
 const eneExample = require("./ene/list.json");
 /**
  * @todo:重構
- * 敵人暫時分成三種難度
+ * 敵人暫時分成四+1種難度
  * easy:HP10|atk1D6|def0|agi0  10%
  * normal:HP22|atk2D6|def1|agi1 40%
- * hell HP100|atk4D6|def2|agi2 50%
+ * hard:HP54|atk3D6|def1|agi1 40%
+ * hell HP100|atk4D6|def2|agi2 9%
+ * 優樹 1% 全亂數調整
  * 戰鬥公式
  * 命中率 = 雙方2D6+敏捷 (攻擊方優勢66)
  * 傷害 = 武器傷害骰D6 - 對方防禦骰D6
@@ -17,12 +19,23 @@ const eneExample = require("./ene/list.json");
  */
 function getEne() {
     let enemyRoll = Math.floor(Math.random() * 100) + 1;
-    if (enemyRoll > 50) {
+    if (enemyRoll > 99) {
+        return {
+            "category": "[優樹]",
+            "hp": roll.d66() * roll.d66(),
+            "atk": roll.d66(),
+            "def": roll.d6(),
+            "agi": roll.d6(),
+            "cri": roll.d66()
+        };
+    } else if (enemyRoll > 90) {
         return _.clone(eneExample[0]);
-    } else if (enemyRoll > 10) {
+    } else if (enemyRoll > 50) {
         return  _.clone(eneExample[1]);
+    }  else if (enemyRoll > 10) {
+        return  _.clone(eneExample[2]);
     } else {
-        return _.clone(eneExample[2]);
+        return _.clone(eneExample[3]);
     }
 }
 module.exports = async function (weapon, npc, npcNameList) {
@@ -36,7 +49,9 @@ module.exports = async function (weapon, npc, npcNameList) {
         return roll.d66() + agi;
     };
     battle.text = "";
-    battle.status = 0;
+    battle.win = 0;
+    battle.dead = 0;
+    battle.category = ene.category;
     battle.name = ene.category + enemy.name;
     while (npc.hp > 0 && ene.hp > 0 && round <= roundLimit) {
         battle.text += "第" + round + "回合\n";
@@ -58,22 +73,24 @@ module.exports = async function (weapon, npc, npcNameList) {
             //battle.text += npc.name + " 率先行動。";
             if (npcAttack() <= 0) {
                 battle.text +=  battle.name + "倒下了。 \n";
-                battle.status = 1;
+                battle.win = 1;
                 break;
             }
             if (eneAttack() <= 0) {
                 battle.text +=  npc.name + "倒下了。 \n";
+                battle.dead = 1;
                 break;
             }
         } else {
             //battle.text += battle.name + " 率先行動。";
             if (eneAttack() <= 0) {
                 battle.text +=  npc.name + "倒下了。 \n";
+                battle.dead = 1;
                 break;
             }
             if (npcAttack() <= 0) {
                 battle.text +=  battle.name + "倒下了。 \n";
-                battle.status = 1;
+                battle.win = 1;
                 break;
             }
         }

@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const typeList = require("./type");
 const db = require("./db.js");
-const expList = {mine:10, forge:10};
+const expList = {mine:10, forge:10, adv:10};
 const levelList = {
     mine: {
         level:[
@@ -9,6 +9,11 @@ const levelList = {
         ]
     },
     forge:{
+        level:[
+            500
+        ]
+    },
+    adv:{
         level:[
             500
         ]

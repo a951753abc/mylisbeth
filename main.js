@@ -71,7 +71,7 @@ slack_client.on('message', async function (message) {
         _.forEach(fields, function (value) {
             if (value.value !== '\u200B') {
                 text += "• " + value.name;
-                if (_.includes(["武器名稱", "武器分類"], value.name)) {
+                if (_.includes(["武器名稱", "武器分類", "武器編號"], value.name)) {
                     text += " : ";
                 } else if (_.includes(["攻擊力", "防禦力", "敏捷", "暴擊率"], value.name)) {
                     text += " : ";

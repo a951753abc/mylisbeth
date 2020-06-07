@@ -8,11 +8,19 @@
     "cri": 10
   },
   {
+    "category": "[Hard]",
+    "hp": 54,
+    "atk": 3,
+    "def": 1,
+    "agi": 1,
+    "cri": 10
+  },
+  {
     "category": "[Normal]",
     "hp": 22,
     "atk": 2,
     "def": 1,
-    "agi": 1,
+    "agi": 0,
     "cri": 10
   },
   {

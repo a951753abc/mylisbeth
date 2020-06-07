@@ -38,8 +38,23 @@ module.exports = async function (cmd, userId) {
             weaponListText += "\n";
         });
     }
+    if (_.get(user, "[優樹]Win", false)) {
+        mes.addFields({name:"擊敗[優樹]", value:_.get(user, "[優樹]Win"), inline:true});
+    }
+    if (_.get(user, "[Hell]Win", false)) {
+        mes.addFields({name:"擊敗[Hell]", value:_.get(user, "[Hell]Win"), inline:true});
+    }
+    if (_.get(user, "[Hard]Win", false)) {
+        mes.addFields({name:"擊敗[Hard]", value:_.get(user, "[Hard]Win"), inline:true});
+    }
+    if (_.get(user, "[Normal]Win", false)) {
+        mes.addFields({name:"擊敗[Normal]", value:_.get(user, "[Normal]Win"), inline:true});
+    }
+    if (_.get(user, "[Easy]Win", false)) {
+        mes.addFields({name:"擊敗[Easy]", value:_.get(user, "[Easy]Win"), inline:true});
+    }
     mes.addFields(
-        {name: '拿著你鍛造武器冒險死亡人數', value: lose},
+        {name: '死亡人數', value: lose},
         {name: '技能', value: "挖礦" + "\n" + "鍛造", inline: true},
         {name: '等級', value: _.get(user, "mineLevel", 1) + "\n" +
                 _.get(user, "forgeLevel", 1), inline: true},

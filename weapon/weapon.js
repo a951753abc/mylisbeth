@@ -28,7 +28,10 @@ module.exports.buffWeapon = function (cmd, user) {
         durabilityCheck = 2;
     }
     if (roll.d66() <= durabilityCheck) {
-        let changeValue = roll.d6();
+        let changeValue = roll.d6() - forgeLevel;
+        if (changeValue === 0) {
+            changeValue = 1;
+        }
         thisWeapon.durability = thisWeapon.durability - changeValue;
         thisWeapon.text += "武器的耐久值下降:"  + changeValue + "點\n";
     }
