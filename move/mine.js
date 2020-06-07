@@ -16,7 +16,6 @@ const drawLevelList = [
 ];
 const itemLimit = 5;
 module.exports = async function (cmd, user) {
-    let mine;
     let text = "";
     let mineLevel = _.get(user, "mineLevel", 1);
     //判斷素材庫滿了沒有
@@ -35,11 +34,13 @@ module.exports = async function (cmd, user) {
     let mineList = await db.find("item", "");
     let count = item[0].values;
     while (nowItems > count) {
-        mine = _.clone(mineList[Math.floor(Math.random() * mineList.length)]);
+        let mine = _.clone(mineList[Math.floor(Math.random() * mineList.length)]);
         mine.level = drawItemLevel(mineLevel);
         text += "獲得[" + mine.level.text + "]" + mine.name + "\n";
         //挖到的礦存入道具資料
         await mineSave(user, mine);
+        //重新取得user
+        user = await db.findOne("user", {userId: user.userId});
         count++;
     }
     //獲得挖礦經驗

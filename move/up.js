@@ -3,6 +3,7 @@ const db = require("../db.js");
 const weapon = require("../weapon/weapon.js");
 const Discord = require('discord.js');
 const level = require("../level");
+const type = require("../type.js");
 module.exports = async function (cmd, user) {
     let weaponList = [];
     // 確認有無武器編號
@@ -65,7 +66,6 @@ module.exports = async function (cmd, user) {
         {name: '武器名稱', value: weaponName, inline: true},
         {name: '武器分類', value: thisWeapon.name, inline: true},
         {name: '武器編號', value: cmd[2], inline: true},
-        {name: '\u200B', value: '\u200B', inline: true},
     ).addFields(
         {name: '攻擊力', value: thisWeapon.atk, inline: true},
         {name: '防禦力', value: thisWeapon.def, inline: true},
@@ -75,7 +75,28 @@ module.exports = async function (cmd, user) {
         {name: '武器耐久值', value: thisWeapon.durability, inline: true},
         {name: '武器強化經過', value: thisWeapon.text}
     );
-
+    //取得道具列表重新顯示
+    user = await db.findOne("user", {userId: user.userId});
+    let itemListText = "";
+    let itemListKey = "";
+    let itemNums = "";
+    if (_.get(user, "itemStock", 0) === 0) {
+        itemListText = "無";
+        itemListKey = "無";
+        itemNums = "無";
+    } else {
+        _.forEach(user.itemStock, function (value, key) {
+            itemListKey += key + "\n";
+            itemListText += "[" + type.ssrList(value.itemLevel) + "]" + value.itemName + "\n";
+            itemNums += value.itemNum + "\n";
+        });
+    }
+    newNovel.addFields(
+        {name: '\u200B', value: '\u200B'},
+        {name: '編號', value: itemListKey, inline:true},
+        {name: '名稱', value: itemListText, inline:true},
+        {name: '數量', value: itemNums, inline:true},
+    )
     return newNovel;
 }
 

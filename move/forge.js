@@ -3,6 +3,7 @@ const weapon = require("../weapon/weapon.js");
 const db = require("../db.js");
 const Discord = require('discord.js');
 const level = require("../level");
+const type = require("../type.js");
 const weaponLimit = 1;
 module.exports = async function (cmd, user) {
     let weaponLevel = _.get(user, "forceLevel", 1);
@@ -86,7 +87,28 @@ module.exports = async function (cmd, user) {
             {name: '武器耐久值', value: thisWeapon.durability, inline: true},
             {name: '武器製造經過', value: thisWeapon.text}
         );
-
+//取得道具列表重新顯示
+    user = await db.findOne("user", {userId: user.userId});
+    let itemListText = "";
+    let itemListKey = "";
+    let itemNums = "";
+    if (_.get(user, "itemStock", 0) === 0) {
+        itemListText = "無";
+        itemListKey = "無";
+        itemNums = "無";
+    } else {
+        _.forEach(user.itemStock, function (value, key) {
+            itemListKey += key + "\n";
+            itemListText += "[" + type.ssrList(value.itemLevel) + "]" + value.itemName + "\n";
+            itemNums += value.itemNum + "\n";
+        });
+    }
+    newNovel.addFields(
+        {name: '\u200B', value: '\u200B'},
+        {name: '編號', value: itemListKey, inline:true},
+        {name: '名稱', value: itemListText, inline:true},
+        {name: '數量', value: itemNums, inline:true},
+    )
     return newNovel;
 }
 
