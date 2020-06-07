@@ -2,8 +2,25 @@ const _ = require('lodash');
 const weapon = require("../weapon/weapon.js");
 const db = require("../db.js");
 const Discord = require('discord.js');
+const level = require("../level");
+const weaponLimit = 1;
 module.exports = async function (cmd, user) {
-
+    let weaponLevel = _.get(user, "forceLevel", 1);
+    if (_.get(user, "weaponStock", false)) {
+        //判斷武器庫滿了沒有
+        let filter = [
+            { $match : { userId : user.userId}},
+            { $project: {
+                    "values": { "$size": "$weaponStock" },
+                    "name": 1,
+                } },
+        ];
+        let weaponNum = await db.aggregate("user", filter);
+        let nowWeaponLimit = weaponLimit + weaponLevel;
+        if (weaponNum[0].values >= nowWeaponLimit) {
+            return "無法製造武器 \n 目前武器數:" + weaponNum[0].values + " \n 武器儲存上限 " + nowWeaponLimit;
+        }
+    }
     let itemList = [];
     // 確認有無2 + 3 (素材編號
     _.forEach(user.itemStock, function (value, key) {
@@ -43,9 +60,16 @@ module.exports = async function (cmd, user) {
     if (thisWeapon.durability === 0) {
         thisWeapon.text += thisWeapon.weaponName + " 爆發四散了。";
     } else {
-        //@todo:寫入武器
-
+        let query = {userId: user.userId};
+        let newValue = {$push: {weaponStock:thisWeapon}};
+        await db.update("user", query, newValue);
     }
+    //獲得鍛造經驗
+    thisWeapon.text += await level(cmd[1], user);
+    //寫入CD時間
+    let m = (+new Date());
+    let query = {userId: user.userId};
+    await db.update("user", query, {$set: {move_time:m}})
     let newNovel = new Discord.MessageEmbed()
         .setColor('#0099ff')
         .setTimestamp();
@@ -62,30 +86,7 @@ module.exports = async function (cmd, user) {
             {name: '武器耐久值', value: thisWeapon.durability, inline: true},
             {name: '武器製造經過', value: thisWeapon.text}
         );
-    if (thisWeapon.durability > 0) {
-        //冒險example
-        //先隨機取得要給武器的人
-        const npcNameList = require("../npc/list.json");
-        const battle = require("../battle");
-        let npcExample = npcNameList[Math.floor(Math.random() * npcNameList.length)];
-        let npc = _.clone(npcExample);
-        const placeList = [
-            "迷宮",
-            "深山",
-            "沼澤",
-            "樹林",
-            "城鎮外",
-        ];
-        //隨機冒險地點
-        let place = placeList[Math.floor(Math.random() * placeList.length)];
-        //隨機層數
-        let floor = Math.floor(Math.random() * 100 + 1);
-        let battleResult = await battle(thisWeapon, npc, npcNameList);
-        let text = npc.name + "，拿著" + user.name + "鑄造的" + cmd[4] + "，前往第" + floor + "層的" + place
-            + "。\n " + npc.name + "碰到 " + battleResult.name + " 發生不得不戰鬥的危機！"
-        newNovel.addFields({name: '經過', value: text});
-        newNovel.addFields({name: '戰鬥過程', value: battleResult.text});
-    }
+
     return newNovel;
 }
 

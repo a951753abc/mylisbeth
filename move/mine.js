@@ -16,6 +16,7 @@ const drawLevelList = [
 ];
 const itemLimit = 5;
 module.exports = async function (cmd, user) {
+    let mineLevel = _.get(user, "mineLevel", 1);
     //判斷素材庫滿了沒有
     let filter = [
         { $match : { userId : user.userId}},
@@ -25,13 +26,12 @@ module.exports = async function (cmd, user) {
             } },
     ];
     let item = await db.aggregate("user", filter);
-    let nowItems = itemLimit + user.mineLevel;
-    if (item[0].values > nowItems) {
+    let nowItems = itemLimit + mineLevel;
+    if (item[0].values >= nowItems) {
         return "無法繼續挖礦 \n 目前素材數:" + item[0].values + " \n 素材儲存上限 " + nowItems;
     }
     let mineList = await db.find("item", "");
     let mine = mineList[Math.floor(Math.random() * mineList.length)];
-    let mineLevel = _.get(user, "mineLevel", 1);
     mine.level = drawItemLevel(mineLevel);
     let text = "獲得[" + mine.level.text + "]" + mine.name + "\n\n";
     //挖到的礦存入道具資料
