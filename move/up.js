@@ -57,8 +57,12 @@ module.exports = async function (cmd, user) {
     let newNovel = new Discord.MessageEmbed()
         .setColor('#0099ff')
         .setTimestamp();
+    let weaponName = thisWeapon.weaponName;
+    if (_.get(thisWeapon, "buff", false)) {
+        weaponName = weaponName + "+" + thisWeapon.buff;
+    }
     newNovel.addFields(
-        {name: '武器名稱', value: thisWeapon.weaponName, inline: true},
+        {name: '武器名稱', value: weaponName, inline: true},
         {name: '武器分類', value: thisWeapon.name, inline: true},
         {name: '\u200B', value: '\u200B', inline: true},
     ).addFields(

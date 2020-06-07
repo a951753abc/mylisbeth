@@ -18,6 +18,7 @@ module.exports.buffWeapon = function (cmd, user) {
         thisWeapon.text += perName;
         thisWeapon.text += " 提升" + forgeLevel + "點。 \n";
         thisWeapon[perName] += forgeLevel;
+        thisWeapon.buff = _.get(thisWeapon, "buff", 0) +  1;
     } else {
         thisWeapon.text += "武器強化失敗！\n";
     }

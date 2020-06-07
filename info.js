@@ -27,8 +27,12 @@ module.exports = async function (cmd, userId) {
         weaponListText = "無";
     } else {
         _.forEach(user.weaponStock, function (value, key) {
+            let weaponName = value.weaponName;
+            if (_.get(value, "buff", false)) {
+                weaponName = weaponName + "+" + value.buff;
+            }
             weaponListText += "編號:" + key + " ";
-            weaponListText += "[" + value.name + "]" + value.weaponName + "\n";
+            weaponListText += "[" + value.name + "]" + weaponName + "\n";
             weaponListText += "|攻擊力" + value.atk + "|防禦力" + value.def + "|敏捷" + value.agi + "|\n";
             weaponListText += "|暴擊率" + value.cri + "|生命力" + value.hp + "|耐久值" + value.durability + "|\n";
             weaponListText += "\n";
