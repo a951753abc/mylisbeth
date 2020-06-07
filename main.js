@@ -3,7 +3,7 @@ const Discord = require("discord.js");
 const SlackBot = require('slackbots');
 const client = new Discord.Client();
 const auth = require("./auth.js");
-const slack_client = new SlackBot({token: auth.slack});
+const slack_client = new SlackBot({token: auth.slack, name:"myLisbeth"});
 const move = require("./move.js");
 const create = require("./create.js");
 const help = require("./help.js");
@@ -93,7 +93,7 @@ slack_client.on('message', async function (message) {
     }
     text += "```";
     console.log(res);
-    slack_client.postMessage(message.channel, "@" + realName + "\n" + text);
+    slack_client.postMessage(message.channel, "@" + realName + "\n" + text, {as_user:true});
 });
 
 client.login(auth.token);

@@ -7,6 +7,7 @@ const roll = require("../roll.js");
 const npcNameList = require("../npc/list.json");
 const eneNameList = require("../ene/name.json");
 const battle = require("../battle");
+const mineModule = require("../move/mine.js");
 const placeList = [
     "迷宮",
     "深山",
@@ -87,6 +88,8 @@ module.exports = async function (cmd, user) {
         mod["$set"][winString] = user[winString];
         mod["$set"]["move_time"] = m;
         await db.update("user", {userId: user.userId}, mod);
+        //根據敵方難度高機率獲得稀少素材
+        battleResult.text += await mineBattle(user, battleResult.category);
     } else if (battleResult.dead === 1) {
         if (_.get(user, "lost", false)) {
             user.lost = user.lost + 1;
@@ -100,4 +103,40 @@ module.exports = async function (cmd, user) {
     newNovel.addFields({name: '經過', value: text});
     newNovel.addFields({name: '戰鬥過程', value: battleResult.text});
     return newNovel;
+}
+async function mineBattle(user, category) {
+    const battleMineList = [
+        {category:"[優樹]", list:[{itemLevel:3, less:100, text:"★★★"}]},
+        {category:"[Hell]", list:[{itemLevel:3, less:40, text:"★★★"}, {itemLevel:2, less:100, text:"★★"}]},
+        {category:"[Hard]", list:[{itemLevel:3, less:30, text:"★★★"}, {itemLevel:2, less:100, text:"★★"}]},
+        {category:"[Normal]", list:[{itemLevel:3, less:20, text:"★★★"}, {itemLevel:2, less:100, text:"★★"}]},
+        {category:"[Easy]", list:[{itemLevel:3, less:10, text:"★★★"}, {itemLevel:2, less:100, text:"★★"}]}
+    ];
+    let mineList = await db.find("item", "");
+    let mine = _.clone(mineList[Math.floor(Math.random() * mineList.length)]);
+    let list =  _.find(battleMineList, ['category', category]);
+    let thisItemLevelList = list.list;
+    let itemLevel = 0;
+    let levelCount = 0;
+    while (itemLevel === 0) {
+        if (roll.d100Check(thisItemLevelList[levelCount].less)) {
+            itemLevel = thisItemLevelList[levelCount].itemLevel;
+        }
+        levelCount++;
+    }
+    mine.level = thisItemLevelList[levelCount - 1];
+    //存入道具資料
+    let query = {userId: user.userId};
+    let newValue;
+    let item = _.filter(user.itemStock, {itemId:mine.itemId, itemLevel:mine.level.itemLevel});
+    let itemNum = _.get(item[0], "itemNum", undefined);
+    if (itemNum === undefined) {
+        newValue = {$push: {"itemStock":{itemId:mine.itemId, itemLevel:mine.level.itemLevel, itemNum:1, itemName:mine.name}}};
+        await db.update("user", query, newValue);
+    } else {
+        query = {userId: user.userId, itemStock:{itemId:mine.itemId, itemLevel:mine.level.itemLevel, itemNum:itemNum, itemName:mine.name}};
+        newValue = {$inc: {"itemStock.$.itemNum":1}};
+        await db.update("user", query, newValue);
+    }
+    return "獲得[" + mine.level.text + "]" + mine.name + "\n";
 }
