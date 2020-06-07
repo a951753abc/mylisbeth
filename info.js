@@ -16,6 +16,8 @@ module.exports = async function (cmd, userId) {
     let itemNums = "";
     if (_.get(user, "itemStock", 0) === 0) {
         itemListText = "無";
+        itemListKey = "無";
+        itemNums = "無";
     } else {
         _.forEach(user.itemStock, function (value, key) {
             itemListKey += key + "\n";

@@ -16,6 +16,8 @@ const drawLevelList = [
 ];
 const itemLimit = 5;
 module.exports = async function (cmd, user) {
+    let mine;
+    let text = "";
     let mineLevel = _.get(user, "mineLevel", 1);
     //判斷素材庫滿了沒有
     let filter = [
@@ -31,11 +33,15 @@ module.exports = async function (cmd, user) {
         return "無法繼續挖礦 \n 目前素材數:" + item[0].values + " \n 素材儲存上限 " + nowItems;
     }
     let mineList = await db.find("item", "");
-    let mine = mineList[Math.floor(Math.random() * mineList.length)];
-    mine.level = drawItemLevel(mineLevel);
-    let text = "獲得[" + mine.level.text + "]" + mine.name + "\n\n";
-    //挖到的礦存入道具資料
-    await mineSave(user, mine);
+    let count = item[0].values;
+    while (nowItems > count) {
+        mine = _.clone(mineList[Math.floor(Math.random() * mineList.length)]);
+        mine.level = drawItemLevel(mineLevel);
+        text += "獲得[" + mine.level.text + "]" + mine.name + "\n";
+        //挖到的礦存入道具資料
+        await mineSave(user, mine);
+        count++;
+    }
     //獲得挖礦經驗
     text += await level(cmd[1], user);
     //寫入CD時間
