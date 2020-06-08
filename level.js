@@ -5,11 +5,13 @@ const expList = {mine:10, forge:10, adv:10};
 const levelList = {
     mine: {
         level:[
-            150
+            150,
+            200
         ]
     },
     forge:{
         level:[
+            500,
             500
         ]
     },

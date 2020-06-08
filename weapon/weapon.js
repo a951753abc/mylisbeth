@@ -3,33 +3,44 @@ const db = require("../db.js");
 const randWeapon = require("../weapon/category.json");
 const roll = require("../roll.js");
 const weaponPer = ["hp", "atk", "def", "agi", "durability"];
+const hpUp = [1, 5, 10, 15, 20, 25, 30, 35, 40];
 module.exports.buffWeapon = function (cmd, user) {
     let thisWeapon = user.weaponStock[cmd[2]];
     let forgeLevel = _.get(user, "forgeLevel", 1);
     //武器文字清空
     thisWeapon.text = "";
-    //基底10%
+    //基底20%
     //高階素材，額外增加5%機率
-    let per = 20 + ((user.itemStock[cmd[3]].itemLevel) * 5);
+    //額外加鑄造等級*10%
+    let per = 20 + ((user.itemStock[cmd[3]].itemLevel) * 5) + (forgeLevel * 10);
+    let isBuff = false;
     if (roll.d100Check(per)) {
         //強化成功
         let perName = weaponPer[parseInt(user.itemStock[cmd[3]].itemId, 10) - 1];
+        if (perName === "hp") {
+            forgeLevel = hpUp[(roll.d6() - 1) + forgeLevel];
+        }
         thisWeapon.text += "強化成功！\n";
         thisWeapon.text += perName;
         thisWeapon.text += " 提升" + forgeLevel + "點。 \n";
         thisWeapon[perName] += forgeLevel;
         thisWeapon.buff = _.get(thisWeapon, "buff", 0) +  1;
+        isBuff = true;
     } else {
         thisWeapon.text += "武器強化失敗！\n";
     }
-    //強化有2D6 < (10-鍛造等級) 減少耐久
+    //強化成功不扣耐久
+    if (isBuff) {
+        return thisWeapon;
+    }
+    //強化有2D6 < (9-鍛造等級) 減少耐久
     let durabilityCheck = 9 - forgeLevel;
     if (durabilityCheck < 3) {
         durabilityCheck = 2;
     }
     if (roll.d66() <= durabilityCheck) {
         let changeValue = roll.d6() - forgeLevel;
-        if (changeValue === 0) {
+        if (changeValue <= 0) {
             changeValue = 1;
         }
         thisWeapon.durability = thisWeapon.durability - changeValue;

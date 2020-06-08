@@ -19,7 +19,7 @@ const eneExample = require("./ene/list.json");
  */
 function getEne() {
     let enemyRoll = Math.floor(Math.random() * 100) + 1;
-    if (enemyRoll > 99) {
+    if (enemyRoll > 94) {
         return {
             "category": "[優樹]",
             "hp": roll.d66() * roll.d66(),
@@ -28,7 +28,7 @@ function getEne() {
             "agi": roll.d6(),
             "cri": roll.d66()
         };
-    } else if (enemyRoll > 90) {
+    } else if (enemyRoll > 80) {
         return _.clone(eneExample[0]);
     } else if (enemyRoll > 50) {
         return  _.clone(eneExample[1]);

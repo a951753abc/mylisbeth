@@ -12,6 +12,11 @@ const drawLevelList = [
         {itemLevel:3, less:6, text:"★★★"},
         {itemLevel:2, less:24, text:"★★"},
         {itemLevel:1, less:100, text:"★"}
+    ],
+    [
+        {itemLevel:3, less:8, text:"★★★"},
+        {itemLevel:2, less:24, text:"★★"},
+        {itemLevel:1, less:100, text:"★"}
     ]
 ];
 const itemLimit = 5;

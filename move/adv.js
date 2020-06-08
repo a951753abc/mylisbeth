@@ -24,6 +24,9 @@ module.exports = async function (cmd, user) {
     _.forEach(user.weaponStock, function (value, key) {
         weaponList.push(key);
     });
+    if (cmd[2] === undefined) {
+        cmd[2] = 0;
+    }
     if (!(cmd[2] in weaponList)) {
         return "錯誤！武器" + cmd[2] + " 不存在";
     }
