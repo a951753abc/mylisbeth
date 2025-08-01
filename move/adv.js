@@ -1,9 +1,9 @@
 const _ = require('lodash');
 const config = require('../config.js'); // 引入設定檔
 const db = require("../db.js");
-//const weapon = require("../weapon/weapon.js");
+const weapon = require("../weapon/weapon.js");
 const Discord = require('discord.js');
-//const level = require("../level");
+const level = require("../level");
 const roll = require("../roll.js");
 const npcNameList = require("../npc/list.json");
 const eneNameList = require("../ene/name.json");
@@ -95,10 +95,11 @@ module.exports = async function (cmd, user) {
             const mineBattlePromise = mineBattle(user, battleResult.category);
 
             // 2. 使用 Promise.all 等待兩個操作同時完成
-            const [_, mineResultText] = await Promise.all([
+            const results = await Promise.all([
                 updateUserPromise,
                 mineBattlePromise
             ]);
+            const mineResultText = results[1];
 
             // 3. 將戰鬥後挖礦的結果附加到文字中
             battleResult.text += mineResultText;

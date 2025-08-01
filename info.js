@@ -36,6 +36,9 @@ module.exports = async function (cmd, userId) {
     if (_.isEmpty(itemNums)) {
         itemNums = "無";
     }
+    if (_.isEmpty(weaponListText)) {
+        weaponListText = "無";
+    }
     if (_.get(user, "weaponStock", 0) === 0) {
         weaponListText = "無";
     } else {
