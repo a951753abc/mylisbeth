@@ -140,3 +140,17 @@ function changeWeapon(weapon, type) {
         _.set(weapon, 'text', weapon.text + text);
     }
 }
+
+// 共用的武器銷毀函式
+module.exports.destroyWeapon = async function(userId, weaponIndex) {
+    console.log(`正在銷毀使用者 ${userId} 的武器，編號: ${weaponIndex}`);
+    const query = { userId: userId };
+    const weaponUnset = "weaponStock." + weaponIndex;
+    const mod = { "$unset": {} };
+    mod["$unset"][weaponUnset] = 1;
+
+    // 執行資料庫操作
+    await db.update("user", query, mod);
+    // 使用 $pull 清理陣列中的 null 值
+    await db.update("user", query, { $pull: { "weaponStock": null } });
+};

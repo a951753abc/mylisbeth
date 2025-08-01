@@ -12,7 +12,6 @@
   "dependencies": {
     "discord.js": "^12.2.0",
     "lodash": "^4.17.15",
-    "mongodb": "^3.5.8",
-    "slackbots": "^1.2.0"
+    "mongodb": "^3.5.8"
   }
 }

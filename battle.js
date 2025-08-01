@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const config = require('./config.js'); // 引入設定檔
 const roll = require("./roll");
 //status [0->lose 1->win 2->平手
 const battle = {"text":"", "win":0, "dead":0, "category":"", "name":""};
@@ -19,7 +20,7 @@ const eneExample = require("./ene/list.json");
  */
 function getEne() {
     let enemyRoll = Math.floor(Math.random() * 100) + 1;
-    if (enemyRoll > 94) {
+    if (enemyRoll > config.ENEMY_PROBABILITY.YUKI) {
         return {
             "category": "[優樹]",
             "hp": roll.d66() * roll.d66(),
@@ -28,11 +29,11 @@ function getEne() {
             "agi": roll.d6(),
             "cri": roll.d66()
         };
-    } else if (enemyRoll > 80) {
+    } else if (enemyRoll > config.ENEMY_PROBABILITY.HELL) {
         return _.clone(eneExample[0]);
-    } else if (enemyRoll > 50) {
+    } else if (enemyRoll > config.ENEMY_PROBABILITY.HARD) {
         return  _.clone(eneExample[1]);
-    }  else if (enemyRoll > 10) {
+    }  else if (enemyRoll > config.ENEMY_PROBABILITY.NORMAL) {
         return  _.clone(eneExample[2]);
     } else {
         return _.clone(eneExample[3]);

@@ -1,6 +1,7 @@
 const _ = require('lodash');
+const config = require('./config.js');
 const db = require("./db.js");
-const coolTime = 5 * 1000;// 15秒
+const coolTime = config.MOVE_COOLDOWN;// 15秒
 const mine = require("./move/mine.js");
 const forge = require("./move/forge.js");
 const up = require("./move/up.js");

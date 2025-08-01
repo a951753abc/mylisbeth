@@ -34,14 +34,7 @@ module.exports = async function (cmd, user) {
     //如果武器耐久為0就爆炸
     if (thisWeapon.durability <= 0) {
         thisWeapon.text += thisWeapon.weaponName + " 爆發四散了。";
-        let query = {userId: user.userId};
-        let weaponUnset = "weaponStock." + cmd[2];
-        let mod = {"$unset": {}};
-        mod["$unset"][weaponUnset] = 1;
-        await db.update("user", query, mod);
-        await db.update("user", query, {$pull:{"weaponStock":null }});
-        query = {userId: user.userId, weaponStock:[]};
-        await db.update("user", query, {$unset:{"weaponStock":1}});
+        await weapon.destroyWeapon(user.userId, cmd[2]);
     } else {
         let query = {userId: user.userId};
         let weaponUnset = "weaponStock." + cmd[2];
