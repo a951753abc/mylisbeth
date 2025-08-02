@@ -39,100 +39,134 @@ function getEne() {
         return _.clone(eneExample[3]);
     }
 }
-module.exports = async function (weapon, npc, npcNameList) {
-    npc.hp += weapon.hp;
-    let roundLimit = 5;
-    let round = 1;
-    let enemy = npcNameList[Math.floor(Math.random() * npcNameList.length)];
-    let ene = getEne();
-    //骰 2D6+敏捷
-    let agiAct = function(agi) {
-        return roll.d66() + agi;
+
+// 內部函式：處理一次攻擊檢定
+function processAttack(attacker, defender, battleLog) {
+    const hitCheckResult = hitCheck(attacker.stats.agi, defender.stats.agi);
+    let damageDealt = 0;
+
+    const attackLog = {
+        attacker: attacker.name,
+        defender: defender.name,
+        hit: hitCheckResult.success,
+        isCrit: false,
+        damage: 0,
+        rollText: hitCheckResult.text
     };
-    battle.text = "";
-    battle.win = 0;
-    battle.dead = 0;
-    battle.category = ene.category;
-    battle.name = ene.category + enemy.name;
-    while (npc.hp > 0 && ene.hp > 0 && round <= roundLimit) {
-        battle.text += "第" + round + "回合\n";
-        let npcAct = agiAct(weapon.agi);
-        let eneAct = agiAct(ene.agi);
-        //battle.text += npc.name + "行動值" + npcAct + " ，";
-        //battle.text += battle.name + "行動值" + eneAct + " ，";
-        let npcAttack = function () {
-            let damResult = atkCheck(npc.name, battle.name, weapon.agi, ene.agi, weapon.atk, weapon.cri, ene.def);
-            ene.hp = ene.hp - damResult;
-            return ene.hp;
-        };
-        let eneAttack = function () {
-            let damResult = atkCheck(battle.name, npc.name, ene.agi, weapon.agi, ene.atk , ene.cri, weapon.def);
-            npc.hp = npc.hp - damResult;
-            return npc.hp;
-        };
+
+    if (hitCheckResult.success) {
+        const damageResult = damCheck(attacker.stats.atk, attacker.stats.cri, defender.stats.def);
+        damageDealt = damageResult.damage;
+        defender.hp -= damageDealt;
+        
+        attackLog.isCrit = damageResult.isCrit;
+        attackLog.damage = damageDealt;
+        attackLog.rollText += ` ${damageResult.text}`;
+    }
+    
+    battleLog.push(attackLog);
+    return defender.hp;
+}
+
+module.exports = async function (weapon, npc, npcNameList) {
+    const roundLimit = 5;
+    let round = 1;
+
+    // 初始化戰鬥雙方
+    const playerSide = {
+        name: npc.name,
+        hp: npc.hp + weapon.hp,
+        stats: {
+            atk: weapon.atk,
+            def: weapon.def,
+            agi: weapon.agi,
+            cri: weapon.cri,
+        }
+    };
+
+    const enemyData = getEne();
+    const enemyName = npcNameList[Math.floor(Math.random() * npcNameList.length)].name;
+    const enemySide = {
+        name: `${enemyData.category}${enemyName}`,
+        hp: enemyData.hp,
+        stats: {
+            atk: enemyData.atk,
+            def: enemyData.def,
+            agi: enemyData.agi,
+            cri: enemyData.cri,
+        }
+    };
+
+    const battleResult = {
+        log: [],
+        win: 0,
+        dead: 0,
+        category: enemyData.category,
+        enemyName: enemySide.name,
+        npcName: playerSide.name,
+        initialHp: { npc: playerSide.hp, enemy: enemySide.hp },
+        finalHp: {}
+    };
+
+    while (playerSide.hp > 0 && enemySide.hp > 0 && round <= roundLimit) {
+        battleResult.log.push({ type: 'round', number: round });
+        //骰 2D6+敏捷
+        const npcAct = roll.d66() + playerSide.stats.agi;
+        const eneAct = roll.d66() + enemySide.stats.agi;
+
         if (npcAct >= eneAct) {
-            //battle.text += npc.name + " 率先行動。";
-            if (npcAttack() <= 0) {
-                battle.text +=  battle.name + "倒下了。 \n";
-                battle.win = 1;
+            // 玩家先攻
+            if (processAttack(playerSide, enemySide, battleResult.log) <= 0) {
+                battleResult.win = 1;
                 break;
             }
-            if (eneAttack() <= 0) {
-                battle.text +=  npc.name + "倒下了。 \n";
-                battle.dead = 1;
+            if (enemySide.hp > 0 && processAttack(enemySide, playerSide, battleResult.log) <= 0) {
+                battleResult.dead = 1;
                 break;
             }
         } else {
-            //battle.text += battle.name + " 率先行動。";
-            if (eneAttack() <= 0) {
-                battle.text +=  npc.name + "倒下了。 \n";
-                battle.dead = 1;
+            // 敵人先攻
+            if (processAttack(enemySide, playerSide, battleResult.log) <= 0) {
+                battleResult.dead = 1;
                 break;
             }
-            if (npcAttack() <= 0) {
-                battle.text +=  battle.name + "倒下了。 \n";
-                battle.win = 1;
+            if (playerSide.hp > 0 && processAttack(playerSide, enemySide, battleResult.log) <= 0) {
+                battleResult.win = 1;
                 break;
             }
         }
-        battle.text += "\n";
         round++;
     }
-    if (round > roundLimit) {
-        battle.text += "雙方不分勝負。";
-    }
-    return battle;
-}
-function atkCheck(atkName, defName, atkAgi, defAgi, atkAtk, atkCri, def) {
-    let hitResult;
-    let damResult;
-    battle.text += atkName + "發動攻擊 ";
-    hitResult = hitCheck(atkAgi, defAgi);
-    if (!hitResult) {
-        return 0;
-    }
-    damResult = damCheck(atkAtk, atkCri, def);
-    return damResult;
+
+    if (round > roundLimit && playerSide.hp > 0 && enemySide.hp > 0) {
+        battleResult.log.push({ type: 'end', outcome: 'draw' });
+    } else if (battleResult.win) {
+         battleResult.log.push({ type: 'end', outcome: 'win', winner: playerSide.name });
+    } else if (battleResult.dead) {
+         battleResult.log.push({ type: 'end', outcome: 'lose', winner: enemySide.name });
+    }    
+
+    battleResult.finalHp = { npc: playerSide.hp, enemy: enemySide.hp };
+    return battleResult;    
 }
 
 function hitCheck(atkAgi, defAgi) {
     let atkAct = roll.d66() + atkAgi;
     let defAct = roll.d66() + defAgi;
     if (atkAct === 12) {
-        battle.text += "大成功！ "
-        return true;
+        return { success: true, text: "擲出了大成功！" };
     } else if (atkAct >= defAct) {
-        battle.text += "成功命中 "
-        return true;
+        return { success: true, text: "成功命中。" };
     } else {
-        battle.text += "命中失敗 \n"
-        return false;
+        return { success: false, text: "攻擊被閃過了。" };
     }
 }
 
 function damCheck(atk, atkCri, def) {
     let atkDam = 0;
     let defSum = 0;
+    let isCrit = false;
+    let text = "";
     for (let i = 1; i <= atk; i++) {
         atkDam += roll.d66();
     }
@@ -141,14 +175,15 @@ function damCheck(atk, atkCri, def) {
     }
     while (roll.d66() >= atkCri) {
         let criDam = roll.d66();
-        battle.text += "會心一擊提高了本次攻擊傷害 " + criDam + "點 \n";
+        text += `會心一擊！追加 ${criDam} 點傷害！`;
         atkDam += criDam;
+        isCrit = true;
     }
+    let finalDamage = atkDam - defSum;
     //最小傷害1點
-    atkDam = atkDam - defSum;
-    if (atkDam <= 0) {
-        atkDam = 1;
+    if (finalDamage <= 0) {
+        finalDamage = 1;
     }
-    battle.text += "總共造成 " + atkDam + "點傷害。\n";
-    return atkDam;
+    text += `最終造成 ${finalDamage} 點傷害。`;
+    return { damage: finalDamage, isCrit: isCrit, text: text };
 }

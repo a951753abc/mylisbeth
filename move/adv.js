@@ -8,6 +8,7 @@ const roll = require("../roll.js");
 const npcNameList = require("../npc/list.json");
 const eneNameList = require("../ene/name.json");
 const battle = require("../battle");
+const gemini = require('../gemini.js'); // 引入 Gemini 模組
 const mineModule = require("../move/mine.js");
 const placeList = [
     "迷宮",
@@ -16,6 +17,48 @@ const placeList = [
     "樹林",
     "城鎮外",
 ];
+
+// 將戰鬥紀錄轉換為給 AI 的提示
+function createBattlePrompt(battleResult, user, weapon, place, floor) {
+    let logText = "";
+    battleResult.log.forEach(entry => {
+        switch (entry.type) {
+            case 'round':
+                logText += `第 ${entry.number} 回合開始。\n`;
+                break;
+            case 'attack':
+                logText += `- ${entry.attacker} 攻擊 ${entry.defender}。${entry.rollText}\n`;
+                break;
+            case 'end':
+                if (entry.outcome === 'win') logText += `${entry.winner} 獲得了勝利！\n`;
+                if (entry.outcome === 'lose') logText += `${entry.winner} 獲勝，${battleResult.npcName}倒下了。\n`;
+                if (entry.outcome === 'draw') logText += `雙方勢均力敵，不分勝負。\n`;
+                break;
+        }
+    });
+
+    const prompt = `
+你是日本輕小說家「川原礫」，會基於你的寫作經驗與風格，並按照以下的「戰鬥情境」和「戰鬥紀錄」來創作，但不要逐字翻譯紀錄，而是用你的文筆使其成為一段精彩的故事。
+故事風格、背景設定請按照「刀劍神域(SAO)」。
+使用第三人稱寫作。
+使用日文寫作。
+參與戰鬥的人物必須進行對話。
+**重要：請將總描述長度控制在 600 字元左右，絕對不要超過 800 字元。**
+
+### 戰鬥情境
+- **地點**: 在 ${place} 的第 ${floor} 層。
+- **我方**: ${battleResult.npcName} (冒險者)。
+- **我方武器**: ${weapon.weaponName} (由鍛造師 ${user.name} 所打造的 ${weapon.name})。
+- **敵方**: ${battleResult.enemyName} (兇惡的敵人)。
+
+### 戰鬥紀錄 (請以此為基礎進行描述)
+${logText}
+
+現在，請開始你的描述：
+`;
+    return prompt;
+}
+
 module.exports = async function (cmd, user) {
     try {
         let newNovel = new Discord.MessageEmbed()
@@ -41,13 +84,17 @@ module.exports = async function (cmd, user) {
         //層數 = 難度
         let floor = 1;
         let battleResult = await battle(thisWeapon, npc, eneNameList);
-        let text = npc.name + "，跟著" + user.name + "，前往第" + floor + "層的" + place
-            + "。碰到 " + battleResult.name + " 發生不得不戰鬥的危機！\n";
-        text += npc.name + "借用" + user.name + "鑄造的" + thisWeapon.weaponName + "應戰。";
+
+        // 產生給 AI 的 Prompt
+        const prompt = createBattlePrompt(battleResult, user, thisWeapon, place, floor);
+        // 呼叫 Gemini API 產生故事
+        let narrativeText = await gemini.generateBattleNarrative(prompt);
+
         //武器耗損判定
         //死亡>80%
         //獲勝>50%
         //平手>25%
+        let durabilityText = "";
         let weaponCheck;
         if (battleResult.win === 1) {
             weaponCheck = roll.d100Check(config.WEAPON_DAMAGE_CHANCE.WIN);
@@ -60,10 +107,10 @@ module.exports = async function (cmd, user) {
             //問答無用1D6
             let reduceDurability = roll.d6();
             thisWeapon.durability = thisWeapon.durability - reduceDurability;
-            battleResult.text += "激烈的戰鬥後，武器受到損傷，減少" + reduceDurability + "耐久值\n";
+            durabilityText = `\n\n(激烈的戰鬥後，${thisWeapon.weaponName} 的耐久度減少了 ${reduceDurability} 點。)`;
             //如果武器耐久為0就爆炸
             if (thisWeapon.durability <= 0) {
-                battleResult.text += thisWeapon.weaponName + " 爆發四散了！";
+                durabilityText += `\n**${thisWeapon.weaponName} 爆發四散了！**`;
                 await weapon.destroyWeapon(user.userId, cmd[2]);
             } else {
                 let query = {userId: user.userId};
@@ -73,48 +120,35 @@ module.exports = async function (cmd, user) {
                 await db.update("user", query, mod);
             }
         }
+
         //回寫戰鬥結果數據到人物情報內
+        let rewardText = "";
         if (battleResult.win === 1) {
-            let winString = battleResult.category + "Win";
-            if (_.get(user, winString, false)) {
-                user[winString] = user[winString] + 1;
-            } else {
-                user[winString] = 1;
-            }
-            let m = (+new Date());
+            const winString = `${battleResult.category}Win`;
+            const newWinCount = _.get(user, winString, 0) + 1;
+            const mineResultText = await mineBattle(user, battleResult.category);
+            rewardText = `\n\n**戰利品:**\n${mineResultText}`;
 
-            // 1. 建立兩個 Promise，但不立即 await
-            const updateUserPromise = db.update("user", {userId: user.userId}, {
-                "$set": {
-                    [winString]: user[winString],
-                    "move_time": m
-                }
-            });
-            
-            //根據敵方難度高機率獲得稀少素材
-            const mineBattlePromise = mineBattle(user, battleResult.category);
-
-            // 2. 使用 Promise.all 等待兩個操作同時完成
-            const results = await Promise.all([
-                updateUserPromise,
-                mineBattlePromise
-            ]);
-            const mineResultText = results[1];
-
-            // 3. 將戰鬥後挖礦的結果附加到文字中
-            battleResult.text += mineResultText;
+            await db.update("user", {userId: user.userId}, { "$set": { [winString]: newWinCount } });            
         } else if (battleResult.dead === 1) {
-            if (_.get(user, "lost", false)) {
-                user.lost = user.lost + 1;
-            } else {
-                user.lost = 1;
-            }
-            let m = (+new Date());
-            let newValue = {$set: {lost: user.lost, move_time:m}};
-            await db.update("user", {userId: user.userId}, newValue);
+            const newLostCount = _.get(user, "lost", 0) + 1;
+            await db.update("user", {userId: user.userId}, { "$set": { lost: newLostCount } });  
         }
-        newNovel.addFields({name: '經過', value: text});
-        newNovel.addFields({name: '戰鬥過程', value: battleResult.text});
+
+        // 寫入CD時間
+        let m = (+new Date());
+        await db.update("user", {userId: user.userId}, {$set: {move_time:m}});
+
+        // [修正] 組合最終報告文字，並檢查長度
+        let finalReport = narrativeText + durabilityText + rewardText;
+        if (finalReport.length > 1024) {
+            // 如果文字仍然過長，從尾部截斷以保留結尾的戰利品和耐久度訊息
+            const overLength = finalReport.length - 1024;
+            narrativeText = narrativeText.substring(0, narrativeText.length - overLength - 5) + "..."; // 減去多餘長度和一些緩衝
+            finalReport = narrativeText + durabilityText + rewardText;
+        }
+
+        newNovel.addFields({name: '冒險日誌', value: narrativeText + durabilityText + rewardText});
         return newNovel;
     } catch (error) {
         console.error("在執行 move adv 時發生嚴重錯誤:", error);
