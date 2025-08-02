@@ -68,7 +68,10 @@ function processAttack(attacker, defender, battleLog) {
     return defender.hp;
 }
 
-module.exports = async function (weapon, npc, npcNameList) {
+// [修改] 將 module.exports 改為一個物件，以便匯出多個函式
+const battleModule = {};
+
+battleModule.pveBattle = async function (weapon, npc, npcNameList) {
     const roundLimit = 5;
     let round = 1;
 
@@ -147,8 +150,65 @@ module.exports = async function (weapon, npc, npcNameList) {
     }    
 
     battleResult.finalHp = { npc: playerSide.hp, enemy: enemySide.hp };
-    return battleResult;    
-}
+    return battleResult;  
+};
+
+// [新增] PVP 戰鬥函式
+battleModule.pvpBattle = async function (attackerData, attackerWeapon, defenderData, defenderWeapon) {
+    const roundLimit = 5;
+    let round = 1;
+    const battleLog = [];
+
+    const attacker = {
+        name: attackerData.name,
+        hp: 100 + (attackerWeapon.hp || 0), // 給予玩家基礎血量
+        stats: { ...attackerWeapon }
+    };
+    const defender = {
+        name: defenderData.name,
+        hp: 100 + (defenderWeapon.hp || 0),
+        stats: { ...defenderWeapon }
+    };
+
+    while (attacker.hp > 0 && defender.hp > 0 && round <= roundLimit) {
+        battleLog.push(`\n**第 ${round} 回合**`);
+        const atkAct = roll.d66() + attacker.stats.agi;
+        const defAct = roll.d66() + defender.stats.agi;
+
+        if (atkAct >= defAct) {
+            // 挑戰者先攻
+            const dmg1 = damCheck(attacker.stats.atk, attacker.stats.cri, defender.stats.def).damage;
+            defender.hp -= dmg1;
+            battleLog.push(`${attacker.name} 對 ${defender.name} 造成了 ${dmg1} 點傷害。`);
+            if (defender.hp <= 0) break;
+
+            const dmg2 = damCheck(defender.stats.atk, defender.stats.cri, attacker.stats.def).damage;
+            attacker.hp -= dmg2;
+            battleLog.push(`${defender.name} 對 ${attacker.name} 造成了 ${dmg2} 點傷害。`);
+
+        } else {
+            // 被挑戰者先攻
+            const dmg1 = damCheck(defender.stats.atk, defender.stats.cri, attacker.stats.def).damage;
+            attacker.hp -= dmg1;
+            battleLog.push(`${defender.name} 對 ${attacker.name} 造成了 ${dmg1} 點傷害。`);
+            if (attacker.hp <= 0) break;
+
+            const dmg2 = damCheck(attacker.stats.atk, attacker.stats.cri, defender.stats.def).damage;
+            defender.hp -= dmg2;
+            battleLog.push(`${attacker.name} 對 ${defender.name} 造成了 ${dmg2} 點傷害。`);
+        }
+        round++;
+    }
+
+    let winner;
+    if (attacker.hp > defender.hp) {
+        winner = attackerData;
+    } else {
+        winner = defenderData; // 平手或挑戰者血少都算防守方勝利
+    }
+
+    return { log: battleLog, winner: winner };
+};
 
 function hitCheck(atkAgi, defAgi) {
     let atkAct = roll.d66() + atkAgi;
@@ -187,3 +247,6 @@ function damCheck(atk, atkCri, def) {
     text += `最終造成 ${finalDamage} 點傷害。`;
     return { damage: finalDamage, isCrit: isCrit, text: text };
 }
+
+// 最終匯出整個模組
+module.exports = battleModule;

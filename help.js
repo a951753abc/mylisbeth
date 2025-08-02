@@ -6,6 +6,7 @@ const exampleEmbed = new Discord.MessageEmbed()
     .addFields(
         { name: 'help', value: '呼叫這個選單' },
         { name: 'create [人物名稱]', value: '建立你的人物' },
+        { name: 'list [頁數]', value: '查看所有玩家的名冊' },
         { name: 'move mine', value: '挖掘素材' },
         { name: 'move forge [素材1編號] [素材2編號] [武器名稱]', value: '鍛造武器' },
         { name: 'move up [武器編號] [素材編號] ', value: '使用素材強化武器(機率減少耐久值)' },

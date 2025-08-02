@@ -7,7 +7,7 @@ const level = require("../level");
 const roll = require("../roll.js");
 const npcNameList = require("../npc/list.json");
 const eneNameList = require("../ene/name.json");
-const battle = require("../battle");
+const { pveBattle } = require("../battle");
 const gemini = require('../gemini.js'); // 引入 Gemini 模組
 const mineModule = require("../move/mine.js");
 const placeList = [
@@ -83,7 +83,7 @@ module.exports = async function (cmd, user) {
         let place = placeList[Math.floor(Math.random() * placeList.length)];
         //層數 = 難度
         let floor = 1;
-        let battleResult = await battle(thisWeapon, npc, eneNameList);
+        let battleResult = await pveBattle(thisWeapon, npc, eneNameList);
 
         // 產生給 AI 的 Prompt
         const prompt = createBattlePrompt(battleResult, user, thisWeapon, place, floor);

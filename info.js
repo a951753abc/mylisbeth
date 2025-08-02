@@ -2,9 +2,8 @@ const _ = require('lodash');
 const Discord = require('discord.js');
 const db = require("./db.js");
 const type = require("./type.js");
-module.exports = async function (cmd, userId) {
-    let query = {userId: userId}
-    let user = await db.findOne("user", query);
+module.exports = async function (cmd, user) {
+    // 不再需要從資料庫查詢 user
     let lose = _.get(user, "lost", 0);
     let cName = _.get(user, "name", "");
     let mes = new Discord.MessageEmbed()
@@ -20,7 +19,7 @@ module.exports = async function (cmd, userId) {
         itemNums = "無";
     } else {
         _.forEach(user.itemStock, function (value, key) {
-            if (value.itemNum > 0) {
+            if (value && value.itemNum > 0) {
                 itemListKey += key + "\n";
                 itemListText += "[" + type.ssrList(value.itemLevel) + "]" + value.itemName + "\n";
                 itemNums += value.itemNum + "\n";

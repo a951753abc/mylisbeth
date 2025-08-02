@@ -7,7 +7,8 @@ const move = require("./move.js");
 const create = require("./create.js");
 const help = require("./help.js");
 const info = require("./info.js");
-const cmdList = {create: create, help: help, move: move, info: info};
+const list = require("./list.js");
+const cmdList = {create: create, help: help, move: move, info: info, list:list};
 const db = require("./db.js"); // 引入 db 模組
 
 client.on('ready', () => {
@@ -29,17 +30,28 @@ async function startServer() {
         if (msg.author.bot) {
             return false;
         }
-        //指定使用-l 開頭
-        let check = msg.content.substring(0, 3);
-        if (check !== "-l ") {
+        //指定使用-l 開頭        
+        if (!msg.content.startsWith("-l ")) {
             return false;
         }
         //使用的指令不含在指令列時不處理
-        let cmd = msg.content.substring(3).split(' ');
-        if (!(cmd[0] in cmdList)) {
+        const cmd = msg.content.substring(3).split(' ');
+        const mainCmd = cmd[0];        
+        if (!(mainCmd in cmdList)) {
             return false;
         }
-        let res = await cmdList[cmd[0]](cmd, msg.author.id);
+        let res;
+        // 對於需要完整 user 物件的指令，預先查找
+        if (mainCmd === 'move' || mainCmd === 'info') {
+            const user = await db.findOne("user", { userId: msg.author.id });
+            if (!user) {
+                return msg.reply("請先建立角色");
+            }
+            res = await cmdList[mainCmd](cmd, user);
+        } else {
+            // 其他指令（create, help, list）只需要 author ID 或無須 user 資料
+            res = await cmdList[mainCmd](cmd, msg.author.id);
+        }
         msg.reply(res);
     });
     
