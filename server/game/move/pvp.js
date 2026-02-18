@@ -33,6 +33,9 @@ module.exports = async function (cmd, attacker) {
             reward: `${defender.name} 手無寸鐵，無法應戰！\n**${attacker.name} 不戰而勝！**`,
             attackerWeapon: { name: attackerWeapon.name, weaponName: attackerWeapon.weaponName },
             defenderWeapon: null,
+            attackerName: attacker.name,
+            defenderName: defender.name,
+            defenderId: defender.userId,
         };
     }
 
@@ -45,36 +48,29 @@ module.exports = async function (cmd, attacker) {
     if (battleResult.winner.userId === attacker.userId) {
         resultText += `\n\n**${attacker.name} 獲得了勝利！**`;
 
-        const defenderItemKeys = Object.keys(defender.itemStock || {});
-        if (defenderItemKeys.length > 0) {
-            const stolenItemKey = defenderItemKeys[Math.floor(Math.random() * defenderItemKeys.length)];
-            const stolenItem = { ...defender.itemStock[stolenItemKey] };
+        const defenderItems = defender.itemStock || [];
+        if (defenderItems.length > 0) {
+            const randomIdx = Math.floor(Math.random() * defenderItems.length);
+            const stolenItem = defenderItems[randomIdx];
 
-            rewardText = `\n\n**戰利品:** ${attacker.name} 從 ${defender.name} 身上奪走了 1 個 [${stolenItem.itemName}]！`;
+            const success = await db.atomicIncItem(
+                defender.userId, stolenItem.itemId, stolenItem.itemLevel, stolenItem.itemName, -1
+            );
 
-            defender.itemStock[stolenItemKey].itemNum--;
-            if (defender.itemStock[stolenItemKey].itemNum <= 0) {
-                delete defender.itemStock[stolenItemKey];
-            }
-
-            const existingItemIndex = _.findIndex(attacker.itemStock, { itemId: stolenItem.itemId, itemLevel: stolenItem.itemLevel });
-            if (existingItemIndex > -1) {
-                attacker.itemStock[existingItemIndex].itemNum++;
+            if (success) {
+                await db.atomicIncItem(
+                    attacker.userId, stolenItem.itemId, stolenItem.itemLevel, stolenItem.itemName, 1
+                );
+                rewardText = `\n\n**戰利品:** ${attacker.name} 從 ${defender.name} 身上奪走了 1 個 [${stolenItem.itemName}]！`;
             } else {
-                const newKey = _.size(attacker.itemStock);
-                attacker.itemStock[newKey] = { ...stolenItem, itemNum: 1 };
+                rewardText = `\n\n${defender.name} 身上的素材已被其他人搶走了。`;
             }
-
-            await db.update("user", { userId: attacker.userId }, { $set: { itemStock: attacker.itemStock } });
-            await db.update("user", { userId: defender.userId }, { $set: { itemStock: defender.itemStock } });
         } else {
             rewardText = `\n\n${defender.name} 身上沒有任何素材可以掠奪。`;
         }
     } else {
         resultText += `\n\n**${defender.name} 成功擊退了挑戰者！**`;
     }
-
-    await db.updateCooldown(attacker.userId);
 
     return {
         battleLog: resultText + rewardText,
@@ -84,5 +80,6 @@ module.exports = async function (cmd, attacker) {
         defenderWeapon: { name: defenderWeapon.name, weaponName: defenderWeapon.weaponName },
         attackerName: attacker.name,
         defenderName: defender.name,
+        defenderId: defender.userId,
     };
 };

@@ -16,19 +16,23 @@ module.exports = async function (cmd, userOrId) {
         return { error: "指令錯誤\n 可用指令: mine, forge, up, adv, pvp" };
     }
 
-    let user = userOrId;
-    if (typeof user === 'string') {
-        user = await db.findOne("user", { userId: user });
-    }
-
-    if (user === null) {
-        return { error: "請先建立角色" };
+    let userId = userOrId;
+    if (typeof userOrId !== 'string') {
+        userId = userOrId.userId;
     }
 
     const now = Date.now();
-    const moveTime = _.get(user, "move_time", 0);
-    if ((moveTime > 0) && (now - moveTime < coolTime)) {
-        const remaining = Math.floor((moveTime + coolTime - now) / 1000);
+    const user = await db.findOneAndUpdate("user",
+        { userId, $or: [{ move_time: { $exists: false } }, { move_time: { $lte: now - coolTime } }] },
+        { $set: { move_time: now } },
+        { returnDocument: 'before' }
+    );
+
+    if (!user) {
+        const existing = await db.findOne("user", { userId });
+        if (!existing) return { error: "請先建立角色" };
+        const moveTime = _.get(existing, "move_time", 0);
+        const remaining = Math.ceil((moveTime + coolTime - now) / 1000);
         return { error: "CD時間還有" + remaining + "秒", cooldown: remaining };
     }
 
