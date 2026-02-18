@@ -33,6 +33,27 @@ export function useSocket(userId) {
       ]);
     });
 
+    socket.on("boss:damage", (data) => {
+      setEvents((prev) => [
+        ...prev.slice(-49),
+        { type: "boss:damage", data, time: Date.now() },
+      ]);
+    });
+
+    socket.on("boss:defeated", (data) => {
+      setEvents((prev) => [
+        ...prev.slice(-49),
+        { type: "boss:defeated", data, time: Date.now() },
+      ]);
+    });
+
+    socket.on("floor:unlocked", (data) => {
+      setEvents((prev) => [
+        ...prev.slice(-49),
+        { type: "floor:unlocked", data, time: Date.now() },
+      ]);
+    });
+
     return () => {
       socket.disconnect();
     };

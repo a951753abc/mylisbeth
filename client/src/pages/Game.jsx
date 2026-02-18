@@ -5,6 +5,9 @@ import InventoryPanel from "../components/InventoryPanel";
 import BattleLog from "../components/BattleLog";
 import PlayerList from "../components/PlayerList";
 import CooldownTimer from "../components/CooldownTimer";
+import FloorPanel from "../components/FloorPanel";
+import AchievementPanel from "../components/AchievementPanel";
+import DailyPanel from "../components/DailyPanel";
 
 export default function Game({ user, onLogout }) {
   const [gameUser, setGameUser] = useState(null);
@@ -12,6 +15,7 @@ export default function Game({ user, onLogout }) {
   const [tab, setTab] = useState("game");
   const [battleLogs, setBattleLogs] = useState([]);
   const [cooldown, setCooldown] = useState(0);
+  const [bossUpdate, setBossUpdate] = useState(null);
   const { events } = useSocket(gameUser?.userId);
 
   const fetchUser = useCallback(async () => {
@@ -37,17 +41,36 @@ export default function Game({ user, onLogout }) {
   useEffect(() => {
     if (events.length > 0) {
       const latest = events[events.length - 1];
+
       if (latest.type === "battle") {
         setBattleLogs((prev) => [...prev, latest.data]);
       }
       if (latest.type === "pvp:attacked") {
         setBattleLogs((prev) => [
           ...prev,
-          {
-            action: "pvp:attacked",
-            ...latest.data,
-            time: Date.now(),
-          },
+          { action: "pvp:attacked", ...latest.data, time: Date.now() },
+        ]);
+        fetchUser();
+      }
+      if (latest.type === "boss:damage") {
+        setBattleLogs((prev) => [
+          ...prev,
+          { action: "boss:damage", ...latest.data, time: Date.now() },
+        ]);
+        setBossUpdate(Date.now());
+      }
+      if (latest.type === "boss:defeated") {
+        setBattleLogs((prev) => [
+          ...prev,
+          { action: "boss:defeated", ...latest.data, time: Date.now() },
+        ]);
+        setBossUpdate(Date.now());
+        fetchUser();
+      }
+      if (latest.type === "floor:unlocked") {
+        setBattleLogs((prev) => [
+          ...prev,
+          { action: "floor:unlocked", ...latest.data, time: Date.now() },
         ]);
         fetchUser();
       }
@@ -88,6 +111,10 @@ export default function Game({ user, onLogout }) {
     return data;
   };
 
+  const handleTitleChange = (newTitle) => {
+    setGameUser((prev) => prev ? { ...prev, title: newTitle } : prev);
+  };
+
   if (loading) {
     return <div className="loading">載入遊戲資料中...</div>;
   }
@@ -105,7 +132,17 @@ export default function Game({ user, onLogout }) {
   return (
     <div>
       <div className="header">
-        <h1>鍛造師 {gameUser.name}</h1>
+        <div>
+          <h1>
+            鍛造師 {gameUser.name}
+            {gameUser.title && (
+              <span className="header-title">「{gameUser.title}」</span>
+            )}
+          </h1>
+          <div style={{ fontSize: '0.8rem', color: 'var(--gold)' }}>
+            {(gameUser.col || 0).toLocaleString()} Col ｜ 第 {gameUser.currentFloor || 1} 層
+          </div>
+        </div>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
           <span style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>
             {user.username}
@@ -129,6 +166,24 @@ export default function Game({ user, onLogout }) {
             onClick={() => setTab("game")}
           >
             遊戲
+          </button>
+          <button
+            className={tab === "floor" ? "active" : ""}
+            onClick={() => setTab("floor")}
+          >
+            樓層
+          </button>
+          <button
+            className={tab === "daily" ? "active" : ""}
+            onClick={() => setTab("daily")}
+          >
+            每日
+          </button>
+          <button
+            className={tab === "achievement" ? "active" : ""}
+            onClick={() => setTab("achievement")}
+          >
+            成就
           </button>
           <button
             className={tab === "inventory" ? "active" : ""}
@@ -155,6 +210,25 @@ export default function Game({ user, onLogout }) {
             user={gameUser}
             onAction={handleAction}
             setCooldown={setCooldown}
+          />
+        )}
+        {tab === "floor" && (
+          <FloorPanel
+            user={gameUser}
+            onAction={handleAction}
+            bossUpdate={bossUpdate}
+          />
+        )}
+        {tab === "daily" && (
+          <DailyPanel
+            user={gameUser}
+            onClaim={fetchUser}
+          />
+        )}
+        {tab === "achievement" && (
+          <AchievementPanel
+            user={gameUser}
+            onTitleChange={handleTitleChange}
           />
         )}
         {tab === "inventory" && <InventoryPanel user={gameUser} />}

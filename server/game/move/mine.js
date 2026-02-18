@@ -2,6 +2,10 @@ const _ = require("lodash");
 const roll = require("../roll.js");
 const level = require("../level");
 const db = require("../../db.js");
+const config = require("../config.js");
+const { increment } = require("../progression/statsTracker.js");
+const { checkAndAward } = require("../progression/achievement.js");
+const ensureUserFields = require("../migration/ensureUserFields.js");
 
 const drawLevelList = [
   [
@@ -23,7 +27,9 @@ const drawLevelList = [
 
 const itemLimit = 5;
 
-module.exports = async function (cmd, user) {
+module.exports = async function (cmd, rawUser) {
+  const user = await ensureUserFields(rawUser);
+
   let text = "";
   const mineLevel = _.get(user, "mineLevel", 1);
   const filter = [
@@ -41,21 +47,45 @@ module.exports = async function (cmd, user) {
         nowItems,
     };
   }
-  const mineList = await db.find("item", {});
+
+  const currentFloor = user.currentFloor || 1;
+  const allItems = await db.find("item", {});
+  const minePool = getFloorMinePool(allItems, currentFloor);
+
   let count = item[0].values;
   while (nowItems > count) {
-    const mine = _.clone(mineList[Math.floor(Math.random() * mineList.length)]);
+    const mine = _.clone(minePool[Math.floor(Math.random() * minePool.length)]);
     mine.level = drawItemLevel(mineLevel);
     text += "獲得[" + mine.level.text + "]" + mine.name + "\n";
     await db.saveItemToUser(user.userId, mine);
     count++;
   }
   text += await level(cmd[1], user);
+
+  await increment(user.userId, "totalMines");
+  await checkAndAward(user.userId);
+
   return { text };
 };
 
+function getFloorMinePool(allItems, floorNumber) {
+  const floorMaterials = config.FLOOR_MATERIAL_GROUPS;
+  const floorSpecificIds = [];
+  for (const group of floorMaterials) {
+    if (group.floors.includes(floorNumber)) {
+      floorSpecificIds.push(...group.itemIds);
+    }
+  }
+
+  const baseItems = allItems.filter((item) => item.baseItem === true || !item.floorItem);
+  const floorItems = allItems.filter((item) => floorSpecificIds.includes(item.itemId));
+
+  const pool = [...baseItems, ...floorItems];
+  return pool.length > 0 ? pool : allItems;
+}
+
 function drawItemLevel(level) {
-  const thisItemLevelList = drawLevelList[level - 1];
+  const thisItemLevelList = drawLevelList[Math.min(level - 1, drawLevelList.length - 1)];
   let itemLevel = 0;
   let count = 0;
   while (itemLevel === 0) {

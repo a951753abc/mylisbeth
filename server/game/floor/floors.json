@@ -1,0 +1,206 @@
+[
+  {
+    "floorNumber": 1,
+    "name": "始まりの街",
+    "nameCn": "起始之城",
+    "enemies": [
+      { "name": "フレンジーボア", "category": "[Easy]", "hp": 10, "atk": 1, "def": 0, "agi": 0, "cri": 10 },
+      { "name": "ゴブリン斥候", "category": "[Easy]", "hp": 12, "atk": 1, "def": 0, "agi": 1, "cri": 10 },
+      { "name": "コボルド", "category": "[Normal]", "hp": 22, "atk": 2, "def": 1, "agi": 0, "cri": 10 },
+      { "name": "コボルド隊長", "category": "[Hard]", "hp": 54, "atk": 3, "def": 1, "agi": 1, "cri": 10 },
+      { "name": "コボルド・トルーパー", "category": "[Hell]", "hp": 100, "atk": 4, "def": 2, "agi": 2, "cri": 10 }
+    ],
+    "boss": {
+      "name": "イルファング・ザ・コボルドロード",
+      "hp": 3000, "atk": 8, "def": 4, "agi": 3, "cri": 9,
+      "phases": [{ "hpThreshold": 0.5, "atkBoost": 2, "specialMove": "タルワール乱舞" }],
+      "drops": [{ "type": "material", "name": "コボルドの毛皮", "rarity": 3 }]
+    },
+    "materials": ["mat_floor1_ore", "mat_floor1_crystal"],
+    "places": ["迷宮入口", "回廊", "中層通路", "塔頂前廳", "BOSS房"],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 2,
+    "name": "森の迷宮",
+    "nameCn": "森林迷宮",
+    "enemies": [
+      { "name": "フォレスト・エルフ", "category": "[Easy]", "hp": 14, "atk": 1, "def": 0, "agi": 1, "cri": 10 },
+      { "name": "ダーク・エルフ哨兵", "category": "[Normal]", "hp": 26, "atk": 2, "def": 1, "agi": 1, "cri": 10 },
+      { "name": "ダーク・エルフ戦士", "category": "[Hard]", "hp": 60, "atk": 3, "def": 2, "agi": 1, "cri": 10 },
+      { "name": "ダーク・エルフ隊長", "category": "[Hell]", "hp": 110, "atk": 5, "def": 2, "agi": 2, "cri": 9 }
+    ],
+    "boss": {
+      "name": "ニューウォーター・ロード",
+      "hp": 3500, "atk": 9, "def": 4, "agi": 4, "cri": 9,
+      "phases": [{ "hpThreshold": 0.4, "atkBoost": 2, "specialMove": "矢雨" }],
+      "drops": [{ "type": "material", "name": "エルフの羽根", "rarity": 3 }]
+    },
+    "materials": ["mat_floor1_ore", "mat_floor1_crystal"],
+    "places": ["森の入口", "深い木立", "苔むした回廊", "樹上都市", "BOSS房"],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 3,
+    "name": "山の都",
+    "nameCn": "山之都",
+    "enemies": [
+      { "name": "岩石ゴーレム", "category": "[Easy]", "hp": 18, "atk": 2, "def": 1, "agi": 0, "cri": 10 },
+      { "name": "山岳オーガ", "category": "[Normal]", "hp": 32, "atk": 3, "def": 1, "agi": 0, "cri": 10 },
+      { "name": "岩山の守護者", "category": "[Hard]", "hp": 70, "atk": 4, "def": 2, "agi": 1, "cri": 9 },
+      { "name": "マウンテン・キング", "category": "[Hell]", "hp": 125, "atk": 5, "def": 3, "agi": 1, "cri": 9 }
+    ],
+    "boss": {
+      "name": "ライジング・ドラゴン",
+      "hp": 4200, "atk": 10, "def": 5, "agi": 3, "cri": 9,
+      "phases": [{ "hpThreshold": 0.5, "atkBoost": 2, "specialMove": "ドラゴンブレス" }],
+      "drops": [{ "type": "material", "name": "竜の鱗片", "rarity": 3 }]
+    },
+    "materials": ["mat_floor3_ore", "mat_floor3_crystal"],
+    "places": ["山麓の村", "岩場の道", "洞窟内", "山頂付近", "BOSS房"],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 4,
+    "name": "沼地の砦",
+    "nameCn": "沼澤要塞",
+    "enemies": [
+      { "name": "沼蛙", "category": "[Easy]", "hp": 20, "atk": 2, "def": 1, "agi": 1, "cri": 10 },
+      { "name": "リザードマン", "category": "[Normal]", "hp": 36, "atk": 3, "def": 2, "agi": 1, "cri": 10 },
+      { "name": "リザードマン戦士", "category": "[Hard]", "hp": 78, "atk": 4, "def": 3, "agi": 2, "cri": 9 },
+      { "name": "沼の王", "category": "[Hell]", "hp": 140, "atk": 6, "def": 3, "agi": 2, "cri": 9 }
+    ],
+    "boss": {
+      "name": "グレート・リザード・キング",
+      "hp": 4800, "atk": 11, "def": 5, "agi": 4, "cri": 8,
+      "phases": [{ "hpThreshold": 0.4, "atkBoost": 2, "specialMove": "毒霧" }],
+      "drops": [{ "type": "material", "name": "古代の牙", "rarity": 3 }]
+    },
+    "materials": ["mat_floor3_ore", "mat_floor3_crystal"],
+    "places": ["沼地の入口", "泥道", "霧の中", "砦の外壁", "BOSS房"],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 5,
+    "name": "砂漠の神殿",
+    "nameCn": "沙漠神殿",
+    "enemies": [
+      { "name": "砂漠スコーピオン", "category": "[Easy]", "hp": 24, "atk": 2, "def": 1, "agi": 1, "cri": 9 },
+      { "name": "マミー兵士", "category": "[Normal]", "hp": 42, "atk": 3, "def": 2, "agi": 0, "cri": 9 },
+      { "name": "砂漠の刺客", "category": "[Hard]", "hp": 88, "atk": 5, "def": 3, "agi": 3, "cri": 8 },
+      { "name": "黄金の守護者", "category": "[Hell]", "hp": 160, "atk": 7, "def": 4, "agi": 2, "cri": 8 }
+    ],
+    "boss": {
+      "name": "アンケイ・ザ・ファラオ",
+      "hp": 5800, "atk": 12, "def": 6, "agi": 3, "cri": 8,
+      "phases": [{ "hpThreshold": 0.5, "atkBoost": 3, "specialMove": "砂嵐の鎌" }],
+      "drops": [{ "type": "material", "name": "黄金の欠片", "rarity": 3 }]
+    },
+    "materials": ["mat_floor5_ore", "mat_floor5_crystal"],
+    "places": ["砂丘の麓", "神殿前廊", "罠の回廊", "王の間への階段", "BOSS房"],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 6,
+    "name": "火山地帯",
+    "nameCn": "火山地帶",
+    "enemies": [
+      { "name": "ラバ・クリープ", "category": "[Easy]", "hp": 28, "atk": 3, "def": 1, "agi": 0, "cri": 9 },
+      { "name": "炎の精霊", "category": "[Normal]", "hp": 48, "atk": 4, "def": 2, "agi": 2, "cri": 9 },
+      { "name": "マグマ・ゴーレム", "category": "[Hard]", "hp": 98, "atk": 5, "def": 4, "agi": 1, "cri": 8 },
+      { "name": "火山の番人", "category": "[Hell]", "hp": 175, "atk": 7, "def": 4, "agi": 2, "cri": 8 }
+    ],
+    "boss": {
+      "name": "炎帝グラガン",
+      "hp": 6600, "atk": 13, "def": 7, "agi": 3, "cri": 8,
+      "phases": [{ "hpThreshold": 0.4, "atkBoost": 3, "specialMove": "溶岩噴射" }],
+      "drops": [{ "type": "material", "name": "炎の核", "rarity": 3 }]
+    },
+    "materials": ["mat_floor5_ore", "mat_floor5_crystal"],
+    "places": ["火口の縁", "溶岩流の橋", "灼熱の廊下", "巨人の住処", "BOSS房"],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 7,
+    "name": "氷の城塞",
+    "nameCn": "冰雪城塞",
+    "enemies": [
+      { "name": "アイスゴーレム", "category": "[Easy]", "hp": 32, "atk": 3, "def": 2, "agi": 0, "cri": 9 },
+      { "name": "霜の騎士", "category": "[Normal]", "hp": 55, "atk": 4, "def": 3, "agi": 1, "cri": 9 },
+      { "name": "氷魔術師", "category": "[Hard]", "hp": 108, "atk": 6, "def": 3, "agi": 3, "cri": 8 },
+      { "name": "氷の公爵", "category": "[Hell]", "hp": 195, "atk": 8, "def": 5, "agi": 3, "cri": 7 }
+    ],
+    "boss": {
+      "name": "フロスト・クイーン",
+      "hp": 7600, "atk": 14, "def": 7, "agi": 5, "cri": 7,
+      "phases": [{ "hpThreshold": 0.5, "atkBoost": 3, "specialMove": "吹雪の剣" }],
+      "drops": [{ "type": "material", "name": "女王の氷晶", "rarity": 3 }]
+    },
+    "materials": ["mat_floor7_ore", "mat_floor7_crystal"],
+    "places": ["城門前広場", "氷の廊下", "冷気の地下室", "王座の間", "BOSS房"],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 8,
+    "name": "巨人の里",
+    "nameCn": "巨人之鄉",
+    "enemies": [
+      { "name": "ヒル・ジャイアント", "category": "[Easy]", "hp": 36, "atk": 4, "def": 2, "agi": 0, "cri": 9 },
+      { "name": "ストーン・ジャイアント", "category": "[Normal]", "hp": 62, "atk": 5, "def": 3, "agi": 0, "cri": 9 },
+      { "name": "フロスト・ジャイアント", "category": "[Hard]", "hp": 120, "atk": 6, "def": 4, "agi": 1, "cri": 8 },
+      { "name": "ジャイアント・キング衛兵", "category": "[Hell]", "hp": 215, "atk": 9, "def": 5, "agi": 2, "cri": 7 }
+    ],
+    "boss": {
+      "name": "ジャイアント・キング・オルガー",
+      "hp": 8800, "atk": 15, "def": 8, "agi": 3, "cri": 7,
+      "phases": [{ "hpThreshold": 0.4, "atkBoost": 3, "specialMove": "地砕き" }],
+      "drops": [{ "type": "material", "name": "巨人の心臓", "rarity": 3 }]
+    },
+    "materials": ["mat_floor7_ore", "mat_floor7_crystal"],
+    "places": ["巨人の村入口", "広大な平原", "巨人の神殿", "王の宴会場", "BOSS房"],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 9,
+    "name": "闇の迷宮",
+    "nameCn": "黑暗迷宮",
+    "enemies": [
+      { "name": "シャドウ・ビースト", "category": "[Easy]", "hp": 40, "atk": 4, "def": 2, "agi": 2, "cri": 8 },
+      { "name": "ダーク・ナイト", "category": "[Normal]", "hp": 70, "atk": 5, "def": 4, "agi": 2, "cri": 8 },
+      { "name": "闇の暗殺者", "category": "[Hard]", "hp": 135, "atk": 7, "def": 4, "agi": 4, "cri": 7 },
+      { "name": "暗黒騎士団長", "category": "[Hell]", "hp": 240, "atk": 10, "def": 6, "agi": 4, "cri": 7 }
+    ],
+    "boss": {
+      "name": "ダーク・ロード・レクサー",
+      "hp": 10000, "atk": 16, "def": 9, "agi": 5, "cri": 7,
+      "phases": [{ "hpThreshold": 0.5, "atkBoost": 4, "specialMove": "闇の爪" }],
+      "drops": [{ "type": "material", "name": "暗黒の核", "rarity": 3 }]
+    },
+    "materials": ["mat_floor9_ore", "mat_floor9_crystal"],
+    "places": ["闇の入口", "無限の回廊", "錯覚の間", "絶望の広間", "BOSS房"],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 10,
+    "name": "アインクラッドの頂",
+    "nameCn": "艾恩葛朗特之巔",
+    "enemies": [
+      { "name": "鋼鉄の番人", "category": "[Easy]", "hp": 45, "atk": 5, "def": 3, "agi": 2, "cri": 8 },
+      { "name": "黄金騎士", "category": "[Normal]", "hp": 80, "atk": 6, "def": 4, "agi": 2, "cri": 8 },
+      { "name": "頂点の守護者", "category": "[Hard]", "hp": 150, "atk": 8, "def": 5, "agi": 3, "cri": 7 },
+      { "name": "頂点の騎士長", "category": "[Hell]", "hp": 270, "atk": 11, "def": 7, "agi": 4, "cri": 6 }
+    ],
+    "boss": {
+      "name": "アインクラッド守護神",
+      "hp": 12000, "atk": 18, "def": 10, "agi": 6, "cri": 6,
+      "phases": [
+        { "hpThreshold": 0.6, "atkBoost": 3, "specialMove": "聖剣の一閃" },
+        { "hpThreshold": 0.3, "atkBoost": 5, "specialMove": "天地崩壊" }
+      ],
+      "drops": [{ "type": "material", "name": "守護神の結晶", "rarity": 3 }]
+    },
+    "materials": ["mat_floor9_ore", "mat_floor9_crystal"],
+    "places": ["頂点への階段", "雲上の広場", "神殿の前廊", "守護の間", "BOSS房"],
+    "maxExplore": 5
+  }
+]

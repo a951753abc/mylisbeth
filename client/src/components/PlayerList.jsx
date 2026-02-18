@@ -41,9 +41,14 @@ export default function PlayerList() {
       {players.map((player) => (
         <div key={player.rank} className="item-row">
           <span>
-            <strong>{player.rank}.</strong> {player.name}
+            <strong>{player.rank}.</strong>{' '}
+            {player.title && (
+              <span className="player-title">「{player.title}」</span>
+            )}
+            {player.name}
           </span>
           <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+            {player.currentFloor > 1 ? `${player.currentFloor}F ` : ''}
             鍛造 Lv.{player.forgeLevel} | 挖礦 Lv.{player.mineLevel}
           </span>
         </div>
@@ -53,7 +58,7 @@ export default function PlayerList() {
           <button
             className="btn-primary"
             disabled={page <= 1}
-            onClick={() => setPage(p => p - 1)}
+            onClick={() => setPage((p) => p - 1)}
             style={{ padding: '0.3rem 0.8rem' }}
           >
             上一頁
@@ -64,7 +69,7 @@ export default function PlayerList() {
           <button
             className="btn-primary"
             disabled={page >= totalPages}
-            onClick={() => setPage(p => p + 1)}
+            onClick={() => setPage((p) => p + 1)}
             style={{ padding: '0.3rem 0.8rem' }}
           >
             下一頁

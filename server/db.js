@@ -85,6 +85,11 @@ module.exports.atomicIncItem = async function (
   return result.modifiedCount > 0;
 };
 
+module.exports.upsert = async function (collectName, filter, update) {
+  const collection = db.collection(collectName);
+  await collection.updateOne(filter, update, { upsert: true });
+};
+
 module.exports.saveItemToUser = async function (userId, mine) {
   await module.exports.atomicIncItem(
     userId,

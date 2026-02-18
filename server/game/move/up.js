@@ -2,9 +2,13 @@ const _ = require("lodash");
 const db = require("../../db.js");
 const weapon = require("../weapon/weapon.js");
 const level = require("../level");
+const { increment } = require("../progression/statsTracker.js");
+const { checkAndAward } = require("../progression/achievement.js");
+const ensureUserFields = require("../migration/ensureUserFields.js");
 
-module.exports = async function (cmd, user) {
-  // 修復: 使用陣列索引檢查而非 `in` 運算子
+module.exports = async function (cmd, rawUser) {
+  const user = await ensureUserFields(rawUser);
+
   if (!user.weaponStock || !user.weaponStock[cmd[2]]) {
     return { error: "錯誤！武器" + cmd[2] + " 不存在" };
   }
@@ -32,6 +36,7 @@ module.exports = async function (cmd, user) {
   if (thisWeapon.durability <= 0) {
     thisWeapon.text += thisWeapon.weaponName + " 爆發四散了。";
     await weapon.destroyWeapon(user.userId, cmd[2]);
+    await increment(user.userId, "weaponsBroken");
   } else {
     const weaponUnset = "weaponStock." + cmd[2];
     const mod = { $set: {} };
@@ -40,6 +45,8 @@ module.exports = async function (cmd, user) {
   }
 
   thisWeapon.text += await level("forge", user);
+
+  await checkAndAward(user.userId);
 
   let weaponName = thisWeapon.weaponName;
   if (_.get(thisWeapon, "buff", false)) {

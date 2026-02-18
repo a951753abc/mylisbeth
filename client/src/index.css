@@ -258,3 +258,188 @@ input:focus, select:focus {
   color: white;
   border-color: var(--accent);
 }
+
+/* ===== Season 2 Styles ===== */
+
+/* Header title */
+.header-title {
+  font-size: 0.75rem;
+  color: var(--warning);
+  margin-left: 0.5rem;
+  font-weight: normal;
+}
+
+/* Player title in player list */
+.player-title {
+  color: var(--warning);
+  font-size: 0.8rem;
+  margin-right: 0.25rem;
+}
+
+/* Boss Health Bar */
+.boss-health-bar {
+  margin-top: 0.5rem;
+}
+
+.boss-name {
+  color: var(--danger);
+  font-weight: bold;
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.boss-hp-track {
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  height: 20px;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.boss-hp-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease, background 0.3s ease;
+}
+
+.boss-hp-text {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-align: right;
+  margin-top: 0.2rem;
+}
+
+.boss-participants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.boss-participant-badge {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Explore progress bar */
+.explore-track {
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  height: 10px;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.explore-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+
+/* Achievement items */
+.achievement-item {
+  padding: 0.6rem;
+  border-radius: 6px;
+  margin-bottom: 0.4rem;
+  border: 1px solid var(--border);
+}
+
+.achievement-unlocked {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: var(--success);
+}
+
+.achievement-locked {
+  background: var(--bg-secondary);
+  opacity: 0.7;
+}
+
+.achievement-name {
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
+}
+
+.achievement-desc {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.achievement-reward {
+  color: var(--warning);
+  font-size: 0.78rem;
+  margin-top: 0.2rem;
+}
+
+/* Daily reward panel */
+.daily-result {
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+  border: 1px solid var(--success);
+}
+
+.daily-rewards-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .daily-rewards-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.daily-reward-cell {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem;
+  text-align: center;
+  position: relative;
+  min-height: 70px;
+}
+
+.daily-today {
+  border-color: var(--gold);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.daily-past {
+  opacity: 0.6;
+}
+
+.daily-day {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.daily-col {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--gold);
+}
+
+.daily-material {
+  font-size: 0.65rem;
+  color: var(--accent);
+  margin-top: 0.2rem;
+}
+
+.daily-check {
+  color: var(--success);
+  font-size: 1rem;
+  position: absolute;
+  top: 2px;
+  right: 4px;
+}

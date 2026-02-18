@@ -8,10 +8,13 @@ const npcNameList = require("../npc/list.json");
 const eneNameList = require("../ene/name.json");
 const { pveBattle } = require("../battle");
 const gemini = require("../gemini.js");
+const { awardCol } = require("../economy/col.js");
+const { increment } = require("../progression/statsTracker.js");
+const { checkAndAward } = require("../progression/achievement.js");
+const { getFloor } = require("../floor/floorData.js");
+const ensureUserFields = require("../migration/ensureUserFields.js");
 
-const placeList = ["迷宮", "深山", "沼澤", "樹林", "城鎮外"];
-
-function createBattlePrompt(battleResult, user, weaponData, place, floor) {
+function createBattlePrompt(battleResult, user, weaponData, place, floorNum, floorName) {
   let logText = "";
   battleResult.log.forEach((entry) => {
     switch (entry.type) {
@@ -40,7 +43,7 @@ function createBattlePrompt(battleResult, user, weaponData, place, floor) {
 **重要：請將總描述長度控制在 600 字元左右，絕對不要超過 800 字元。**
 
 ### 戰鬥情境
-- **地點**: 在 ${place} 的第 ${floor} 層。
+- **地點**: Aincrad 第 ${floorNum} 層「${floorName}」的 ${place}。
 - **我方**: ${battleResult.npcName} (冒險者)。
 - **我方武器**: ${weaponData.weaponName} (由鍛造師 ${user.name} 所打造的 ${weaponData.name})。
 - **敵方**: ${battleResult.enemyName} (兇惡的敵人)。
@@ -52,8 +55,10 @@ ${logText}
 `;
 }
 
-module.exports = async function (cmd, user) {
+module.exports = async function (cmd, rawUser) {
   try {
+    const user = await ensureUserFields(rawUser);
+
     if (!user.weaponStock || user.weaponStock.length === 0) {
       return { error: "你沒有任何武器，無法冒險！" };
     }
@@ -67,20 +72,16 @@ module.exports = async function (cmd, user) {
     }
 
     const thisWeapon = user.weaponStock[cmd[2]];
-    const npcExample =
-      npcNameList[Math.floor(Math.random() * npcNameList.length)];
+    const npcExample = npcNameList[Math.floor(Math.random() * npcNameList.length)];
     const npc = _.clone(npcExample);
-    const place = placeList[Math.floor(Math.random() * placeList.length)];
-    const floor = 1;
-    const battleResult = await pveBattle(thisWeapon, npc, eneNameList);
 
-    const prompt = createBattlePrompt(
-      battleResult,
-      user,
-      thisWeapon,
-      place,
-      floor,
-    );
+    const currentFloor = user.currentFloor || 1;
+    const floorData = getFloor(currentFloor);
+    const place = floorData.places[Math.floor(Math.random() * floorData.places.length)];
+
+    const battleResult = await pveBattle(thisWeapon, npc, eneNameList, floorData.enemies);
+
+    const prompt = createBattlePrompt(battleResult, user, thisWeapon, place, currentFloor, floorData.name);
     const narrativeText = await gemini.generateBattleNarrative(prompt);
 
     let durabilityText = "";
@@ -107,22 +108,44 @@ module.exports = async function (cmd, user) {
       if (updatedUser.weaponStock[cmd[2]].durability <= 0) {
         durabilityText += `\n**${thisWeapon.weaponName} 爆發四散了！**`;
         await weapon.destroyWeapon(user.userId, cmd[2]);
+        await increment(user.userId, "weaponsBroken");
       }
     }
 
     let rewardText = "";
+    let colEarned = 0;
     if (battleResult.win === 1) {
       const winString = `${battleResult.category}Win`;
-      const mineResultText = await mineBattle(user, battleResult.category);
+      const mineResultText = await mineBattle(user, battleResult.category, currentFloor);
       rewardText = `\n\n**戰利品:**\n${mineResultText}`;
-      await db.update(
-        "user",
-        { userId: user.userId },
-        { $inc: { [winString]: 1 } },
-      );
+      await db.update("user", { userId: user.userId }, { $inc: { [winString]: 1 } });
+
+      const colReward = config.COL_ADVENTURE_REWARD[battleResult.category] || 50;
+      colEarned = colReward;
+      await awardCol(user.userId, colReward);
+      rewardText += `獲得 ${colReward} Col\n`;
+
+      if (battleResult.category === "[優樹]") {
+        await increment(user.userId, "yukiDefeats");
+      }
     } else if (battleResult.dead === 1) {
       await db.update("user", { userId: user.userId }, { $inc: { lost: 1 } });
     }
+
+    // 更新探索進度
+    const floorProgressKey = `floorProgress.${currentFloor}.explored`;
+    const currentExplored = _.get(user, `floorProgress.${currentFloor}.explored`, 0);
+    const maxExplore = _.get(user, `floorProgress.${currentFloor}.maxExplore`, config.FLOOR_MAX_EXPLORE);
+    if (currentExplored < maxExplore) {
+      await db.update(
+        "user",
+        { userId: user.userId },
+        { $inc: { [floorProgressKey]: 1 } },
+      );
+    }
+
+    await increment(user.userId, "totalAdventures");
+    await checkAndAward(user.userId);
 
     return {
       battleResult: {
@@ -136,6 +159,9 @@ module.exports = async function (cmd, user) {
       narrative: narrativeText,
       durabilityText,
       reward: rewardText,
+      colEarned,
+      floor: currentFloor,
+      floorName: floorData.name,
     };
   } catch (error) {
     console.error("在執行 move adv 時發生嚴重錯誤:", error);
@@ -143,7 +169,7 @@ module.exports = async function (cmd, user) {
   }
 };
 
-async function mineBattle(user, category) {
+async function mineBattle(user, category, floorNumber) {
   const battleMineList = [
     { category: "[優樹]", list: [{ itemLevel: 3, less: 100, text: "★★★" }] },
     {
@@ -175,22 +201,21 @@ async function mineBattle(user, category) {
       ],
     },
   ];
-  const mineList = await db.find("item", {});
-  const mine = _.clone(mineList[Math.floor(Math.random() * mineList.length)]);
+
+  const allItems = await db.find("item", {});
+  const floorItems = getFloorMineList(allItems, floorNumber);
+  const mine = _.clone(floorItems[Math.floor(Math.random() * floorItems.length)]);
+
   const list = _.find(battleMineList, ["category", category]);
   if (!list || !list.list) {
-    console.error(
-      `錯誤：在 battleMineList 中找不到類別為 "${category}" 的掉落設定。`,
-    );
+    console.error(`錯誤：在 battleMineList 中找不到類別為 "${category}" 的掉落設定。`);
     return "";
   }
   const thisItemLevelList = list.list;
   let itemLevel = 0;
   let levelCount = 0;
   while (itemLevel === 0) {
-    if (levelCount >= thisItemLevelList.length) {
-      break;
-    }
+    if (levelCount >= thisItemLevelList.length) break;
     if (roll.d100Check(thisItemLevelList[levelCount].less)) {
       itemLevel = thisItemLevelList[levelCount].itemLevel;
     }
@@ -203,4 +228,20 @@ async function mineBattle(user, category) {
   }
   await db.saveItemToUser(user.userId, mine);
   return "獲得[" + mine.level.text + "]" + mine.name + "\n";
+}
+
+function getFloorMineList(allItems, floorNumber) {
+  const floorMaterials = config.FLOOR_MATERIAL_GROUPS;
+  const floorSpecificIds = [];
+  for (const group of floorMaterials) {
+    if (group.floors.includes(floorNumber)) {
+      floorSpecificIds.push(...group.itemIds);
+    }
+  }
+
+  const baseItems = allItems.filter((item) => item.baseItem === true || !item.floorItem);
+  const floorItems = allItems.filter((item) => floorSpecificIds.includes(item.itemId));
+
+  const pool = [...baseItems, ...floorItems];
+  return pool.length > 0 ? pool : allItems;
 }

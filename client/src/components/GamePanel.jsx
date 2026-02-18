@@ -55,6 +55,20 @@ export default function GamePanel({ user, onAction, setCooldown }) {
             <div className="label">死亡次數</div>
             <div className="value">{user.lost}</div>
           </div>
+          <div className="stat-item">
+            <div className="label">Col</div>
+            <div className="value" style={{ color: 'var(--gold)' }}>{(user.col || 0).toLocaleString()}</div>
+          </div>
+          <div className="stat-item">
+            <div className="label">樓層</div>
+            <div className="value">{user.currentFloor || 1} F</div>
+          </div>
+          <div className="stat-item">
+            <div className="label">稱號</div>
+            <div className="value" style={{ fontSize: '0.75rem', color: 'var(--warning)' }}>
+              {user.title || '—'}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -200,10 +214,18 @@ export default function GamePanel({ user, onAction, setCooldown }) {
           <h2>結果</h2>
           <div className="battle-log">
             {result.text && <div>{result.text}</div>}
-            {result.narrative && <div style={{ marginTop: '0.5rem' }}>{result.narrative}</div>}
+            {result.narrative && <div style={{ marginTop: '0.5rem', fontStyle: 'italic' }}>{result.narrative}</div>}
             {result.durabilityText && <div>{result.durabilityText}</div>}
             {result.reward && <div>{result.reward}</div>}
             {result.battleLog && <div>{result.battleLog}</div>}
+            {result.colEarned > 0 && (
+              <div style={{ color: 'var(--gold)' }}>💰 +{result.colEarned} Col</div>
+            )}
+            {result.floor && (
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                📍 第 {result.floor} 層 {result.floorName}
+              </div>
+            )}
             {result.weapon && (
               <div style={{ marginTop: '0.5rem' }}>
                 <strong>{result.weapon.weaponName}</strong> [{result.weapon.name}]

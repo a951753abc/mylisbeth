@@ -1,5 +1,19 @@
 import React from 'react';
 
+function getActionLabel(action) {
+  if (action === 'mine') return '挖礦結果';
+  if (action === 'forge') return '鍛造結果';
+  if (action === 'upgrade') return '強化結果';
+  if (action === 'adventure') return '冒險日誌';
+  if (action === 'pvp') return 'PVP 戰鬥';
+  if (action === 'boss-attack') return '⚔️ Boss 攻擊';
+  if (action === 'boss:damage') return '🗡️ Boss 受到傷害';
+  if (action === 'boss:defeated') return '🏆 Boss 被擊敗！';
+  if (action === 'floor:unlocked') return '🎉 新樓層解鎖';
+  if (action === 'pvp:attacked') return 'PVP 被攻擊';
+  return '事件';
+}
+
 export default function BattleLog({ logs }) {
   if (logs.length === 0) {
     return (
@@ -15,23 +29,85 @@ export default function BattleLog({ logs }) {
       <h2>戰鬥日誌</h2>
       <div className="battle-log">
         {logs.map((log, i) => (
-          <div key={i} style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
+          <div
+            key={i}
+            style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}
+          >
             <div style={{ color: 'var(--gold)', fontWeight: 'bold', marginBottom: '0.25rem' }}>
-              {log.action === 'mine' && '挖礦結果'}
-              {log.action === 'forge' && '鍛造結果'}
-              {log.action === 'upgrade' && '強化結果'}
-              {log.action === 'adventure' && '冒險日誌'}
-              {log.action === 'pvp' && 'PVP 戰鬥'}
-              {!log.action && '事件'}
+              {getActionLabel(log.action)}
               <span style={{ color: 'var(--text-secondary)', fontWeight: 'normal', fontSize: '0.8rem', marginLeft: '0.5rem' }}>
                 {log.time ? new Date(log.time).toLocaleTimeString() : ''}
               </span>
             </div>
+
+            {/* General action results */}
             {log.text && <div>{log.text}</div>}
             {log.narrative && <div style={{ fontStyle: 'italic', lineHeight: 1.8 }}>{log.narrative}</div>}
             {log.durabilityText && <div>{log.durabilityText}</div>}
             {log.reward && <div style={{ color: 'var(--success)' }}>{log.reward}</div>}
             {log.battleLog && <div>{log.battleLog}</div>}
+
+            {/* Floor info for adventure */}
+            {log.floor && log.floorName && (
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                📍 第 {log.floor} 層 {log.floorName}
+              </div>
+            )}
+
+            {/* Col earned */}
+            {log.colEarned > 0 && (
+              <div style={{ color: 'var(--gold)', fontSize: '0.85rem' }}>
+                💰 +{log.colEarned} Col
+              </div>
+            )}
+
+            {/* Boss attack result */}
+            {log.action === 'boss-attack' && log.damage && (
+              <div>
+                <span style={{ color: 'var(--danger)' }}>
+                  ⚔️ 對 {log.bossName} 造成 {log.damage} 傷害
+                </span>
+                {log.bossDefeated ? (
+                  <span style={{ color: 'var(--gold)', marginLeft: '0.5rem' }}>💥 Boss 已被擊敗！</span>
+                ) : (
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginLeft: '0.5rem' }}>
+                    (剩餘 HP: {log.bossHpRemaining?.toLocaleString()})
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Boss damage socket event */}
+            {log.action === 'boss:damage' && (
+              <div style={{ color: 'var(--warning)' }}>
+                {log.player} 對 Boss 造成 {log.damage} 傷害 | 剩餘 {log.bossHpRemaining?.toLocaleString()} HP
+              </div>
+            )}
+
+            {/* Boss defeated socket event */}
+            {log.action === 'boss:defeated' && (
+              <div style={{ color: 'var(--gold)' }}>
+                第 {log.floorNumber} 層 Boss 「{log.bossName}」已被擊敗！
+                MVP: {log.mvp?.name} ({log.mvp?.damage?.toLocaleString()} 傷害)
+              </div>
+            )}
+
+            {/* Floor unlocked socket event */}
+            {log.action === 'floor:unlocked' && (
+              <div style={{ color: 'var(--success)' }}>
+                第 {log.floorNumber} 層「{log.name}（{log.nameCn}）」已解鎖！
+              </div>
+            )}
+
+            {/* PVP attacked */}
+            {log.action === 'pvp:attacked' && (
+              <div>
+                <span style={{ color: 'var(--danger)' }}>
+                  ⚠️ 遭到 {log.attacker} 的挑戰！勝者: {log.winner}
+                </span>
+                {log.reward && <div>{log.reward}</div>}
+              </div>
+            )}
           </div>
         )).reverse()}
       </div>

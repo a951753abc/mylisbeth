@@ -2,9 +2,15 @@ const _ = require("lodash");
 const weapon = require("../weapon/weapon.js");
 const db = require("../../db.js");
 const level = require("../level");
+const { increment } = require("../progression/statsTracker.js");
+const { checkAndAward } = require("../progression/achievement.js");
+const ensureUserFields = require("../migration/ensureUserFields.js");
+
 const weaponLimit = 1;
 
-module.exports = async function (cmd, user) {
+module.exports = async function (cmd, rawUser) {
+  const user = await ensureUserFields(rawUser);
+
   const weaponLevel = _.get(user, "forceLevel", 1);
   if (_.get(user, "weaponStock", false)) {
     const filter = [
@@ -24,7 +30,6 @@ module.exports = async function (cmd, user) {
     }
   }
 
-  // 修復: 使用陣列索引檢查而非 `in` 運算子
   if (!user.itemStock || !user.itemStock[cmd[2]]) {
     return { error: "錯誤！素材" + cmd[2] + " 不存在" };
   }
@@ -76,7 +81,6 @@ module.exports = async function (cmd, user) {
         -1,
       );
       if (!decOk) {
-        // Rollback first item
         await db.atomicIncItem(
           user.userId,
           item1.itemId,
@@ -93,6 +97,7 @@ module.exports = async function (cmd, user) {
 
   if (thisWeapon.durability <= 0) {
     thisWeapon.text += thisWeapon.weaponName + " 爆發四散了。";
+    await increment(user.userId, "weaponsBroken");
   } else {
     await db.update(
       "user",
@@ -102,6 +107,9 @@ module.exports = async function (cmd, user) {
   }
 
   thisWeapon.text += await level(cmd[1], user);
+
+  await increment(user.userId, "totalForges");
+  await checkAndAward(user.userId);
 
   return {
     weapon: {
