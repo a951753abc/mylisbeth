@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 
 export default function GamePanel({ user, onAction, setCooldown }) {
   const [result, setResult] = useState(null);
@@ -20,6 +20,40 @@ export default function GamePanel({ user, onAction, setCooldown }) {
   // PVP state
   const [pvpTarget, setPvpTarget] = useState("");
   const [pvpWeapon, setPvpWeapon] = useState("");
+
+  // Forge: items available for mat1 (exclude mat2 selection if quantity insufficient)
+  const availableForMat1 = useMemo(() => {
+    return (user.items || []).filter((item) => {
+      if (item.num <= 0) return false;
+      if (String(item.index) === forgeMat2 && item.num < 2) return false;
+      return true;
+    });
+  }, [user.items, forgeMat2]);
+
+  // Forge: items available for mat2 (exclude mat1 selection if quantity insufficient)
+  const availableForMat2 = useMemo(() => {
+    return (user.items || []).filter((item) => {
+      if (item.num <= 0) return false;
+      if (String(item.index) === forgeMat1 && item.num < 2) return false;
+      return true;
+    });
+  }, [user.items, forgeMat1]);
+
+  const handleMat1Change = (newVal) => {
+    setForgeMat1(newVal);
+    if (newVal && newVal === forgeMat2) {
+      const item = (user.items || []).find((i) => String(i.index) === newVal);
+      if (item && item.num < 2) setForgeMat2("");
+    }
+  };
+
+  const handleMat2Change = (newVal) => {
+    setForgeMat2(newVal);
+    if (newVal && newVal === forgeMat1) {
+      const item = (user.items || []).find((i) => String(i.index) === newVal);
+      if (item && item.num < 2) setForgeMat1("");
+    }
+  };
 
   const doAction = async (action, body = {}) => {
     setBusy(true);
@@ -102,29 +136,33 @@ export default function GamePanel({ user, onAction, setCooldown }) {
         >
           <select
             value={forgeMat1}
-            onChange={(e) => setForgeMat1(e.target.value)}
+            onChange={(e) => handleMat1Change(e.target.value)}
           >
             <option value="">— 素材1 —</option>
-            {(user.items || [])
-              .filter((item) => item.num > 0)
-              .map((item) => (
+            {availableForMat1.map((item) => {
+              const displayNum =
+                String(item.index) === forgeMat2 ? item.num - 1 : item.num;
+              return (
                 <option key={item.index} value={String(item.index)}>
-                  #{item.index} [{item.levelText}] {item.name} x{item.num}
+                  #{item.index} [{item.levelText}] {item.name} x{displayNum}
                 </option>
-              ))}
+              );
+            })}
           </select>
           <select
             value={forgeMat2}
-            onChange={(e) => setForgeMat2(e.target.value)}
+            onChange={(e) => handleMat2Change(e.target.value)}
           >
             <option value="">— 素材2 —</option>
-            {(user.items || [])
-              .filter((item) => item.num > 0)
-              .map((item) => (
+            {availableForMat2.map((item) => {
+              const displayNum =
+                String(item.index) === forgeMat1 ? item.num - 1 : item.num;
+              return (
                 <option key={item.index} value={String(item.index)}>
-                  #{item.index} [{item.levelText}] {item.name} x{item.num}
+                  #{item.index} [{item.levelText}] {item.name} x{displayNum}
                 </option>
-              ))}
+              );
+            })}
           </select>
           <input
             type="text"
