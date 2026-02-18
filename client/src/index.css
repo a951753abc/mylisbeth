@@ -12,6 +12,13 @@
   --warning: #eab308;
   --gold: #f59e0b;
   --star: #fbbf24;
+
+  /* Rarity colors */
+  --rarity-common:    #9ca3af;
+  --rarity-fine:      #22c55e;
+  --rarity-rare:      #3b82f6;
+  --rarity-epic:      #a855f7;
+  --rarity-legendary: #f59e0b;
 }
 
 * {
@@ -442,4 +449,51 @@ input:focus, select:focus {
   position: absolute;
   top: 2px;
   right: 4px;
+}
+
+/* ===== Rarity Badge (inline — used in result display) ===== */
+.rarity-badge-inline {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 6px currentColor;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+  background: rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+/* ===== Rarity Badge (prominent — used in weapon cards) ===== */
+.rarity-badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 8px currentColor;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  background: rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.rarity-score {
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.rarity-score::before {
+  content: "Lv.";
+}
+
+/* ===== Weapon Card Rarity Color Bar ===== */
+.weapon-rarity-bar {
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  margin: -0.75rem -0.75rem 0.6rem -0.75rem;
+  opacity: 0.8;
 }

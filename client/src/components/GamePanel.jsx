@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from "react";
+import ForgeAnimation from "./ForgeAnimation.jsx";
 
 export default function GamePanel({ user, onAction, setCooldown }) {
   const [result, setResult] = useState(null);
+  const [forgeResult, setForgeResult] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -63,6 +65,9 @@ export default function GamePanel({ user, onAction, setCooldown }) {
     if (data.error) {
       setError(data.error);
       if (data.cooldown) setCooldown(data.cooldown);
+    } else if (action === "forge" && data.weapon) {
+      // Show forge animation overlay instead of immediate result
+      setForgeResult(data);
     } else {
       setResult(data);
     }
@@ -71,6 +76,18 @@ export default function GamePanel({ user, onAction, setCooldown }) {
 
   return (
     <div>
+      {/* Forge animation overlay */}
+      {forgeResult && (
+        <ForgeAnimation
+          weapon={forgeResult.weapon}
+          forgeText={forgeResult.text}
+          onComplete={() => {
+            setResult(forgeResult);
+            setForgeResult(null);
+          }}
+        />
+      )}
+
       {error && <div className="error-msg">{error}</div>}
 
       {/* Stats */}
@@ -330,7 +347,36 @@ export default function GamePanel({ user, onAction, setCooldown }) {
               </div>
             )}
             {result.weapon && (
-              <div style={{ marginTop: "0.5rem" }}>
+              <div
+                style={{
+                  marginTop: "0.5rem",
+                  border: result.weapon.rarityColor
+                    ? `1px solid ${result.weapon.rarityColor}`
+                    : undefined,
+                  borderRadius: "6px",
+                  padding: "0.5rem",
+                  boxShadow: result.weapon.rarityColor
+                    ? `0 0 10px ${result.weapon.rarityColor}55`
+                    : undefined,
+                }}
+              >
+                {result.weapon.rarityLabel && (
+                  <div
+                    className="rarity-badge"
+                    style={{
+                      color: result.weapon.rarityColor,
+                      borderColor: result.weapon.rarityColor,
+                      marginBottom: "0.4rem",
+                    }}
+                  >
+                    {result.weapon.rarityLabel}
+                    {result.weapon.totalScore != null && (
+                      <span className="rarity-score">
+                        {result.weapon.totalScore}
+                      </span>
+                    )}
+                  </div>
+                )}
                 <strong>{result.weapon.weaponName}</strong> [
                 {result.weapon.name}]
                 <div className="stat-grid" style={{ marginTop: "0.25rem" }}>

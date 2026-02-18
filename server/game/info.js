@@ -1,5 +1,6 @@
 const _ = require("lodash");
 const type = require("./type.js");
+const { calculateRarity } = require("./weapon/rarity.js");
 
 module.exports = function (user) {
   const lose = _.get(user, "lost", 0);
@@ -27,6 +28,13 @@ module.exports = function (user) {
       if (_.get(value, "buff", false)) {
         weaponName = weaponName + "+" + value.buff;
       }
+      const rarity = value.rarity
+        ? {
+            id: value.rarity,
+            label: value.rarityLabel,
+            color: value.rarityColor,
+          }
+        : calculateRarity(value);
       weapons.push({
         index: key,
         name: value.name,
@@ -37,6 +45,17 @@ module.exports = function (user) {
         cri: value.cri,
         hp: value.hp,
         durability: value.durability,
+        rarity: rarity.id,
+        rarityLabel: rarity.label,
+        rarityColor: rarity.color,
+        totalScore:
+          rarity.totalScore ||
+          (value.atk || 0) +
+            (value.def || 0) +
+            (value.agi || 0) +
+            (value.cri || 0) +
+            (value.hp || 0) +
+            (value.durability || 0),
       });
     });
   }
@@ -70,12 +89,18 @@ module.exports = function (user) {
     // Season 2 fields
     col: _.get(user, "col", 0),
     currentFloor: _.get(user, "currentFloor", 1),
-    floorProgress: _.get(user, "floorProgress", { "1": { explored: 0, maxExplore: 5 } }),
+    floorProgress: _.get(user, "floorProgress", {
+      1: { explored: 0, maxExplore: 5 },
+    }),
     title: _.get(user, "title", null),
     availableTitles: _.get(user, "availableTitles", []),
     achievements: _.get(user, "achievements", []),
     stats: _.get(user, "stats", {}),
-    bossContribution: _.get(user, "bossContribution", { totalDamage: 0, bossesDefeated: 0, mvpCount: 0 }),
+    bossContribution: _.get(user, "bossContribution", {
+      totalDamage: 0,
+      bossesDefeated: 0,
+      mvpCount: 0,
+    }),
     dailyLoginStreak: _.get(user, "dailyLoginStreak", 0),
     lastDailyClaimAt: _.get(user, "lastDailyClaimAt", null),
   };

@@ -5,6 +5,7 @@ const level = require("../level");
 const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
+const { calculateRarity } = require("../weapon/rarity.js");
 
 module.exports = async function (cmd, rawUser) {
   const user = await ensureUserFields(rawUser);
@@ -31,6 +32,17 @@ module.exports = async function (cmd, rawUser) {
   );
   if (!decOk) {
     return { error: "素材已不足，無法強化。" };
+  }
+
+  // Recalculate rarity based on updated stats
+  const oldRarity = thisWeapon.rarity || null;
+  const rarity = calculateRarity(thisWeapon);
+  thisWeapon.rarity = rarity.id;
+  thisWeapon.rarityLabel = rarity.label;
+  thisWeapon.rarityColor = rarity.color;
+
+  if (oldRarity && oldRarity !== rarity.id) {
+    thisWeapon.text += "稀有度提升為 " + rarity.label + "！\n";
   }
 
   if (thisWeapon.durability <= 0) {
@@ -64,6 +76,10 @@ module.exports = async function (cmd, rawUser) {
       cri: thisWeapon.cri,
       hp: thisWeapon.hp,
       durability: thisWeapon.durability,
+      rarity: rarity.id,
+      rarityLabel: rarity.label,
+      rarityColor: rarity.color,
+      totalScore: rarity.totalScore,
     },
     text: thisWeapon.text,
   };

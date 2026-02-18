@@ -5,6 +5,7 @@ const level = require("../level");
 const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
+const { calculateRarity } = require("../weapon/rarity.js");
 
 const weaponLimit = 1;
 
@@ -95,6 +96,11 @@ module.exports = async function (cmd, rawUser) {
     return { error: "素材已不足，無法鍛造。" };
   }
 
+  const rarity = calculateRarity(thisWeapon);
+  thisWeapon.rarity = rarity.id;
+  thisWeapon.rarityLabel = rarity.label;
+  thisWeapon.rarityColor = rarity.color;
+
   if (thisWeapon.durability <= 0) {
     thisWeapon.text += thisWeapon.weaponName + " 爆發四散了。";
     await increment(user.userId, "weaponsBroken");
@@ -121,6 +127,10 @@ module.exports = async function (cmd, rawUser) {
       cri: thisWeapon.cri,
       hp: thisWeapon.hp,
       durability: thisWeapon.durability,
+      rarity: rarity.id,
+      rarityLabel: rarity.label,
+      rarityColor: rarity.color,
+      totalScore: rarity.totalScore,
     },
     text: thisWeapon.text,
   };

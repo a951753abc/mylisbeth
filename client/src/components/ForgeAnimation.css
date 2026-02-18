@@ -1,0 +1,304 @@
+/* ========================================================
+   ForgeAnimation — 鍛造動畫 Overlay
+   ======================================================== */
+
+/* ── Overlay ── */
+.fa-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  cursor: pointer;
+  user-select: none;
+}
+
+.fa-stage {
+  position: relative;
+  width: 320px;
+  min-height: 360px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Skip hint ── */
+.fa-skip-hint {
+  position: absolute;
+  bottom: -40px;
+  right: 0;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+}
+
+/* ================================================================
+   Phase 1: 打鐵 (Hammer)
+   ================================================================ */
+.fa-hammer-scene {
+  position: relative;
+  width: 180px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fa-anvil {
+  font-size: 5rem;
+  position: absolute;
+  bottom: 10px;
+  animation: faAnvilShake 0.25s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.6));
+}
+
+.fa-hammer {
+  font-size: 4rem;
+  position: absolute;
+  top: 10px;
+  transform-origin: 50% 100%;
+  animation: faHammerStrike 0.55s ease-in-out infinite;
+}
+
+.fa-spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--s-size);
+  height: var(--s-size);
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 4px #f59e0b;
+  animation: faSparkFly 0.55s ease-out infinite;
+}
+
+@keyframes faHammerStrike {
+  0%   { transform: rotate(-35deg) translateY(-8px); }
+  45%  { transform: rotate(20deg)  translateY(46px); }
+  55%  { transform: rotate(20deg)  translateY(46px); }
+  100% { transform: rotate(-35deg) translateY(-8px); }
+}
+
+@keyframes faAnvilShake {
+  0%, 100% { transform: translateX(0); }
+  30%       { transform: translateX(-3px) rotate(-1deg); }
+  70%       { transform: translateX(3px)  rotate(1deg); }
+}
+
+@keyframes faSparkFly {
+  0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% {
+    transform: translate(
+      calc(-50% + var(--s-dx)),
+      calc(-50% + var(--s-dy))
+    ) scale(0);
+    opacity: 0;
+  }
+}
+
+/* ================================================================
+   Phase 2: 聚光 (Glow)
+   ================================================================ */
+.fa-glow-scene {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fa-glow-orb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 40px 20px rgba(255, 255, 255, 0.85);
+  animation: faGlowExpand 0.7s ease-out forwards;
+}
+
+@keyframes faGlowExpand {
+  0%   { transform: scale(0); opacity: 0; }
+  40%  { opacity: 1; }
+  100% { transform: scale(9); opacity: 0.85; }
+}
+
+/* ================================================================
+   Phase 3: 閃光 (Flash)
+   ================================================================ */
+.fa-flash-scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fa-flash-burst {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--rarity-color);
+  box-shadow: 0 0 60px 30px var(--rarity-color);
+  animation: faFlashBurst 0.45s ease-out forwards;
+}
+
+@keyframes faFlashBurst {
+  0%   { transform: scale(0);  opacity: 1; }
+  65%  { transform: scale(5);  opacity: 0.9; }
+  100% { transform: scale(10); opacity: 0; }
+}
+
+/* ================================================================
+   Phase 4: 揭曉 (Reveal)
+   ================================================================ */
+.fa-reveal-scene {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Particles container */
+.fa-particles {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.fa-particle {
+  position: absolute;
+  width: var(--p-size);
+  height: var(--p-size);
+  border-radius: 50%;
+  background: var(--p-color);
+  box-shadow: 0 0 4px var(--p-color);
+  animation: faParticleFly var(--p-duration) ease-out forwards;
+}
+
+@keyframes faParticleFly {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% {
+    transform: translate(var(--p-dx), var(--p-dy)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Weapon Card */
+.fa-weapon-card {
+  background: #1a2332;
+  border: 2px solid var(--rarity-color);
+  border-radius: 14px;
+  padding: 1.4rem 1.6rem;
+  width: 290px;
+  box-shadow:
+    0 0 24px var(--rarity-glow),
+    0 0 60px rgba(0, 0, 0, 0.6);
+  animation: faCardSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.fa-weapon-broken {
+  animation: faCardBreak 0.5s ease-out forwards;
+}
+
+@keyframes faCardSlideIn {
+  0%   { transform: translateY(70px) scale(0.8); opacity: 0; }
+  100% { transform: translateY(0)    scale(1);   opacity: 1; }
+}
+
+@keyframes faCardBreak {
+  0%   { transform: translateY(70px) scale(0.8) rotate(-3deg); opacity: 0; }
+  60%  { transform: translateY(-4px) scale(1.02) rotate(2deg); opacity: 1; }
+  100% { transform: translateY(0)    scale(1)   rotate(0deg);  opacity: 1; }
+}
+
+.fa-rarity-badge {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 12px currentColor;
+  animation: faRarityPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes faRarityPulse {
+  0%, 100% { opacity: 1;   text-shadow: 0 0 12px currentColor; }
+  50%       { opacity: 0.75; text-shadow: 0 0 24px currentColor; }
+}
+
+.fa-weapon-name {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #e2e8f0;
+  margin-bottom: 0.2rem;
+}
+
+.fa-weapon-type {
+  color: #94a3b8;
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+}
+
+.fa-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+}
+
+.fa-stat {
+  background: #111827;
+  border-radius: 4px;
+  padding: 0.3rem 0.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.fa-stat-label {
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.fa-stat-val {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #e2e8f0;
+}
+
+.fa-forge-text {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  white-space: pre-wrap;
+  text-align: left;
+  background: #111827;
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  margin-bottom: 0.6rem;
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+.fa-hint {
+  font-size: 0.72rem;
+  color: #4b5563;
+  margin-top: 0.25rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 375px) {
+  .fa-weapon-card {
+    width: 280px;
+    padding: 1.1rem 1.2rem;
+  }
+  .fa-weapon-name {
+    font-size: 1.2rem;
+  }
+}
