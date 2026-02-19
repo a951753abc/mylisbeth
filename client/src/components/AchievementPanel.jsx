@@ -62,33 +62,57 @@ export default function AchievementPanel({ user, onTitleChange }) {
     <div>
       {/* 稱號管理 */}
       <div className="card">
-        <h2>🎖️ 我的稱號</h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
-          目前稱號: <strong style={{ color: 'var(--gold)' }}>{user.title || '（無）'}</strong>
-        </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <button
-            className="btn-primary"
-            style={{ fontSize: '0.8rem', padding: '0.3rem 0.75rem' }}
-            onClick={() => setTitle(null)}
-          >
-            移除稱號
-          </button>
-          {(user.availableTitles || []).map((t) => (
-            <div key={t} style={{ display: 'inline-flex', flexDirection: 'column', maxWidth: '160px' }}>
-              <button
-                className={user.title === t ? 'btn-warning' : 'btn-primary'}
-                style={{ fontSize: '0.8rem', padding: '0.3rem 0.75rem' }}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2 style={{ margin: 0 }}>🎖️ 我的稱號</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+              目前：<strong style={{ color: 'var(--gold)' }}>{user.title || '（無）'}</strong>
+            </span>
+            <button
+              className="btn-secondary"
+              style={{ fontSize: '0.8rem', padding: '0.3rem 0.75rem' }}
+              onClick={() => setTitle(null)}
+            >
+              移除稱號
+            </button>
+          </div>
+        </div>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(185px, 1fr))',
+          gap: '0.75rem',
+        }}>
+          {(user.availableTitles || []).map((t) => {
+            const isActive = user.title === t;
+            return (
+              <div
+                key={t}
                 onClick={() => setTitle(t)}
+                style={{
+                  border: `2px solid ${isActive ? 'var(--gold)' : 'var(--border)'}`,
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  cursor: 'pointer',
+                  backgroundColor: isActive ? 'rgba(245, 158, 11, 0.08)' : 'var(--bg-secondary)',
+                  transition: 'border-color 0.15s',
+                }}
               >
-                {t}
-              </button>
-              <TitleEffectHint title={t} allEffects={allTitleEffects} />
-            </div>
-          ))}
+                <div style={{
+                  fontWeight: 'bold',
+                  fontSize: '0.9rem',
+                  color: isActive ? 'var(--gold)' : 'var(--text-primary)',
+                  marginBottom: '0.5rem',
+                  textAlign: 'center',
+                }}>
+                  {t}
+                </div>
+                <TitleEffectHint title={t} allEffects={allTitleEffects} />
+              </div>
+            );
+          })}
         </div>
         {titleMsg && (
-          <div style={{ marginTop: '0.5rem', color: 'var(--success)', fontSize: '0.85rem' }}>
+          <div style={{ marginTop: '0.75rem', color: 'var(--success)', fontSize: '0.85rem' }}>
             {titleMsg}
           </div>
         )}
