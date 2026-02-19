@@ -67,6 +67,7 @@ async function hireNpc(userId, npcId) {
     level: npcDoc.level ?? 1,
     exp: npcDoc.exp ?? 0,
     equippedWeaponIndex: null,
+    weeklyCost: npcDoc.weeklyCost || NPC_CFG.WEEKLY_WAGE[npcDoc.quality],
     hiredAt: Date.now(),
   };
   await db.update("user", { userId }, { $push: { hiredNpcs: npcEntry } });

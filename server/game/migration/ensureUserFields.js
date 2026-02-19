@@ -67,6 +67,20 @@ module.exports = async function ensureUserFields(user) {
     updates.nextSettlementAt = getNextSettlementTime(Date.now());
   }
 
+  // 修補已雇用 NPC 缺少 weeklyCost 的問題
+  const npcs = updates.hiredNpcs || user.hiredNpcs || [];
+  let npcPatched = false;
+  const patchedNpcs = npcs.map((npc) => {
+    if (npc.weeklyCost === undefined || npc.weeklyCost === null) {
+      npcPatched = true;
+      return { ...npc, weeklyCost: config.NPC.WEEKLY_WAGE[npc.quality] || 100 };
+    }
+    return npc;
+  });
+  if (npcPatched) {
+    updates.hiredNpcs = patchedNpcs;
+  }
+
   if (Object.keys(updates).length === 0) {
     return user;
   }
