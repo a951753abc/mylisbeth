@@ -30,6 +30,11 @@ module.exports.update = async function (collectName, filter, newValue) {
   await collection.updateOne(filter, newValue);
 };
 
+module.exports.updateMany = async function (collectName, filter, newValue) {
+  const collection = db.collection(collectName);
+  await collection.updateMany(filter, newValue);
+};
+
 module.exports.aggregate = async function (collectName, filter) {
   const collection = db.collection(collectName);
   return await collection.aggregate(filter).toArray();
