@@ -146,7 +146,7 @@ module.exports = {
   RANDOM_EVENTS: {
     TRIGGER_ACTIONS: ["mine", "soloAdv", "adv"],
     LAUGHING_COFFIN: {
-      CHANCE: 8,                        // 觸發機率 (%)
+      CHANCE: 5,                        // 觸發機率 (%)
       // 敵方基礎數值（隨樓層 scaling: base * (1 + floor * 0.15)）
       ENEMY_BASE: {
         HP: 60,
