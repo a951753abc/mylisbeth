@@ -90,6 +90,11 @@ module.exports.upsert = async function (collectName, filter, update) {
   await collection.updateOne(filter, update, { upsert: true });
 };
 
+module.exports.count = async function (collectName, filter) {
+  const collection = db.collection(collectName);
+  return await collection.countDocuments(filter);
+};
+
 module.exports.deleteOne = async function (collectName, filter) {
   const collection = db.collection(collectName);
   return await collection.deleteOne(filter);

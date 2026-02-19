@@ -462,6 +462,31 @@ router.get("/players", async (req, res) => {
   }
 });
 
+// Graveyard (墓碑紀錄)
+router.get("/graveyard", async (req, res) => {
+  try {
+    const logs = await db.find("bankruptcy_log", {
+      cause: "solo_adventure_death",
+    });
+    // 按死亡時間降序排列（最近的在前）
+    logs.sort((a, b) => (b.bankruptedAt || 0) - (a.bankruptedAt || 0));
+    const graves = logs.map((log) => ({
+      name: log.name,
+      title: log.title || null,
+      forgeLevel: log.forgeLevel || 1,
+      currentFloor: log.currentFloor || 1,
+      weaponCount: log.weaponCount || 0,
+      hiredNpcCount: log.hiredNpcCount || 0,
+      finalCol: log.finalCol || 0,
+      diedAt: log.bankruptedAt,
+    }));
+    res.json({ graves });
+  } catch (err) {
+    console.error("取得墓碑紀錄失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
 // Help
 router.get("/help", (req, res) => {
   res.json({ commands: help() });

@@ -21,6 +21,9 @@ async function executeBankruptcy(userId, totalDebt, debtCycles, options = {}) {
     finalCol: user?.col || 0,
     hiredNpcCount: (user?.hiredNpcs || []).length,
     weaponCount: (user?.weaponStock || []).length,
+    forgeLevel: user?.forgeLevel || 1,
+    currentFloor: user?.currentFloor || 1,
+    title: user?.title || null,
     bankruptedAt: Date.now(),
     cause: options.cause || "debt",
   };

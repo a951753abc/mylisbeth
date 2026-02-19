@@ -9,12 +9,18 @@ module.exports = async function (page) {
   }
 
   const allUsers = await db.find("user", {});
-  if (_.isEmpty(allUsers)) {
+  const deadCount = await db.count("bankruptcy_log", {
+    cause: "solo_adventure_death",
+  });
+
+  const totalAdventurers = allUsers.length + deadCount;
+
+  if (_.isEmpty(allUsers) && deadCount === 0) {
     return { error: "目前沒有任何已註冊的玩家。" };
   }
 
-  const totalPages = Math.ceil(allUsers.length / PLAYERS_PER_PAGE);
-  if (page > totalPages) {
+  const totalPages = Math.max(1, Math.ceil(allUsers.length / PLAYERS_PER_PAGE));
+  if (allUsers.length > 0 && page > totalPages) {
     return { error: `頁數過大，總共只有 ${totalPages} 頁。` };
   }
 
@@ -35,5 +41,8 @@ module.exports = async function (page) {
     players,
     page,
     totalPages,
+    totalAdventurers,
+    aliveCount: allUsers.length,
+    deadCount,
   };
 };

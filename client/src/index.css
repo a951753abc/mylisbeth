@@ -82,6 +82,17 @@ button:disabled {
   background: var(--accent-hover);
 }
 
+.btn-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
 .btn-danger {
   background: var(--danger);
   color: white;
