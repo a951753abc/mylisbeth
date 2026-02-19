@@ -473,6 +473,7 @@ router.get("/graveyard", async (req, res) => {
       "solo_adventure_death",
       "laughing_coffin_mine",
       "laughing_coffin_solo",
+      "debt",
     ];
     const logs = await db.find("bankruptcy_log", {
       cause: { $in: DEATH_CAUSES },
@@ -483,6 +484,7 @@ router.get("/graveyard", async (req, res) => {
       solo_adventure_death: "冒險戰死",
       laughing_coffin_mine: "微笑棺木襲擊",
       laughing_coffin_solo: "微笑棺木襲擊",
+      debt: "負債破產",
     };
     const graves = logs.map((log) => ({
       name: log.name,
