@@ -54,25 +54,29 @@ async function regenStamina(userId) {
 
   const lastRegen = user.lastStaminaRegenAt;
   const elapsed = now - lastRegen;
-  const gameDays = Math.floor(elapsed / config.TIME_SCALE);
-  if (gameDays <= 0) return;
+
+  // 逐點回復：每 15 秒 1 點（與前端 useStaminaTimer 一致）
+  const msPerPoint = config.TIME_SCALE / config.STAMINA.RECOVERY_PER_GAME_DAY;
+  const regenPoints = Math.floor(elapsed / msPerPoint);
+  if (regenPoints <= 0) return;
 
   const currentStamina = user.stamina;
+  const consumedMs = regenPoints * msPerPoint;
+
   if (currentStamina >= maxStamina) {
     // 體力已滿，僅更新時間戳
     await db.update("user", { userId }, {
-      $set: { lastStaminaRegenAt: lastRegen + gameDays * config.TIME_SCALE },
+      $set: { lastStaminaRegenAt: lastRegen + consumedMs },
     });
     return;
   }
 
-  const recovered = gameDays * config.STAMINA.RECOVERY_PER_GAME_DAY;
-  const newStamina = Math.min(currentStamina + recovered, maxStamina);
+  const newStamina = Math.min(currentStamina + regenPoints, maxStamina);
 
   await db.update("user", { userId }, {
     $set: {
       stamina: newStamina,
-      lastStaminaRegenAt: lastRegen + gameDays * config.TIME_SCALE,
+      lastStaminaRegenAt: lastRegen + consumedMs,
     },
   });
 }
