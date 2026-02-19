@@ -37,6 +37,9 @@ router.post("/mine", ensureAuth, async (req, res) => {
     if (result.error) {
       return res.status(400).json(result);
     }
+    if (result.bankruptcy) {
+      return res.status(200).json(result);
+    }
     res.json(result);
   } catch (err) {
     console.error("挖礦失敗:", err);

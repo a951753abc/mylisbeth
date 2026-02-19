@@ -1,7 +1,10 @@
 import React from "react";
 
 export default function BankruptcyScreen({ info, onDismiss }) {
-  const isDeath = info?.cause === "solo_adventure_death";
+  const isDeath = info?.cause === "solo_adventure_death" ||
+    info?.cause === "laughing_coffin_mine" ||
+    info?.cause === "laughing_coffin_solo";
+  const isLaughingCoffin = info?.cause === "laughing_coffin_mine" || info?.cause === "laughing_coffin_solo";
 
   return (
     <div
@@ -20,15 +23,17 @@ export default function BankruptcyScreen({ info, onDismiss }) {
       }}
     >
       <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>
-        {isDeath ? "⚔️" : "💀"}
+        {isLaughingCoffin ? "🗡️" : isDeath ? "⚔️" : "💀"}
       </div>
       <h1 style={{ color: "#ef4444", fontSize: "2.5rem", marginBottom: "0.5rem" }}>
         {isDeath ? "YOU DIED" : "GAME OVER"}
       </h1>
       <p style={{ fontSize: "1.2rem", color: "#fca5a5", marginBottom: "1.5rem" }}>
-        {isDeath
-          ? <>{info?.name || "你"}在冒險中壯烈犧牲，永眠於艾恩葛朗特。<br />你的角色已被永久刪除。</>
-          : <>{info?.name || "你"}因無力清償負債而宣告破產。<br />你的角色已被永久刪除。</>
+        {isLaughingCoffin
+          ? <>{info?.name || "你"}遭到微笑棺木的襲擊而喪命，永眠於艾恩葛朗特。<br />你的角色已被永久刪除。</>
+          : isDeath
+            ? <>{info?.name || "你"}在冒險中壯烈犧牲，永眠於艾恩葛朗特。<br />你的角色已被永久刪除。</>
+            : <>{info?.name || "你"}因無力清償負債而宣告破產。<br />你的角色已被永久刪除。</>
         }
       </p>
 
@@ -65,9 +70,11 @@ export default function BankruptcyScreen({ info, onDismiss }) {
       )}
 
       <p style={{ color: "#6b7280", fontSize: "0.9rem", marginBottom: "1.5rem" }}>
-        {isDeath
-          ? "「這個世界是殘酷的……但也是美麗的。」"
-          : "「浮現在空中的消逝之光，比以往更加耀眼。」"
+        {isLaughingCoffin
+          ? "「笑顏的背後，藏著銳利的殺意。」"
+          : isDeath
+            ? "「這個世界是殘酷的……但也是美麗的。」"
+            : "「浮現在空中的消逝之光，比以往更加耀眼。」"
         }
       </p>
 

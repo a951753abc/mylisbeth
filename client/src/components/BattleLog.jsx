@@ -1,4 +1,5 @@
 import React from 'react';
+import RandomEventDisplay from './RandomEventDisplay.jsx';
 
 function getActionLabel(action) {
   if (action === 'mine') return '挖礦結果';
@@ -107,6 +108,11 @@ export default function BattleLog({ logs }) {
                 </span>
                 {log.reward && <div>{log.reward}</div>}
               </div>
+            )}
+
+            {/* 隨機事件 */}
+            {log.randomEvent && (
+              <RandomEventDisplay event={log.randomEvent} />
             )}
           </div>
         )).reverse()}

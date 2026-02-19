@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import ForgeAnimation from "./ForgeAnimation.jsx";
 import NarrativeDisplay from "./NarrativeDisplay.jsx";
+import RandomEventDisplay from "./RandomEventDisplay.jsx";
 import { useStaminaTimer, formatCountdown } from "../hooks/useStaminaTimer.js";
 
 export default function GamePanel({ user, onAction, setCooldown, onUserUpdate }) {
@@ -655,6 +656,11 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* 隨機事件 */}
+            {result.randomEvent && (
+              <RandomEventDisplay event={result.randomEvent} />
             )}
           </div>
         </div>

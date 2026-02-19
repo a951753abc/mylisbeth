@@ -3,6 +3,7 @@ const config = require("./config.js");
 const db = require("../db.js");
 const { checkSettlement } = require("./economy/debtCheck.js");
 const { checkAndConsumeStamina } = require("./stamina/staminaCheck.js");
+const { checkEvent } = require("./events/eventTrigger.js");
 
 const mine = require("./move/mine.js");
 const forge = require("./move/forge.js");
@@ -71,6 +72,20 @@ module.exports = async function (cmd, userOrId) {
     actionResult.staminaCost = staminaResult.cost;
     actionResult.stamina = staminaResult.stamina;
     actionResult.lastStaminaRegenAt = staminaResult.lastStaminaRegenAt;
+  }
+
+  // 隨機事件檢查（僅限白名單動作且動作成功）
+  if (actionResult && !actionResult.error && !actionResult.bankruptcy) {
+    const eventResult = await checkEvent(userId, cmd[1], actionResult);
+    if (eventResult) {
+      actionResult.randomEvent = eventResult;
+      // 若事件導致破產，標記到頂層
+      if (eventResult.bankruptcy) {
+        actionResult.bankruptcy = true;
+        actionResult.message = eventResult.text;
+        actionResult.bankruptcyInfo = eventResult.losses?.bankruptcyInfo || {};
+      }
+    }
   }
 
   return actionResult;

@@ -203,6 +203,7 @@ module.exports = async function (cmd, rawUser) {
     await checkAndAward(user.userId);
 
     return {
+      advNpcId: npcId,
       battleResult: {
         win: battleResult.win,
         dead: battleResult.dead,

@@ -347,4 +347,107 @@ battleModule.pvpBattle = async function (
   return { log: battleLog, winner };
 };
 
+/**
+ * 直接傳入敵人數據的 PvE 戰鬥（不走 getEneFromFloor 隨機選擇）
+ * @param {object} weapon - 玩家武器
+ * @param {object} npc - 玩家/NPC 資料（同 pveBattle 格式）
+ * @param {object} enemyData - { name, hp, atk, def, agi, cri }
+ * @param {object} titleMods - 稱號修正
+ */
+battleModule.pveBattleDirect = async function (weapon, npc, enemyData, titleMods = {}) {
+  const roundLimit = 5;
+  let round = 1;
+
+  let playerHp = (npc.hp || 0) + (weapon.hp || 0);
+  let playerAtk = weapon.atk || 0;
+  let playerDef = weapon.def || 0;
+  let playerAgi = weapon.agi || 0;
+  let playerCri = weapon.cri || 10;
+
+  if (npc.isHiredNpc && npc.effectiveStats) {
+    const es = npc.effectiveStats;
+    playerHp = es.hp + (weapon.hp || 0);
+    playerAtk = (weapon.atk || 0) + Math.floor(es.atk * 0.5);
+    playerDef = (weapon.def || 0) + Math.floor(es.def * 0.5);
+    playerAgi = Math.max(weapon.agi || 0, es.agi);
+    playerCri = weapon.cri || 10;
+  }
+
+  if (titleMods.battleAtk && titleMods.battleAtk !== 1) {
+    playerAtk = Math.max(1, Math.round(playerAtk * titleMods.battleAtk));
+  }
+  if (titleMods.battleDef && titleMods.battleDef !== 1) {
+    playerDef = Math.max(0, Math.round(playerDef * titleMods.battleDef));
+  }
+  if (titleMods.battleAgi && titleMods.battleAgi !== 1) {
+    playerAgi = Math.max(1, Math.round(playerAgi * titleMods.battleAgi));
+  }
+
+  const playerSide = {
+    name: npc.name,
+    hp: playerHp,
+    stats: { atk: playerAtk, def: playerDef, agi: playerAgi, cri: playerCri },
+  };
+
+  const enemySide = {
+    name: enemyData.name,
+    hp: enemyData.hp,
+    stats: {
+      atk: enemyData.atk,
+      def: enemyData.def,
+      agi: enemyData.agi,
+      cri: enemyData.cri,
+    },
+  };
+
+  const battleResult = {
+    log: [],
+    win: 0,
+    dead: 0,
+    category: enemyData.category || "[Event]",
+    enemyName: enemySide.name,
+    npcName: playerSide.name,
+    initialHp: { npc: playerSide.hp, enemy: enemySide.hp },
+    finalHp: {},
+  };
+
+  while (playerSide.hp > 0 && enemySide.hp > 0 && round <= roundLimit) {
+    battleResult.log.push({ type: "round", number: round });
+    const npcAct = roll.d66() + playerSide.stats.agi;
+    const eneAct = roll.d66() + enemySide.stats.agi;
+
+    if (npcAct >= eneAct) {
+      if (processAttack(playerSide, enemySide, battleResult.log) <= 0) {
+        battleResult.win = 1;
+        break;
+      }
+      if (enemySide.hp > 0 && processAttack(enemySide, playerSide, battleResult.log) <= 0) {
+        battleResult.dead = 1;
+        break;
+      }
+    } else {
+      if (processAttack(enemySide, playerSide, battleResult.log) <= 0) {
+        battleResult.dead = 1;
+        break;
+      }
+      if (playerSide.hp > 0 && processAttack(playerSide, enemySide, battleResult.log) <= 0) {
+        battleResult.win = 1;
+        break;
+      }
+    }
+    round++;
+  }
+
+  if (round > roundLimit && playerSide.hp > 0 && enemySide.hp > 0) {
+    battleResult.log.push({ type: "end", outcome: "draw" });
+  } else if (battleResult.win) {
+    battleResult.log.push({ type: "end", outcome: "win", winner: playerSide.name });
+  } else if (battleResult.dead) {
+    battleResult.log.push({ type: "end", outcome: "lose", winner: enemySide.name });
+  }
+
+  battleResult.finalHp = { npc: playerSide.hp, enemy: enemySide.hp };
+  return battleResult;
+};
+
 module.exports = battleModule;
