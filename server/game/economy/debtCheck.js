@@ -30,17 +30,19 @@ async function checkSettlement(userId) {
   }
 
   // 可能需要補算多個週期（離線補算）
+  // 第一次結算無需再檢查 isSettlementDue（鎖定前已確認到期），
+  // 之後的補算迴圈才需要重新檢查
   let result = { checked: true, settled: false };
-  let iteration = 0;
   const MAX_CYCLES = 10;
 
-  while (iteration < MAX_CYCLES) {
-    const freshUser = await db.findOne("user", { userId });
-    if (!freshUser) {
-      // 可能在破產中被刪除
-      return { checked: true, settled: true, bankruptcy: true };
+  for (let i = 0; i < MAX_CYCLES; i++) {
+    if (i > 0) {
+      const freshUser = await db.findOne("user", { userId });
+      if (!freshUser) {
+        return { checked: true, settled: true, bankruptcy: true };
+      }
+      if (!isSettlementDue(freshUser.nextSettlementAt, now)) break;
     }
-    if (!isSettlementDue(freshUser.nextSettlementAt, now)) break;
 
     const cycleResult = await processSettlement(userId);
     result = { checked: true, settled: true, ...cycleResult };
@@ -48,7 +50,6 @@ async function checkSettlement(userId) {
     if (cycleResult.bankruptcy) {
       return result;
     }
-    iteration++;
   }
 
   return result;

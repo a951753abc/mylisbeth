@@ -35,7 +35,7 @@ async function processSettlement(userId) {
 
   // 新手保護期內不結算
   if (isNewbie(user.gameCreatedAt)) {
-    const nextAt = getNextSettlementTime(user.nextSettlementAt || Date.now());
+    const nextAt = getNextSettlementTime(Date.now());
     await db.update("user", { userId }, { $set: { nextSettlementAt: nextAt } });
     return { settled: true, bill: 0, paid: true, newbie: true };
   }

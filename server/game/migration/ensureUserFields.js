@@ -60,6 +60,13 @@ module.exports = async function ensureUserFields(user) {
     if (!user.lastSettlementAt) updates.lastSettlementAt = now;
   }
 
+  // 安全檢查：nextSettlementAt 若超過正常範圍（1 小時後），視為損壞並重設
+  const maxValidFuture = Date.now() + 60 * 60 * 1000;
+  const currentNext = updates.nextSettlementAt || user.nextSettlementAt;
+  if (currentNext && currentNext > maxValidFuture) {
+    updates.nextSettlementAt = getNextSettlementTime(Date.now());
+  }
+
   if (Object.keys(updates).length === 0) {
     return user;
   }
