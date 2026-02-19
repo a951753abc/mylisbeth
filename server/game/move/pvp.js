@@ -9,6 +9,11 @@ const ensureUserFields = require("../migration/ensureUserFields.js");
 module.exports = async function (cmd, rawAttacker) {
   const attacker = await ensureUserFields(rawAttacker);
 
+  // 負債禁止 PVP
+  if (attacker.isInDebt) {
+    return { error: "你目前有未清還的負債，無法發起 PVP！請先至帳單頁面還清負債。" };
+  }
+
   const defenderName = cmd[2];
   const weaponId = cmd[3];
 

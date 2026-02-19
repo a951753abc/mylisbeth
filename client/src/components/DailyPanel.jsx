@@ -25,7 +25,26 @@ export default function DailyPanel({ user, onClaim }) {
     lastClaim.getDate() === now.getDate()
   );
 
-  const todayDayIndex = (streak % 7) || 7;
+  // 判斷上次領獎是否為昨天（以日曆日比較）
+  const isLastClaimYesterday = (() => {
+    if (!lastClaim) return false;
+    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    return lastClaim.getFullYear() === yesterday.getFullYear() &&
+      lastClaim.getMonth() === yesterday.getMonth() &&
+      lastClaim.getDate() === yesterday.getDate();
+  })();
+
+  // 預測今日領獎時的 streak（與後端邏輯一致）
+  let displayStreak;
+  if (isTodayClaimed) {
+    displayStreak = streak;
+  } else if (isLastClaimYesterday) {
+    displayStreak = streak + 1;
+  } else {
+    displayStreak = 1;
+  }
+
+  const todayDayIndex = ((displayStreak - 1) % 7) + 1;
 
   const handleClaim = async () => {
     setLoading(true);
@@ -101,9 +120,8 @@ export default function DailyPanel({ user, onClaim }) {
         <h2>📅 7 天獎勵表</h2>
         <div className="daily-rewards-grid">
           {DAY_REWARDS.map((reward) => {
-            const dayNum = streak % 7 || 7;
-            const isToday = !isTodayClaimed && dayNum === reward.day;
-            const isPast = streak >= reward.day;
+            const isToday = !isTodayClaimed && todayDayIndex === reward.day;
+            const isPast = reward.day < todayDayIndex || (reward.day === todayDayIndex && isTodayClaimed);
 
             return (
               <div

@@ -71,7 +71,7 @@ const ACHIEVEMENTS = [
     nameCn: "擊敗優樹",
     desc: "在冒險中擊敗優樹",
     check: (user) => (user.stats?.yukiDefeats || 0) >= 1,
-    titleReward: "最強挑戦者",
+    titleReward: "你才是挑戰者",
   },
   {
     id: "weapon_break",
@@ -120,6 +120,39 @@ const ACHIEVEMENTS = [
     desc: "參與擊敗 Boss 3 次",
     check: (user) => (user.bossContribution?.bossesDefeated || 0) >= 3,
     titleReward: "討伐者",
+  },
+  // Season 3 achievements
+  {
+    id: "first_hire",
+    name: "仲間を得た",
+    nameCn: "得到夥伴",
+    desc: "首次雇用 NPC 冒險者",
+    check: (user) => (user.hiredNpcs || []).length >= 1,
+    titleReward: "隊長",
+  },
+  {
+    id: "npc_death",
+    name: "散った命",
+    nameCn: "逝去的生命",
+    desc: "NPC 冒險者在戰鬥中犧牲",
+    check: (user) => (user.stats?.npcDeaths || 0) >= 1,
+    titleReward: null,
+  },
+  {
+    id: "debt_survivor",
+    name: "借金返済",
+    nameCn: "還清負債",
+    desc: "從負債狀態中還清全部欠款",
+    check: (user) => (user.stats?.debtCleared || 0) >= 1,
+    titleReward: "再起の鍛冶師",
+  },
+  {
+    id: "npc_legendary",
+    name: "伝説の戦士",
+    nameCn: "傳說的戰士",
+    desc: "雇用一位傳說品質的 NPC",
+    check: (user) => (user.hiredNpcs || []).some((n) => n.quality === "傳說"),
+    titleReward: "伝説使い",
   },
 ];
 

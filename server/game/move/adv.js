@@ -4,56 +4,24 @@ const db = require("../../db.js");
 const weapon = require("../weapon/weapon.js");
 const level = require("../level");
 const roll = require("../roll.js");
-const npcNameList = require("../npc/list.json");
 const eneNameList = require("../ene/name.json");
 const { pveBattle } = require("../battle");
-const gemini = require("../gemini.js");
-const { awardCol } = require("../economy/col.js");
+const { generateNarrative } = require("../narrative/generate.js");
+const { awardCol, deductCol } = require("../economy/col.js");
 const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const { getFloor } = require("../floor/floorData.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
+const { getEffectiveStats } = require("../npc/npcStats.js");
+const { resolveNpcBattle } = require("../npc/npcManager.js");
+const { enforceDebtPenalties } = require("../economy/debtCheck.js");
 
-function createBattlePrompt(battleResult, user, weaponData, place, floorNum, floorName) {
-  let logText = "";
-  battleResult.log.forEach((entry) => {
-    switch (entry.type) {
-      case "round":
-        logText += `第 ${entry.number} 回合開始。\n`;
-        break;
-      case "attack":
-        logText += `- ${entry.attacker} 攻擊 ${entry.defender}。${entry.rollText}\n`;
-        break;
-      case "end":
-        if (entry.outcome === "win")
-          logText += `${entry.winner} 獲得了勝利！\n`;
-        if (entry.outcome === "lose")
-          logText += `${entry.winner} 獲勝，${battleResult.npcName}倒下了。\n`;
-        if (entry.outcome === "draw") logText += `雙方勢均力敵，不分勝負。\n`;
-        break;
-    }
-  });
-
-  return `
-你是日本輕小說家「川原礫」，會基於你的寫作經驗與風格，並按照以下的「戰鬥情境」和「戰鬥紀錄」來創作，但不要逐字翻譯紀錄，而是用你的文筆使其成為一段精彩的故事。
-故事風格、背景設定請按照「刀劍神域(SAO)」。
-使用第三人稱寫作。
-使用日文寫作。
-參與戰鬥的人物必須進行對話。
-**重要：請將總描述長度控制在 600 字元左右，絕對不要超過 800 字元。**
-
-### 戰鬥情境
-- **地點**: Aincrad 第 ${floorNum} 層「${floorName}」的 ${place}。
-- **我方**: ${battleResult.npcName} (冒險者)。
-- **我方武器**: ${weaponData.weaponName} (由鍛造師 ${user.name} 所打造的 ${weaponData.name})。
-- **敵方**: ${battleResult.enemyName} (兇惡的敵人)。
-
-### 戰鬥紀錄 (請以此為基礎進行描述)
-${logText}
-
-現在，請開始你的描述：
-`;
-}
+// 冒險結果對應 NPC 經驗值
+const NPC_EXP_GAIN = {
+  WIN: 30,
+  LOSE: 5,
+  DRAW: 10,
+};
 
 module.exports = async function (cmd, rawUser) {
   try {
@@ -63,6 +31,7 @@ module.exports = async function (cmd, rawUser) {
       return { error: "你沒有任何武器，無法冒險！" };
     }
 
+    // cmd[2] = weaponId, cmd[3] = npcId
     if (cmd[2] === undefined) {
       cmd[2] = 0;
     }
@@ -71,19 +40,68 @@ module.exports = async function (cmd, rawUser) {
       return { error: "錯誤！武器" + cmd[2] + " 不存在" };
     }
 
-    const thisWeapon = user.weaponStock[cmd[2]];
-    const npcExample = npcNameList[Math.floor(Math.random() * npcNameList.length)];
-    const npc = _.clone(npcExample);
+    // 必須提供 NPC
+    const npcId = cmd[3];
+    if (!npcId) {
+      return { error: "冒險必須選擇一位已雇用的 NPC 冒險者！" };
+    }
 
+    const hired = user.hiredNpcs || [];
+    const hiredNpc = hired.find((n) => n.npcId === npcId);
+    if (!hiredNpc) {
+      return { error: "找不到該 NPC，請確認已雇用該冒險者。" };
+    }
+
+    // 體力檢查
+    const effectiveStats = getEffectiveStats(hiredNpc);
+    if (!effectiveStats) {
+      return { error: `${hiredNpc.name} 體力過低（< 10%），無法出戰！請先治療。` };
+    }
+
+    const thisWeapon = user.weaponStock[cmd[2]];
     const currentFloor = user.currentFloor || 1;
+
+    // 扣除冒險委託費
+    const fee =
+      config.COL_ADVENTURE_FEE_BASE +
+      currentFloor * config.COL_ADVENTURE_FEE_PER_FLOOR;
+
+    // 負債時獎勵減半（但費用不變）
+    const penalties = enforceDebtPenalties(user);
+
+    const feeSuccess = await deductCol(user.userId, fee);
+    if (!feeSuccess) {
+      return { error: `Col 不足，冒險需要 ${fee} Col（第 ${currentFloor} 層委託費）。` };
+    }
+
+    // 組裝 NPC 資訊傳給 battle（標記為已雇用 NPC 並帶入有效素質）
+    const npcForBattle = {
+      name: hiredNpc.name,
+      hp: effectiveStats.hp,
+      isHiredNpc: true,
+      effectiveStats,
+    };
+
     const floorData = getFloor(currentFloor);
     const place = floorData.places[Math.floor(Math.random() * floorData.places.length)];
 
-    const battleResult = await pveBattle(thisWeapon, npc, eneNameList, floorData.enemies);
+    const battleResult = await pveBattle(thisWeapon, npcForBattle, eneNameList, floorData.enemies);
 
-    const prompt = createBattlePrompt(battleResult, user, thisWeapon, place, currentFloor, floorData.name);
-    const narrativeText = await gemini.generateBattleNarrative(prompt);
+    const narrative = generateNarrative(battleResult, {
+      weaponName: thisWeapon.weaponName,
+      smithName: user.name,
+      place,
+      floor: currentFloor,
+      floorName: floorData.name,
+    });
 
+    // 判斷戰鬥結果（對應 NPC 術語）
+    let outcomeKey;
+    if (battleResult.win === 1) outcomeKey = "WIN";
+    else if (battleResult.dead === 1) outcomeKey = "LOSE";
+    else outcomeKey = "DRAW";
+
+    // 武器耐久損耗
     let durabilityText = "";
     let weaponCheck;
     if (battleResult.win === 1) {
@@ -112,6 +130,28 @@ module.exports = async function (cmd, rawUser) {
       }
     }
 
+    // NPC 體力損耗 + 死亡判斷 + 升級
+    const expGain = NPC_EXP_GAIN[outcomeKey] || 10;
+    const npcResult = await resolveNpcBattle(user.userId, npcId, outcomeKey, expGain);
+
+    let npcEventText = "";
+    let npcDeathEvent = null;
+    if (npcResult.died) {
+      npcEventText = `\n\n**${hiredNpc.name} 在戰鬥中壯烈犧牲了...**`;
+      npcDeathEvent = {
+        npcName: hiredNpc.name,
+        npcQuality: hiredNpc.quality,
+        smithName: user.name,
+        floor: currentFloor,
+      };
+      await increment(user.userId, "npcDeaths");
+    } else if (npcResult.levelUp) {
+      npcEventText = `\n\n✨ ${hiredNpc.name} 升級了！LV ${npcResult.newLevel}`;
+    } else if (npcResult.newCondition !== undefined) {
+      npcEventText = `\n（${hiredNpc.name} 體力: ${npcResult.newCondition}%）`;
+    }
+
+    // 獎勵
     let rewardText = "";
     let colEarned = 0;
     if (battleResult.win === 1) {
@@ -120,10 +160,16 @@ module.exports = async function (cmd, rawUser) {
       rewardText = `\n\n**戰利品:**\n${mineResultText}`;
       await db.update("user", { userId: user.userId }, { $inc: { [winString]: 1 } });
 
-      const colReward = config.COL_ADVENTURE_REWARD[battleResult.category] || 50;
+      let colReward = config.COL_ADVENTURE_REWARD[battleResult.category] || 50;
+      // 負債時獎勵減半
+      colReward = Math.floor(colReward * penalties.advRewardMult);
       colEarned = colReward;
       await awardCol(user.userId, colReward);
-      rewardText += `獲得 ${colReward} Col\n`;
+      rewardText += `獲得 ${colReward} Col`;
+      if (penalties.advRewardMult < 1) {
+        rewardText += `（負債懲罰：獎勵減半）`;
+      }
+      rewardText += "\n";
 
       if (battleResult.category === "[優樹]") {
         await increment(user.userId, "yukiDefeats");
@@ -156,12 +202,23 @@ module.exports = async function (cmd, rawUser) {
         npcName: battleResult.npcName,
         log: battleResult.log,
       },
-      narrative: narrativeText,
+      narrative,
       durabilityText,
-      reward: rewardText,
+      reward: rewardText + npcEventText,
       colEarned,
+      colSpent: fee,
       floor: currentFloor,
       floorName: floorData.name,
+      npcResult: {
+        survived: npcResult.survived !== false,
+        died: !!npcResult.died,
+        levelUp: !!npcResult.levelUp,
+        newCondition: npcResult.newCondition,
+        newLevel: npcResult.newLevel,
+      },
+      socketEvents: npcDeathEvent
+        ? [{ event: "npc:death", data: npcDeathEvent }]
+        : [],
     };
   } catch (error) {
     console.error("在執行 move adv 時發生嚴重錯誤:", error);

@@ -12,6 +12,7 @@ const db = require("./db.js");
 const authRoutes = require("./routes/auth.js");
 const userRoutes = require("./routes/user.js");
 const gameRoutes = require("./routes/game.js");
+const npcRoutes = require("./routes/npc.js");
 const { setupGameEvents } = require("./socket/gameEvents.js");
 
 const app = express();
@@ -59,6 +60,7 @@ require("./middleware/auth.js");
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/game", gameRoutes);
+app.use("/api/npc", npcRoutes);
 
 // Socket.io
 setupGameEvents(io);

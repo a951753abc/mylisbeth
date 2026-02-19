@@ -9,6 +9,7 @@ const db = require("../db.js");
 const { getFloor } = require("../game/floor/floorData.js");
 const { getAllDefinitions } = require("../game/progression/achievement.js");
 const claimDaily = require("../game/progression/daily.js");
+const { calculateBill, payDebt } = require("../game/economy/settlement.js");
 
 // Create character
 router.post("/create", ensureAuth, async (req, res) => {
@@ -72,26 +73,57 @@ router.post("/upgrade", ensureAuth, async (req, res) => {
   }
 });
 
-// Adventure
-router.post("/adventure", ensureAuth, async (req, res) => {
+// Repair
+router.post("/repair", ensureAuth, async (req, res) => {
   try {
-    const { weaponId } = req.body;
-    const cmd = [null, "adv", weaponId];
+    const { weaponId, materialId } = req.body;
+    const cmd = [null, "repair", weaponId, materialId];
     const result = await move(cmd, req.user.discordId);
     if (result.error) {
       return res.status(400).json(result);
     }
+    res.json(result);
+  } catch (err) {
+    console.error("修復失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// Adventure
+router.post("/adventure", ensureAuth, async (req, res) => {
+  try {
+    const { weaponId, npcId } = req.body;
+    const cmd = [null, "adv", weaponId, npcId];
+    const result = await move(cmd, req.user.discordId);
+    if (result.error) {
+      return res.status(400).json(result);
+    }
+    if (result.bankruptcy) {
+      return res.status(200).json(result);
+    }
+
     const io = req.app.get("io");
     if (io) {
       io.emit("battle:result", {
         playerName: result.battleResult?.npcName,
         result: result.battleResult,
       });
+      // 廣播 NPC 死亡事件
+      if (result.socketEvents) {
+        for (const evt of result.socketEvents) {
+          io.emit(evt.event, evt.data);
+        }
+      }
     }
-    res.json(result);
+
+    // 不傳 socketEvents 給前端
+    const { socketEvents, ...clientResult } = result;
+    res.json(clientResult);
   } catch (err) {
     console.error("冒險失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
+    if (!res.headersSent) {
+      res.status(500).json({ error: "伺服器錯誤" });
+    }
   }
 });
 
@@ -130,8 +162,8 @@ router.post("/pvp", ensureAuth, async (req, res) => {
 // Boss Attack
 router.post("/boss-attack", ensureAuth, async (req, res) => {
   try {
-    const { weaponId } = req.body;
-    const cmd = [null, "boss", weaponId !== undefined ? weaponId : 0];
+    const { weaponId, npcId } = req.body;
+    const cmd = [null, "boss", weaponId !== undefined ? weaponId : 0, npcId];
     const result = await move(cmd, req.user.discordId);
     if (result.error) {
       return res.status(400).json(result);
@@ -249,16 +281,20 @@ router.get("/achievements", ensureAuth, async (req, res) => {
     const allDefs = getAllDefinitions();
     const userAchievements = new Set(user.achievements || []);
 
-    const achievements = allDefs.map((ach) => ({
-      id: ach.id,
-      name: ach.name,
-      nameCn: ach.nameCn,
-      desc: ach.desc,
-      titleReward: ach.titleReward,
-      unlocked: userAchievements.has(ach.id),
-    }));
+    const unlocked = allDefs
+      .filter((ach) => userAchievements.has(ach.id))
+      .map((ach) => ({
+        id: ach.id,
+        name: ach.name,
+        nameCn: ach.nameCn,
+        desc: ach.desc,
+        titleReward: ach.titleReward,
+        unlocked: true,
+      }));
 
-    res.json({ achievements });
+    const totalCount = allDefs.length;
+
+    res.json({ achievements: unlocked, totalCount });
   } catch (err) {
     console.error("取得成就失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
@@ -284,6 +320,40 @@ router.post("/title", ensureAuth, async (req, res) => {
     res.json({ success: true, title });
   } catch (err) {
     console.error("設定稱號失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// Settlement preview
+router.get("/settlement", ensureAuth, async (req, res) => {
+  try {
+    const user = await db.findOne("user", { userId: req.user.discordId });
+    if (!user) return res.status(404).json({ error: "角色不存在" });
+    const bill = calculateBill(user);
+    res.json({
+      bill,
+      debt: user.debt || 0,
+      isInDebt: user.isInDebt || false,
+      debtCycleCount: user.debtCycleCount || 0,
+      nextSettlementAt: user.nextSettlementAt || null,
+      col: user.col || 0,
+    });
+  } catch (err) {
+    console.error("取得帳單失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// Pay debt
+router.post("/pay-debt", ensureAuth, async (req, res) => {
+  try {
+    const { amount } = req.body;
+    if (!amount || amount <= 0) return res.status(400).json({ error: "還款金額無效" });
+    const result = await payDebt(req.user.discordId, amount);
+    if (result.error) return res.status(400).json(result);
+    res.json(result);
+  } catch (err) {
+    console.error("還債失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
   }
 });

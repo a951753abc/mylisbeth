@@ -10,6 +10,9 @@ const VALID_STATS = [
   "totalBossAttacks",
   "yukiDefeats",
   "totalColEarned",
+  // Season 3
+  "npcDeaths",
+  "debtCleared",
 ];
 
 async function increment(userId, statName, amount = 1) {

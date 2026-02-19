@@ -25,8 +25,10 @@ function isSameDay(date1, date2) {
 function isYesterday(date1, date2) {
   const d1 = new Date(date1);
   const d2 = new Date(date2);
-  const diff = d2 - d1;
-  return diff >= 86400000 && diff < 172800000;
+  const day1 = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate());
+  const day2 = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
+  const diffDays = (day2 - day1) / 86400000;
+  return diffDays === 1;
 }
 
 module.exports = async function claimDaily(userId) {

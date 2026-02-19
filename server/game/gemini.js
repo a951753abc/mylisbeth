@@ -14,4 +14,23 @@ async function generateBattleNarrative(prompt) {
   }
 }
 
-module.exports = { generateBattleNarrative };
+async function streamBattleNarrative(prompt, onChunk, onDone, onError) {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const result = await model.generateContentStream(prompt);
+    let fullText = "";
+    for await (const chunk of result.stream) {
+      const text = chunk.text();
+      if (text) {
+        fullText += text;
+        onChunk(text);
+      }
+    }
+    onDone(fullText);
+  } catch (error) {
+    console.error("Gemini streaming 失敗:", error);
+    onError(error);
+  }
+}
+
+module.exports = { generateBattleNarrative, streamBattleNarrative };

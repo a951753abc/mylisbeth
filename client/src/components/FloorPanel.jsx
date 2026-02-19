@@ -8,6 +8,7 @@ export default function FloorPanel({ user, onAction, bossUpdate }) {
   const [error, setError] = useState('');
   const [result, setResult] = useState('');
   const [weaponId, setWeaponId] = useState('0');
+  const [bossNpcId, setBossNpcId] = useState('');
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -40,17 +41,26 @@ export default function FloorPanel({ user, onAction, bossUpdate }) {
     setBusy(true);
     setError('');
     setResult('');
-    const data = await onAction('boss-attack', { weaponId: parseInt(weaponId, 10) });
-    if (data.error) {
-      setError(data.error);
-    } else if (data.bossDefeated) {
-      setResult(`💥 **Boss 被擊敗了！** 第 ${data.floorNumber} 層攻略完成！MVP: ${data.mvp?.name || '—'}`);
-      await fetchFloor();
-    } else {
-      setResult(`⚔️ 對 ${data.bossName} 造成了 ${data.damage} 點傷害！剩餘 HP: ${data.bossHpRemaining?.toLocaleString()}`);
-      await fetchFloor();
+    try {
+      const data = await onAction('boss-attack', { weaponId: parseInt(weaponId, 10), npcId: bossNpcId });
+      if (data.error) {
+        setError(data.error);
+      } else if (data.bossDefeated) {
+        let msg = `⚔️ ${data.npcName || '冒險者'} 對 ${data.bossName} 造成了 ${data.damage} 點傷害！\n💥 Boss 被擊敗了！ 第 ${data.floorNumber} 層攻略完成！MVP: ${data.mvp?.name || '—'}`;
+        if (data.npcEventText) msg += `\n${data.npcEventText}`;
+        setResult(msg);
+        await fetchFloor();
+      } else {
+        let msg = `⚔️ ${data.npcName || '冒險者'} 對 ${data.bossName} 造成了 ${data.damage} 點傷害！剩餘 HP: ${data.bossHpRemaining?.toLocaleString()}`;
+        if (data.npcEventText) msg += `\n${data.npcEventText}`;
+        setResult(msg);
+        await fetchFloor();
+      }
+    } catch {
+      setError('網路錯誤，請稍後再試。');
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   };
 
   const fetchHistory = async () => {
@@ -131,25 +141,51 @@ export default function FloorPanel({ user, onAction, bossUpdate }) {
         {canAttackBoss && (
           <div style={{ marginTop: '1rem' }}>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <input
-                type="number"
-                placeholder="武器編號 (預設0)"
+              <select
+                value={bossNpcId}
+                onChange={(e) => setBossNpcId(e.target.value)}
+              >
+                <option value="">— 選擇冒險者（必填）—</option>
+                {(user.hiredNpcs || []).map((npc) => {
+                  const cond = npc.condition ?? 100;
+                  const disabled = cond < 10;
+                  return (
+                    <option key={npc.npcId} value={npc.npcId} disabled={disabled}>
+                      {npc.name}【{npc.quality}】{npc.class} LV.{npc.level} 體力:{cond}%
+                      {disabled ? ' (無法出戰)' : ''}
+                    </option>
+                  );
+                })}
+              </select>
+              <select
                 value={weaponId}
                 onChange={(e) => setWeaponId(e.target.value)}
-                style={{ width: '130px' }}
-                min="0"
-              />
+              >
+                <option value="0">— 選擇武器 (預設#0) —</option>
+                {(user.weapons || []).map((weapon) => (
+                  <option key={weapon.index} value={String(weapon.index)}>
+                    #{weapon.index}{' '}
+                    {weapon.rarityLabel ? `【${weapon.rarityLabel}】` : ''}
+                    {weapon.weaponName} [{weapon.name}] ATK:{weapon.atk} 耐久:{weapon.durability}
+                  </option>
+                ))}
+              </select>
               <button
                 className="btn-danger"
-                disabled={busy}
+                disabled={busy || !bossNpcId}
                 onClick={handleBossAttack}
               >
                 {busy ? '攻擊中...' : `攻擊 ${floor.boss.name}`}
               </button>
             </div>
+            {(user.hiredNpcs || []).length === 0 && (
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
+                請先至「酒館」tab 雇用冒險者才能挑戰 Boss
+              </div>
+            )}
             {error && <div className="error-msg" style={{ marginTop: '0.5rem' }}>{error}</div>}
             {result && (
-              <div style={{ marginTop: '0.5rem', color: 'var(--gold)', fontWeight: 'bold' }}>
+              <div style={{ marginTop: '0.5rem', color: 'var(--gold)', fontWeight: 'bold', whiteSpace: 'pre-line' }}>
                 {result}
               </div>
             )}

@@ -5,6 +5,8 @@ export default function AchievementPanel({ user, onTitleChange }) {
   const [loading, setLoading] = useState(true);
   const [titleMsg, setTitleMsg] = useState('');
 
+  const [totalCount, setTotalCount] = useState(0);
+
   useEffect(() => {
     fetchAchievements();
   }, []);
@@ -16,6 +18,7 @@ export default function AchievementPanel({ user, onTitleChange }) {
       const data = await res.json();
       if (!data.error) {
         setAchievements(data.achievements || []);
+        setTotalCount(data.totalCount || 0);
       }
     } catch {
       // silent
@@ -47,8 +50,7 @@ export default function AchievementPanel({ user, onTitleChange }) {
 
   if (loading) return <div className="loading">載入成就...</div>;
 
-  const unlocked = achievements.filter((a) => a.unlocked);
-  const locked = achievements.filter((a) => !a.unlocked);
+  const lockedCount = totalCount - achievements.length;
 
   return (
     <div>
@@ -86,11 +88,11 @@ export default function AchievementPanel({ user, onTitleChange }) {
 
       {/* 已解鎖成就 */}
       <div className="card">
-        <h2>✨ 已解鎖 ({unlocked.length} / {achievements.length})</h2>
-        {unlocked.length === 0 ? (
+        <h2>✨ 已解鎖 ({achievements.length} / {totalCount})</h2>
+        {achievements.length === 0 ? (
           <p style={{ color: 'var(--text-secondary)' }}>尚未解鎖任何成就，快去冒險吧！</p>
         ) : (
-          unlocked.map((ach) => (
+          achievements.map((ach) => (
             <div key={ach.id} className="achievement-item achievement-unlocked">
               <div className="achievement-name">✅ {ach.nameCn}</div>
               <div className="achievement-desc">{ach.desc}</div>
@@ -103,18 +105,14 @@ export default function AchievementPanel({ user, onTitleChange }) {
       </div>
 
       {/* 未解鎖成就 */}
-      <div className="card">
-        <h2>🔒 未解鎖 ({locked.length})</h2>
-        {locked.map((ach) => (
-          <div key={ach.id} className="achievement-item achievement-locked">
-            <div className="achievement-name">🔒 {ach.nameCn}</div>
-            <div className="achievement-desc">{ach.desc}</div>
-            {ach.titleReward && (
-              <div className="achievement-reward">稱號: 「{ach.titleReward}」</div>
-            )}
-          </div>
-        ))}
-      </div>
+      {lockedCount > 0 && (
+        <div className="card">
+          <h2>🔒 未解鎖</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+            還有 <strong style={{ color: 'var(--gold)' }}>{lockedCount}</strong> 個隱藏成就等待探索...
+          </p>
+        </div>
+      )}
     </div>
   );
 }

@@ -143,14 +143,30 @@ battleModule.pveBattle = async function (weapon, npc, npcNameList, floorEnemies)
   const roundLimit = 5;
   let round = 1;
 
+  // 若為已雇用 NPC（含 baseStats + condition），套用素質加成
+  let playerHp = (npc.hp || 0) + (weapon.hp || 0);
+  let playerAtk = weapon.atk || 0;
+  let playerDef = weapon.def || 0;
+  let playerAgi = weapon.agi || 0;
+  let playerCri = weapon.cri || 10;
+
+  if (npc.isHiredNpc && npc.effectiveStats) {
+    const es = npc.effectiveStats;
+    playerHp = es.hp + (weapon.hp || 0);
+    playerAtk = (weapon.atk || 0) + Math.floor(es.atk * 0.5);
+    playerDef = (weapon.def || 0) + Math.floor(es.def * 0.5);
+    playerAgi = Math.max(weapon.agi || 0, es.agi);
+    playerCri = weapon.cri || 10;
+  }
+
   const playerSide = {
     name: npc.name,
-    hp: npc.hp + weapon.hp,
+    hp: playerHp,
     stats: {
-      atk: weapon.atk,
-      def: weapon.def,
-      agi: weapon.agi,
-      cri: weapon.cri,
+      atk: playerAtk,
+      def: playerDef,
+      agi: playerAgi,
+      cri: playerCri,
     },
   };
 

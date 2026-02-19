@@ -90,6 +90,11 @@ module.exports.upsert = async function (collectName, filter, update) {
   await collection.updateOne(filter, update, { upsert: true });
 };
 
+module.exports.deleteOne = async function (collectName, filter) {
+  const collection = db.collection(collectName);
+  return await collection.deleteOne(filter);
+};
+
 module.exports.saveItemToUser = async function (userId, mine) {
   await module.exports.atomicIncItem(
     userId,

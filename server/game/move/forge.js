@@ -12,6 +12,11 @@ const weaponLimit = 1;
 module.exports = async function (cmd, rawUser) {
   const user = await ensureUserFields(rawUser);
 
+  // 負債禁止鍛造
+  if (user.isInDebt) {
+    return { error: "你目前有未清還的負債，無法進行鍛造！請先至帳單頁面還清負債。" };
+  }
+
   const weaponLevel = _.get(user, "forceLevel", 1);
   if (_.get(user, "weaponStock", false)) {
     const filter = [

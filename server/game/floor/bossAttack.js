@@ -7,6 +7,8 @@ const { awardCol } = require("../economy/col.js");
 const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
+const { getEffectiveStats, getCombinedBattleStats } = require("../npc/npcStats.js");
+const { resolveNpcBattle } = require("../npc/npcManager.js");
 
 function calcDamage(atk, cri, def) {
   let atkDam = 0;
@@ -64,6 +66,9 @@ async function resetBoss(floorNumber, bossData) {
   );
 }
 
+// Boss 戰 NPC 經驗值（比冒險略高，因為 Boss 戰更危險）
+const BOSS_NPC_EXP_GAIN = 40;
+
 module.exports = async function bossAttack(cmd, rawUser) {
   try {
     const user = await ensureUserFields(rawUser);
@@ -71,6 +76,24 @@ module.exports = async function bossAttack(cmd, rawUser) {
 
     if (!user.weaponStock || !user.weaponStock[weaponIdx]) {
       return { error: `錯誤！武器 ${weaponIdx} 不存在` };
+    }
+
+    // 必須提供 NPC
+    const npcId = cmd[3];
+    if (!npcId) {
+      return { error: "Boss 戰必須選擇一位已雇用的 NPC 冒險者！" };
+    }
+
+    const hired = user.hiredNpcs || [];
+    const hiredNpc = hired.find((n) => n.npcId === npcId);
+    if (!hiredNpc) {
+      return { error: "找不到該 NPC，請確認已雇用該冒險者。" };
+    }
+
+    // NPC 體力檢查
+    const effectiveStats = getEffectiveStats(hiredNpc);
+    if (!effectiveStats) {
+      return { error: `${hiredNpc.name} 體力過低（< 10%），無法出戰！請先治療。` };
     }
 
     const currentFloor = user.currentFloor || 1;
@@ -127,7 +150,10 @@ module.exports = async function bossAttack(cmd, rawUser) {
     }
 
     const weapon = user.weaponStock[weaponIdx];
-    const damage = calcDamage(weapon.atk, weapon.cri, bossData.def);
+
+    // 使用 NPC + 武器合成數值計算傷害
+    const combined = getCombinedBattleStats(effectiveStats, weapon);
+    const damage = calcDamage(combined.atk, combined.cri, bossData.def);
 
     // 原子減少 Boss HP
     const updatedState = await db.findOneAndUpdate(
@@ -178,11 +204,20 @@ module.exports = async function bossAttack(cmd, rawUser) {
 
     await increment(user.userId, "totalBossAttacks");
 
+    // NPC 戰鬥結算（Boss 戰為單次攻擊，視為 WIN — 成功造成傷害，體力仍會損耗）
+    const npcResult = await resolveNpcBattle(user.userId, npcId, "WIN", BOSS_NPC_EXP_GAIN);
+
+    let npcEventText = "";
+    if (npcResult.levelUp) {
+      npcEventText = `${hiredNpc.name} 升級了！LV ${npcResult.newLevel}`;
+    }
+
     const socketEvents = [
       {
         event: "boss:damage",
         data: {
           player: user.name,
+          npcName: hiredNpc.name,
           damage,
           bossHpRemaining: remainingHp,
           bossHpTotal: totalHp,
@@ -308,6 +343,14 @@ module.exports = async function bossAttack(cmd, rawUser) {
           floorNumber: currentFloor,
           bossName: bossData.name,
           mvp: mvp ? { name: mvp.name, damage: mvp.damage } : null,
+          npcName: hiredNpc.name,
+          npcEventText,
+          npcResult: {
+            survived: true,
+            levelUp: !!npcResult.levelUp,
+            newCondition: npcResult.newCondition,
+            newLevel: npcResult.newLevel,
+          },
           socketEvents,
         };
       }
@@ -321,6 +364,15 @@ module.exports = async function bossAttack(cmd, rawUser) {
       bossHpTotal: totalHp,
       floorNumber: currentFloor,
       bossName: bossData.name,
+      npcName: hiredNpc.name,
+      npcEventText,
+      npcResult: {
+        survived: npcResult.survived !== false,
+        died: !!npcResult.died,
+        levelUp: !!npcResult.levelUp,
+        newCondition: npcResult.newCondition,
+        newLevel: npcResult.newLevel,
+      },
       socketEvents,
     };
   } catch (err) {

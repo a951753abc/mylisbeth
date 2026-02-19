@@ -1,5 +1,6 @@
 const db = require("../db.js");
 const config = require("./config.js");
+const { getNextSettlementTime } = require("./time/gameTime.js");
 
 module.exports = async function (name, userId) {
   if (!name) {
@@ -9,6 +10,7 @@ module.exports = async function (name, userId) {
   if (user !== null) {
     return { error: "已有角色，無法重建" };
   }
+  const now = Date.now();
   await db.insertOne("user", {
     userId,
     name,
@@ -37,6 +39,20 @@ module.exports = async function (name, userId) {
       yukiDefeats: 0,
       totalColEarned: 0,
     },
+    // Season 3
+    gameCreatedAt: now,
+    hiredNpcs: [],
+    lastSettlementAt: now,
+    nextSettlementAt: getNextSettlementTime(now),
+    debt: 0,
+    debtStartedAt: null,
+    debtCycleCount: 0,
+    isInDebt: false,
+    lastActionAt: null,
+    // Season 3: 玩家體力值
+    stamina: 100,
+    maxStamina: 100,
+    lastStaminaRegenAt: now,
   });
   return { success: true, message: "角色" + name + "建立完成" };
 };

@@ -83,6 +83,7 @@ module.exports.createWeapon = async function (cmd, user) {
   weapon.weaponName = cmd[4];
   weapon.hp = 0;
   weapon.durability = roll.d66();
+  weapon.maxDurability = weapon.durability;
   weapon.text = "";
   weapon.text +=
     "使用" +

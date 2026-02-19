@@ -54,6 +54,13 @@ export function useSocket(userId) {
       ]);
     });
 
+    socket.on("npc:death", (data) => {
+      setEvents((prev) => [
+        ...prev.slice(-49),
+        { type: "npc:death", data, time: Date.now() },
+      ]);
+    });
+
     return () => {
       socket.disconnect();
     };

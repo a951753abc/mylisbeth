@@ -1,6 +1,7 @@
 const _ = require("lodash");
 const type = require("./type.js");
 const { calculateRarity } = require("./weapon/rarity.js");
+const config = require("./config.js");
 
 module.exports = function (user) {
   const lose = _.get(user, "lost", 0);
@@ -75,6 +76,19 @@ module.exports = function (user) {
     }
   });
 
+  // Season 3: NPC 資料（前端只需要展示用的精簡版）
+  const hiredNpcs = (_.get(user, "hiredNpcs", [])).map((npc) => ({
+    npcId: npc.npcId,
+    name: npc.name,
+    quality: npc.quality,
+    baseStats: npc.baseStats,
+    condition: npc.condition ?? 100,
+    level: npc.level ?? 1,
+    exp: npc.exp ?? 0,
+    equippedWeaponIndex: npc.equippedWeaponIndex ?? null,
+    weeklyCost: npc.weeklyCost,
+  }));
+
   return {
     userId: _.get(user, "userId", ""),
     name,
@@ -103,5 +117,16 @@ module.exports = function (user) {
     }),
     dailyLoginStreak: _.get(user, "dailyLoginStreak", 0),
     lastDailyClaimAt: _.get(user, "lastDailyClaimAt", null),
+    // Season 3 fields
+    hiredNpcs,
+    debt: _.get(user, "debt", 0),
+    isInDebt: _.get(user, "isInDebt", false),
+    debtCycleCount: _.get(user, "debtCycleCount", 0),
+    nextSettlementAt: _.get(user, "nextSettlementAt", null),
+    gameCreatedAt: _.get(user, "gameCreatedAt", null),
+    // Season 3: 玩家體力值
+    stamina: _.get(user, "stamina", config.STAMINA.MAX),
+    maxStamina: _.get(user, "maxStamina", config.STAMINA.MAX),
+    lastStaminaRegenAt: _.get(user, "lastStaminaRegenAt", null),
   };
 };

@@ -192,9 +192,26 @@ input:focus, select:focus {
   color: var(--gold);
 }
 
-.login-page p {
+.login-narrative {
+  max-width: 480px;
+  text-align: left;
+  line-height: 1.85;
   color: var(--text-secondary);
-  font-size: 1.1rem;
+  font-size: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.login-narrative-warn {
+  color: var(--danger);
+  opacity: 0.9;
+}
+
+.login-narrative-cta {
+  color: var(--gold);
+  font-weight: 600;
+  text-align: center;
 }
 
 .weapon-card {
@@ -407,6 +424,15 @@ input:focus, select:focus {
   }
 }
 
+/* Narrative typewriter cursor */
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+  font-style: normal;
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
 .daily-reward-cell {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
@@ -484,6 +510,24 @@ input:focus, select:focus {
   font-size: 0.7rem;
   font-weight: 600;
   opacity: 0.75;
+}
+
+/* 體力倒數計時器 */
+.stamina-countdown {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-top: 0.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stamina-full-badge {
+  font-size: 0.7rem;
+  color: #4ade80;
+  font-weight: 600;
+  margin-top: 0.3rem;
+  text-align: right;
 }
 
 .rarity-score::before {

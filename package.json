@@ -9,7 +9,12 @@
     "client:install": "cd client && npm install",
     "client:dev": "cd client && npm run dev",
     "client:build": "cd client && npm run build",
-    "install:all": "npm install && npm run client:install"
+    "install:all": "npm install && npm run client:install",
+    "test": "vitest run --config vitest.config.mjs",
+    "test:coverage": "vitest run --config vitest.config.mjs --coverage",
+    "test:watch": "vitest --config vitest.config.mjs",
+    "test:client": "cd client && npm test",
+    "test:all": "npm test && npm run test:client"
   },
   "keywords": [],
   "author": "JP6",
@@ -25,6 +30,12 @@
     "mongodb": "^6.12.0",
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
+    "seedrandom": "^3.0.5",
     "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
+    "supertest": "^7.2.2",
+    "vitest": "^4.0.18"
   }
 }

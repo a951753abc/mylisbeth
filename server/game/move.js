@@ -1,20 +1,23 @@
 const _ = require("lodash");
 const config = require("./config.js");
 const db = require("../db.js");
+const { checkSettlement } = require("./economy/debtCheck.js");
+const { checkAndConsumeStamina } = require("./stamina/staminaCheck.js");
 
 const mine = require("./move/mine.js");
 const forge = require("./move/forge.js");
 const up = require("./move/up.js");
 const adv = require("./move/adv.js");
 const pvp = require("./move/pvp.js");
+const repair = require("./move/repair.js");
 const bossAttack = require("./floor/bossAttack.js");
 
 const coolTime = config.MOVE_COOLDOWN;
-const cmdList = { mine, forge, up, adv, pvp, boss: bossAttack };
+const cmdList = { mine, forge, up, adv, pvp, repair, boss: bossAttack };
 
 module.exports = async function (cmd, userOrId) {
   if (!(cmd[1] in cmdList)) {
-    return { error: "指令錯誤\n 可用指令: mine, forge, up, adv, pvp, boss" };
+    return { error: "指令錯誤\n 可用指令: mine, forge, up, adv, pvp, repair, boss" };
   }
 
   let userId = userOrId;
@@ -32,7 +35,7 @@ module.exports = async function (cmd, userOrId) {
         { move_time: { $lte: now - coolTime } },
       ],
     },
-    { $set: { move_time: now } },
+    { $set: { move_time: now, lastActionAt: now } },
     { returnDocument: "before" },
   );
 
@@ -44,5 +47,30 @@ module.exports = async function (cmd, userOrId) {
     return { error: "CD時間還有" + remaining + "秒", cooldown: remaining };
   }
 
-  return await cmdList[cmd[1]](cmd, user);
+  // 懶結算：CD 通過後 dispatch 前執行
+  const settlementResult = await checkSettlement(userId);
+  if (settlementResult.bankruptcy) {
+    return {
+      bankruptcy: true,
+      message: "你因無力清償負債而宣告破產，角色已被刪除。遊戲結束。",
+      bankruptcyInfo: settlementResult.bankruptcyInfo,
+    };
+  }
+
+  // 體力檢查：挖礦/鍛造/修復才消耗
+  const staminaResult = await checkAndConsumeStamina(userId, cmd[1]);
+  if (!staminaResult.ok) {
+    return { error: staminaResult.error };
+  }
+
+  const actionResult = await cmdList[cmd[1]](cmd, user);
+
+  // 將體力值附加到回傳結果（前端可即時更新顯示）
+  if (staminaResult.cost !== undefined && actionResult && !actionResult.error) {
+    actionResult.staminaCost = staminaResult.cost;
+    actionResult.stamina = staminaResult.stamina;
+    actionResult.lastStaminaRegenAt = staminaResult.lastStaminaRegenAt;
+  }
+
+  return actionResult;
 };

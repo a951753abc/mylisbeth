@@ -1,5 +1,6 @@
 const db = require("../../db.js");
 const config = require("../config.js");
+const { getNextSettlementTime } = require("../time/gameTime.js");
 
 const DEFAULT_FIELDS = {
   col: 0,
@@ -25,6 +26,20 @@ const DEFAULT_FIELDS = {
     yukiDefeats: 0,
     totalColEarned: 0,
   },
+  // Season 3 fields
+  gameCreatedAt: null,
+  hiredNpcs: [],
+  lastSettlementAt: null,
+  nextSettlementAt: null,
+  debt: 0,
+  debtStartedAt: null,
+  debtCycleCount: 0,
+  isInDebt: false,
+  lastActionAt: null,
+  // Season 3: 玩家體力值
+  stamina: 100,
+  maxStamina: 100,
+  lastStaminaRegenAt: null,
 };
 
 module.exports = async function ensureUserFields(user) {
@@ -34,6 +49,14 @@ module.exports = async function ensureUserFields(user) {
     if (user[key] === undefined) {
       updates[key] = defaultVal;
     }
+  }
+
+  // 若舊帳號缺少 Season 3 欄位，補上合理初始值
+  if (updates.gameCreatedAt === null || user.gameCreatedAt === undefined) {
+    const now = Date.now();
+    if (!user.gameCreatedAt) updates.gameCreatedAt = now;
+    if (!user.nextSettlementAt) updates.nextSettlementAt = getNextSettlementTime(now);
+    if (!user.lastSettlementAt) updates.lastSettlementAt = now;
   }
 
   if (Object.keys(updates).length === 0) {

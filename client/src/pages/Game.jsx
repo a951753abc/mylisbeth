@@ -8,6 +8,11 @@ import CooldownTimer from "../components/CooldownTimer";
 import FloorPanel from "../components/FloorPanel";
 import AchievementPanel from "../components/AchievementPanel";
 import DailyPanel from "../components/DailyPanel";
+import TavernPanel from "../components/TavernPanel";
+import NpcPanel from "../components/NpcPanel";
+import SettlementPanel from "../components/SettlementPanel";
+import BankruptcyScreen from "../components/BankruptcyScreen";
+import NpcDeathToast from "../components/NpcDeathToast";
 
 export default function Game({ user, onLogout }) {
   const [gameUser, setGameUser] = useState(null);
@@ -16,13 +21,17 @@ export default function Game({ user, onLogout }) {
   const [battleLogs, setBattleLogs] = useState([]);
   const [cooldown, setCooldown] = useState(0);
   const [bossUpdate, setBossUpdate] = useState(null);
+  const [bankruptcy, setBankruptcy] = useState(null);
   const { events } = useSocket(gameUser?.userId);
 
   const fetchUser = useCallback(async () => {
     try {
       const res = await fetch("/api/user/me", { credentials: "include" });
       const data = await res.json();
-      if (data.exists) {
+      if (data.bankruptcy) {
+        setBankruptcy(data.bankruptcyInfo);
+        setGameUser(null);
+      } else if (data.exists) {
         setGameUser(data);
       } else {
         setGameUser(null);
@@ -74,6 +83,7 @@ export default function Game({ user, onLogout }) {
         ]);
         fetchUser();
       }
+      // npc:death 事件由 NpcDeathToast 消費，不需特別處理
     }
   }, [events, fetchUser]);
 
@@ -100,6 +110,11 @@ export default function Game({ user, onLogout }) {
       body: JSON.stringify(body),
     });
     const data = await res.json();
+    if (data.bankruptcy) {
+      setBankruptcy(data.bankruptcyInfo || {});
+      setGameUser(null);
+      return { error: data.message || "角色已破產" };
+    }
     if (data.error) {
       if (data.cooldown) {
         setCooldown(data.cooldown);
@@ -119,6 +134,19 @@ export default function Game({ user, onLogout }) {
     return <div className="loading">載入遊戲資料中...</div>;
   }
 
+  if (bankruptcy) {
+    return (
+      <BankruptcyScreen
+        info={bankruptcy}
+        onDismiss={() => {
+          setBankruptcy(null);
+          setLoading(true);
+          fetchUser();
+        }}
+      />
+    );
+  }
+
   if (!gameUser) {
     return (
       <CreateCharacter
@@ -131,6 +159,7 @@ export default function Game({ user, onLogout }) {
 
   return (
     <div>
+      <NpcDeathToast events={events} />
       <div className="header">
         <div>
           <h1>
@@ -203,6 +232,25 @@ export default function Game({ user, onLogout }) {
           >
             名冊
           </button>
+          <button
+            className={tab === "tavern" ? "active" : ""}
+            onClick={() => setTab("tavern")}
+          >
+            酒館
+          </button>
+          <button
+            className={`${tab === "npc" ? "active" : ""}${(gameUser.hiredNpcs || []).length > 0 ? " npc-tab-badge" : ""}`}
+            onClick={() => setTab("npc")}
+          >
+            NPC{(gameUser.hiredNpcs || []).length > 0 ? `(${gameUser.hiredNpcs.length})` : ""}
+          </button>
+          <button
+            className={`${tab === "settlement" ? "active" : ""}${gameUser.isInDebt ? " debt-tab-badge" : ""}`}
+            onClick={() => setTab("settlement")}
+            style={gameUser.isInDebt ? { color: "#f87171" } : {}}
+          >
+            帳單{gameUser.isInDebt ? "⚠️" : ""}
+          </button>
         </div>
 
         {tab === "game" && (
@@ -234,6 +282,15 @@ export default function Game({ user, onLogout }) {
         {tab === "inventory" && <InventoryPanel user={gameUser} />}
         {tab === "log" && <BattleLog logs={battleLogs} />}
         {tab === "players" && <PlayerList />}
+        {tab === "tavern" && (
+          <TavernPanel user={gameUser} onRefresh={fetchUser} />
+        )}
+        {tab === "npc" && (
+          <NpcPanel user={gameUser} onRefresh={fetchUser} />
+        )}
+        {tab === "settlement" && (
+          <SettlementPanel user={gameUser} onRefresh={fetchUser} />
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,132 @@
+import React, { useState, useEffect } from "react";
+
+const QUALITY_COLOR = {
+  見習: "#aaa",
+  普通: "#ccc",
+  優秀: "#4fc3f7",
+  精銳: "#ab47bc",
+  傳說: "#ffd700",
+};
+
+export default function TavernPanel({ user, onRefresh }) {
+  const [npcs, setNpcs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(null);
+  const [message, setMessage] = useState("");
+
+  const fetchTavern = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/npc/tavern", { credentials: "include" });
+      const data = await res.json();
+      setNpcs(data.npcs || []);
+    } catch {
+      setMessage("無法載入酒館資料");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTavern();
+  }, []);
+
+  const handleHire = async (npcId) => {
+    setBusy(npcId);
+    setMessage("");
+    try {
+      const res = await fetch("/api/npc/hire", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ npcId }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setMessage(`雇用失敗：${data.error}`);
+      } else {
+        setMessage(`✅ 成功雇用 ${data.npc?.name}！花費 ${data.cost} Col`);
+        await fetchTavern();
+        if (onRefresh) onRefresh();
+      }
+    } catch {
+      setMessage("雇用失敗，請稍後再試");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  if (loading) return <div className="card">載入酒館中...</div>;
+
+  return (
+    <div className="card">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2>🍺 冒險者酒館</h2>
+        <button
+          className="btn-primary"
+          style={{ fontSize: "0.8rem", padding: "0.3rem 0.7rem" }}
+          onClick={fetchTavern}
+        >
+          重新整理
+        </button>
+      </div>
+      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
+        每 5 分鐘（1 遊戲日）刷新一次陣容
+      </div>
+
+      {message && (
+        <div className={`${message.startsWith("✅") ? "" : "error-msg"}`} style={{ marginBottom: "0.5rem" }}>
+          {message}
+        </div>
+      )}
+
+      {npcs.length === 0 ? (
+        <div style={{ color: "var(--text-secondary)" }}>今日沒有可雇用的冒險者</div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          {npcs.map((npc) => {
+            const alreadyHired = (user.hiredNpcs || []).some((n) => n.npcId === npc.npcId);
+            const qualityColor = QUALITY_COLOR[npc.quality] || "#ccc";
+            return (
+              <div
+                key={npc.npcId}
+                style={{
+                  border: `1px solid ${qualityColor}`,
+                  borderRadius: "6px",
+                  padding: "0.6rem 0.8rem",
+                  boxShadow: `0 0 6px ${qualityColor}33`,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: "0.4rem",
+                }}
+              >
+                <div>
+                  <span style={{ color: qualityColor, fontWeight: "bold", marginRight: "0.4rem" }}>
+                    【{npc.quality}】
+                  </span>
+                  <span style={{ fontWeight: "bold" }}>{npc.name}</span>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
+                    HP:{npc.baseStats.hp} ATK:{npc.baseStats.atk} DEF:{npc.baseStats.def} AGI:{npc.baseStats.agi}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--gold)", marginTop: "0.1rem" }}>
+                    雇用費 {npc.hireCost} Col｜週薪 {npc.weeklyCost} Col/週
+                  </div>
+                </div>
+                <button
+                  className="btn-success"
+                  disabled={alreadyHired || busy === npc.npcId}
+                  onClick={() => handleHire(npc.npcId)}
+                  style={{ fontSize: "0.8rem", padding: "0.3rem 0.7rem" }}
+                >
+                  {alreadyHired ? "已在隊伍" : busy === npc.npcId ? "雇用中..." : "雇用"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

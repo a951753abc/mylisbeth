@@ -1,6 +1,73 @@
 module.exports = {
   MOVE_COOLDOWN: 5000,
 
+  // Season 3: 遊戲時間
+  TIME_SCALE: 5 * 60 * 1000, // 5 分鐘現實時間 = 1 遊戲日
+  NEWBIE_PROTECTION_DAYS: 3, // 新手保護期（遊戲日）
+
+  // Season 3: 帳單結算
+  SETTLEMENT: {
+    BASE_RENT: 100,           // 基礎租金（每週）
+    FLOOR_TAX_PER_FLOOR: 30, // 每層樓稅（每週）
+    INTERVAL_GAME_DAYS: 7,   // 結算間隔（遊戲日）
+    MAX_DEBT_CYCLES: 3,       // 最多負債幾個週期才破產
+  },
+
+  // Season 3: NPC 雇用
+  NPC: {
+    POOL_SIZE: 8000,          // 固定 NPC 池大小
+    TAVERN_DAILY_COUNT: 3,    // 酒館每日顯示 NPC 數量
+    // 品質分布（百分比）
+    QUALITY_DIST: {
+      見習: 16,
+      普通: 68,
+      優秀: 13.5,
+      精銳: 2.4,
+      傳說: 0.1,
+    },
+    // 各品質基礎素質範圍 [min, max]
+    STAT_RANGE: {
+      見習: { hp: [20, 40], atk: [1, 2], def: [0, 1], agi: [1, 2] },
+      普通: { hp: [40, 80], atk: [2, 4], def: [1, 2], agi: [2, 3] },
+      優秀: { hp: [80, 120], atk: [4, 6], def: [2, 3], agi: [3, 4] },
+      精銳: { hp: [120, 180], atk: [6, 9], def: [3, 5], agi: [4, 6] },
+      傳說: { hp: [180, 260], atk: [9, 14], def: [5, 7], agi: [6, 9] },
+    },
+    // 雇用費（一次性）
+    HIRE_COST: {
+      見習: 100,
+      普通: 200,
+      優秀: 500,
+      精銳: 1200,
+      傳說: 3000,
+    },
+    // 週薪（每結算週期）
+    WEEKLY_WAGE: {
+      見習: 50,
+      普通: 100,
+      優秀: 250,
+      精銳: 600,
+      傳說: 1500,
+    },
+    // 冒險體力損耗
+    CONDITION_LOSS: {
+      WIN: 15,
+      LOSE: 40,
+      DRAW: 25,
+    },
+    // 體力死亡閾值（condition <= 此值且戰敗時有 80% 機率死亡）
+    DEATH_THRESHOLD: 20,
+    DEATH_CHANCE: 80,
+    // 治療費用
+    HEAL_QUICK_COST: 50,   // 快速治療（+30 condition）
+    HEAL_FULL_COST: 200,   // 完全治療（100% condition）
+    // 每遊戲日自然恢復
+    DAILY_RECOVER: 5,
+    // 升級經驗需求基數
+    EXP_BASE: 100,
+    EXP_MULTIPLIER: 1.5,
+  },
+
   ENEMY_PROBABILITY: {
     YUKI: 99,
     HELL: 90,
@@ -36,6 +103,20 @@ module.exports = {
   BOSS_TIMEOUT_MS: 72 * 60 * 60 * 1000,
   FLOOR_MAX_EXPLORE: 5,
 
+  // Season 2: 武器修復
+  COL_REPAIR_COST: {
+    common: 50,
+    fine: 100,
+    rare: 200,
+    epic: 400,
+    legendary: 800,
+  },
+  REPAIR_SUCCESS_RATE: 85,
+
+  // Season 2: 冒險委託費
+  COL_ADVENTURE_FEE_BASE: 30,
+  COL_ADVENTURE_FEE_PER_FLOOR: 10,
+
   // Season 2: 樓層素材分組 (每 2 層一組新素材)
   FLOOR_MATERIAL_GROUPS: [
     { floors: [1, 2], itemIds: ["mat_floor1_ore", "mat_floor1_crystal"] },
@@ -44,4 +125,15 @@ module.exports = {
     { floors: [7, 8], itemIds: ["mat_floor7_ore", "mat_floor7_crystal"] },
     { floors: [9, 10], itemIds: ["mat_floor9_ore", "mat_floor9_crystal"] },
   ],
+
+  // Season 3: 玩家體力值
+  STAMINA: {
+    MAX: 100,
+    RECOVERY_PER_GAME_DAY: 20, // 每遊戲日（5 分鐘）回復 20 點
+    COST: {
+      mine:   { min: 1, max: 6 },   // d6
+      forge:  { min: 3, max: 8 },   // d6+2
+      repair: { min: 1, max: 5 },   // max(1, d6-1)
+    },
+  },
 };
