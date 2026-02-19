@@ -469,11 +469,21 @@ router.get("/players", async (req, res) => {
 // Graveyard (墓碑紀錄)
 router.get("/graveyard", async (req, res) => {
   try {
+    const DEATH_CAUSES = [
+      "solo_adventure_death",
+      "laughing_coffin_mine",
+      "laughing_coffin_solo",
+    ];
     const logs = await db.find("bankruptcy_log", {
-      cause: "solo_adventure_death",
+      cause: { $in: DEATH_CAUSES },
     });
     // 按死亡時間降序排列（最近的在前）
     logs.sort((a, b) => (b.bankruptedAt || 0) - (a.bankruptedAt || 0));
+    const CAUSE_LABELS = {
+      solo_adventure_death: "冒險戰死",
+      laughing_coffin_mine: "微笑棺木襲擊",
+      laughing_coffin_solo: "微笑棺木襲擊",
+    };
     const graves = logs.map((log) => ({
       name: log.name,
       title: log.title || null,
@@ -483,6 +493,7 @@ router.get("/graveyard", async (req, res) => {
       hiredNpcCount: log.hiredNpcCount || 0,
       finalCol: log.finalCol || 0,
       diedAt: log.bankruptedAt,
+      cause: CAUSE_LABELS[log.cause] || "不明",
     }));
     res.json({ graves });
   } catch (err) {

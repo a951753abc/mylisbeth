@@ -179,6 +179,7 @@ export default function PlayerList() {
                   </span>
                 </div>
                 <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.3rem' }}>
+                  {grave.cause && <span style={{ color: '#ef4444' }}>{grave.cause} | </span>}
                   {grave.currentFloor > 1 ? `第 ${grave.currentFloor} 層 | ` : ''}
                   鍛造 Lv.{grave.forgeLevel} | 武器 {grave.weaponCount} 把 | {grave.finalCol} Col
                 </div>

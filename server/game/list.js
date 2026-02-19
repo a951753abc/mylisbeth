@@ -10,7 +10,7 @@ module.exports = async function (page) {
 
   const allUsers = await db.find("user", {});
   const deadCount = await db.count("bankruptcy_log", {
-    cause: "solo_adventure_death",
+    cause: { $in: ["solo_adventure_death", "laughing_coffin_mine", "laughing_coffin_solo"] },
   });
 
   const totalAdventurers = allUsers.length + deadCount;
