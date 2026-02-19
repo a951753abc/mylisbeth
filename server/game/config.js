@@ -146,7 +146,7 @@ module.exports = {
   RANDOM_EVENTS: {
     TRIGGER_ACTIONS: ["mine", "soloAdv", "adv"],
     LAUGHING_COFFIN: {
-      CHANCE: 5,                        // 觸發機率 (%)
+      CHANCE: 3,                        // 觸發機率 (%)
       // 敵方基礎數值（隨樓層 scaling: base * (1 + floor * 0.15)）
       ENEMY_BASE: {
         HP: 60,
@@ -159,17 +159,17 @@ module.exports = {
       WIN_COL_MIN: 100,
       WIN_COL_MAX: 300,
       // 平手損失
-      DRAW_COL_LOSS_RATE: 0.20,        // 損失 20% Col
+      DRAW_COL_LOSS_RATE: 0.10,        // 損失 10% Col
       // 敗北搶奪
-      LOSE_COL_LOSS_RATE: 0.50,        // 搶走 50% Col
-      LOSE_COL_MIN: 50,                // 至少搶 50 Col
+      LOSE_COL_LOSS_RATE: 0.25,        // 搶走 25% Col
+      LOSE_COL_MIN: 20,                // 至少搶 20 Col
       LOSE_STEAL_MATERIAL: true,       // 隨機搶 1 素材
       LOSE_STEAL_WEAPON_CHANCE: 10,    // 10% 搶武器（需 2+ 把）
       // 敗北死亡機率（依動作類型不同）
       DEATH_CHANCE: {
-        mine: 30,                       // 挖礦時毫無防備
-        soloAdv: 25,                    // 至少有武器在手
-        adv: 30,                        // NPC 替玩家擋刀（NPC 死亡）
+        mine: 15,                       // 挖礦時毫無防備
+        soloAdv: 10,                    // 至少有武器在手
+        adv: 15,                        // NPC 替玩家擋刀（NPC 死亡）
       },
     },
   },
