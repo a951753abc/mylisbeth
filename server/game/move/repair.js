@@ -41,8 +41,10 @@ module.exports = async function (cmd, rawUser) {
       };
     }
 
-    // 依稀有度計算費用
-    const rarity = calculateRarity(thisWeapon);
+    // 依稀有度計算費用（優先使用已儲存的稀有度，與 info.js 一致）
+    const rarity = thisWeapon.rarity
+      ? { id: thisWeapon.rarity, label: thisWeapon.rarityLabel }
+      : calculateRarity(thisWeapon);
     const cost =
       config.COL_REPAIR_COST[rarity.id] || config.COL_REPAIR_COST.common;
 
