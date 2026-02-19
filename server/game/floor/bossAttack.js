@@ -142,6 +142,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
           $set: {
             "bossStatus.active": true,
             "bossStatus.floorNumber": currentFloor,
+            "bossStatus.currentHp": bossData.hp,
             "bossStatus.totalHp": bossData.hp,
             "bossStatus.startedAt": now,
             "bossStatus.expiresAt": expiresAt,
