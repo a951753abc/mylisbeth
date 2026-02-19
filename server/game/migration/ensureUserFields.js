@@ -36,6 +36,7 @@ const DEFAULT_FIELDS = {
   debtCycleCount: 0,
   isInDebt: false,
   lastActionAt: null,
+  lastLoanAt: null,
   // Season 3: 玩家體力值
   stamina: 100,
   maxStamina: 100,

@@ -289,7 +289,14 @@ export default function Game({ user, onLogout }) {
           <NpcPanel user={gameUser} onRefresh={fetchUser} />
         )}
         {tab === "settlement" && (
-          <SettlementPanel user={gameUser} onRefresh={fetchUser} />
+          <SettlementPanel
+            user={gameUser}
+            onRefresh={fetchUser}
+            onBankruptcy={(info) => {
+              setBankruptcy(info);
+              setGameUser(null);
+            }}
+          />
         )}
       </div>
     </div>

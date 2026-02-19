@@ -11,6 +11,10 @@ module.exports = {
     FLOOR_TAX_PER_FLOOR: 30, // 每層樓稅（每週）
     INTERVAL_GAME_DAYS: 7,   // 結算間隔（遊戲日）
     MAX_DEBT_CYCLES: 3,       // 最多負債幾個週期才破產
+    LOAN_MIN: 50,              // 最低借款金額
+    LOAN_MAX_BILL_MULT: 2,    // 每次最多借 bill * 此倍數
+    LOAN_DEATH_PER_BILL: 15,  // 每 1x bill 負債 = 15% 破產機率
+    LOAN_DEATH_CAP: 90,       // 破產機率上限 (%)
   },
 
   // Season 3: NPC 雇用

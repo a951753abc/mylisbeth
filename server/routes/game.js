@@ -10,6 +10,7 @@ const { getFloor } = require("../game/floor/floorData.js");
 const { getAllDefinitions } = require("../game/progression/achievement.js");
 const claimDaily = require("../game/progression/daily.js");
 const { calculateBill, payDebt } = require("../game/economy/settlement.js");
+const { takeLoan, getLoanInfo } = require("../game/economy/loan.js");
 
 // Create character
 router.post("/create", ensureAuth, async (req, res) => {
@@ -330,6 +331,7 @@ router.get("/settlement", ensureAuth, async (req, res) => {
     const user = await db.findOne("user", { userId: req.user.discordId });
     if (!user) return res.status(404).json({ error: "角色不存在" });
     const bill = calculateBill(user);
+    const loanInfo = getLoanInfo(user);
     res.json({
       bill,
       debt: user.debt || 0,
@@ -337,6 +339,7 @@ router.get("/settlement", ensureAuth, async (req, res) => {
       debtCycleCount: user.debtCycleCount || 0,
       nextSettlementAt: user.nextSettlementAt || null,
       col: user.col || 0,
+      loanInfo,
     });
   } catch (err) {
     console.error("取得帳單失敗:", err);
@@ -354,6 +357,23 @@ router.post("/pay-debt", ensureAuth, async (req, res) => {
     res.json(result);
   } catch (err) {
     console.error("還債失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// Loan (擴大負債)
+router.post("/loan", ensureAuth, async (req, res) => {
+  try {
+    const { amount } = req.body;
+    if (!amount || amount <= 0) return res.status(400).json({ error: "借款金額無效" });
+    const result = await takeLoan(req.user.discordId, Math.floor(amount));
+    if (result.error) return res.status(400).json(result);
+    if (result.bankruptcy) {
+      return res.status(200).json(result);
+    }
+    res.json(result);
+  } catch (err) {
+    console.error("借款失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
   }
 });
