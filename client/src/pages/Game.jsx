@@ -13,6 +13,7 @@ import NpcPanel from "../components/NpcPanel";
 import SettlementPanel from "../components/SettlementPanel";
 import BankruptcyScreen from "../components/BankruptcyScreen";
 import NpcDeathToast from "../components/NpcDeathToast";
+import ShopPanel from "../components/ShopPanel";
 
 export default function Game({ user, onLogout }) {
   const [gameUser, setGameUser] = useState(null);
@@ -251,6 +252,12 @@ export default function Game({ user, onLogout }) {
           >
             帳單{gameUser.isInDebt ? "⚠️" : ""}
           </button>
+          <button
+            className={tab === "shop" ? "active" : ""}
+            onClick={() => setTab("shop")}
+          >
+            商店
+          </button>
         </div>
 
         {tab === "game" && (
@@ -297,6 +304,9 @@ export default function Game({ user, onLogout }) {
               setGameUser(null);
             }}
           />
+        )}
+        {tab === "shop" && (
+          <ShopPanel user={gameUser} onRefresh={fetchUser} />
         )}
       </div>
     </div>

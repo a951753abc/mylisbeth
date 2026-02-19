@@ -135,9 +135,27 @@ module.exports = {
     MAX: 100,
     RECOVERY_PER_GAME_DAY: 20, // 每遊戲日（5 分鐘）回復 20 點
     COST: {
-      mine:   { min: 1, max: 6 },   // d6
-      forge:  { min: 3, max: 8 },   // d6+2
-      repair: { min: 1, max: 5 },   // max(1, d6-1)
+      mine:     { min: 1,  max: 6  },  // d6
+      forge:    { min: 3,  max: 8  },  // d6+2
+      repair:   { min: 1,  max: 5  },  // max(1, d6-1)
+      soloAdv:  { min: 15, max: 25 },  // 15-25（高風險行動）
     },
+  },
+
+  // Season 3.5: 回收商店（收破爛商人，無差別低價）
+  // 素材、武器一律 d6 Col（1~6），不看星級也不看稀有度
+  SHOP: {},
+
+  // Season 3.5: 鍛造師親自冒險
+  SOLO_ADV: {
+    // 鍛造師基礎素質
+    BASE_HP:  30,
+    BASE_ATK: 1,
+    BASE_DEF: 0,
+    BASE_AGI: 1,
+    BASE_CRI: 10,
+    // 死亡判定機率（%）
+    DEATH_ON_LOSE: 80,  // 敗北 → 80% 死亡
+    DEATH_ON_DRAW: 30,  // 平手 → 30% 死亡
   },
 };

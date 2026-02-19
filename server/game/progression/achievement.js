@@ -154,6 +154,15 @@ const ACHIEVEMENTS = [
     check: (user) => (user.hiredNpcs || []).some((n) => n.quality === "傳說"),
     titleReward: "伝説使い",
   },
+  // Season 3.5 achievements
+  {
+    id: "first_sell",
+    name: "初めての商売",
+    nameCn: "第一筆生意",
+    desc: "首次在回收商店出售物品",
+    check: (user) => (user.stats?.totalShopSells || 0) >= 1,
+    titleReward: "收破爛的",
+  },
 ];
 
 async function checkAndAward(userId) {

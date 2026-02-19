@@ -11,6 +11,7 @@ const { getAllDefinitions } = require("../game/progression/achievement.js");
 const claimDaily = require("../game/progression/daily.js");
 const { calculateBill, payDebt } = require("../game/economy/settlement.js");
 const { takeLoan, getLoanInfo } = require("../game/economy/loan.js");
+const { sellItem, sellWeapon } = require("../game/economy/shop.js");
 
 // Create character
 router.post("/create", ensureAuth, async (req, res) => {
@@ -375,6 +376,74 @@ router.post("/loan", ensureAuth, async (req, res) => {
   } catch (err) {
     console.error("借款失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// Sell item (回收素材，不走 move 冷卻)
+router.post("/sell-item", ensureAuth, async (req, res) => {
+  try {
+    const { itemIndex, quantity } = req.body;
+    if (itemIndex === undefined || itemIndex === null) {
+      return res.status(400).json({ error: "缺少素材索引" });
+    }
+    const result = await sellItem(
+      req.user.discordId,
+      parseInt(itemIndex, 10),
+      parseInt(quantity, 10) || 1,
+    );
+    if (result.error) return res.status(400).json(result);
+    res.json(result);
+  } catch (err) {
+    console.error("出售素材失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// Sell weapon (回收武器，不走 move 冷卻)
+router.post("/sell-weapon", ensureAuth, async (req, res) => {
+  try {
+    const { weaponIndex } = req.body;
+    if (weaponIndex === undefined || weaponIndex === null) {
+      return res.status(400).json({ error: "缺少武器索引" });
+    }
+    const result = await sellWeapon(
+      req.user.discordId,
+      parseInt(weaponIndex, 10),
+    );
+    if (result.error) return res.status(400).json(result);
+    res.json(result);
+  } catch (err) {
+    console.error("出售武器失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// Solo adventure (鍛造師親自冒險)
+router.post("/solo-adventure", ensureAuth, async (req, res) => {
+  try {
+    const { weaponId } = req.body;
+    const cmd = [null, "soloAdv", weaponId !== undefined ? weaponId : 0];
+    const result = await move(cmd, req.user.discordId);
+    if (result.error) {
+      return res.status(400).json(result);
+    }
+    if (result.bankruptcy) {
+      return res.status(200).json(result);
+    }
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("battle:result", {
+        type: "soloAdv",
+        playerName: result.battleResult?.npcName,
+        result: result.battleResult,
+      });
+    }
+    res.json(result);
+  } catch (err) {
+    console.error("獨自出擊失敗:", err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "伺服器錯誤" });
+    }
   }
 });
 

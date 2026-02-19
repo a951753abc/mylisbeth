@@ -11,7 +11,7 @@ const { releaseAllNpcs } = require("../npc/npcManager.js");
  * @param {number} debtCycles
  * @returns {object} 破產摘要
  */
-async function executeBankruptcy(userId, totalDebt, debtCycles) {
+async function executeBankruptcy(userId, totalDebt, debtCycles, options = {}) {
   const user = await db.findOne("user", { userId });
   const summary = {
     userId,
@@ -22,6 +22,7 @@ async function executeBankruptcy(userId, totalDebt, debtCycles) {
     hiredNpcCount: (user?.hiredNpcs || []).length,
     weaponCount: (user?.weaponStock || []).length,
     bankruptedAt: Date.now(),
+    cause: options.cause || "debt",
   };
 
   // 1. 先寫 log（保留記錄）

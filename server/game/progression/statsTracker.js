@@ -13,6 +13,8 @@ const VALID_STATS = [
   // Season 3
   "npcDeaths",
   "debtCleared",
+  // Season 3.5
+  "totalShopSells",
 ];
 
 async function increment(userId, statName, amount = 1) {

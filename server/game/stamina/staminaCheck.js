@@ -2,7 +2,7 @@ const db = require("../../db.js");
 const config = require("../config.js");
 const { d6 } = require("../roll.js");
 
-const STAMINA_ACTIONS = new Set(["mine", "forge", "repair"]);
+const STAMINA_ACTIONS = new Set(["mine", "forge", "repair", "soloAdv"]);
 
 /**
  * 骰出隨機體力消耗值
@@ -12,9 +12,10 @@ const STAMINA_ACTIONS = new Set(["mine", "forge", "repair"]);
  */
 function rollStaminaCost(action) {
   const roll = d6();
-  if (action === "mine")   return roll;             // 1~6
-  if (action === "forge")  return roll + 2;         // 3~8
-  if (action === "repair") return Math.max(1, roll - 1); // 1~5
+  if (action === "mine")     return roll;                           // 1~6
+  if (action === "forge")    return roll + 2;                       // 3~8
+  if (action === "repair")   return Math.max(1, roll - 1);          // 1~5
+  if (action === "soloAdv")  return 15 + Math.floor(Math.random() * 11); // 15~25
   return 0;
 }
 
