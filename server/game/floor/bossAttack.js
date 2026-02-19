@@ -9,6 +9,7 @@ const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { getEffectiveStats, getCombinedBattleStats } = require("../npc/npcStats.js");
 const { resolveNpcBattle } = require("../npc/npcManager.js");
+const { getModifier } = require("../title/titleModifier.js");
 
 function calcDamage(atk, cri, def) {
   let atkDam = 0;
@@ -151,9 +152,10 @@ module.exports = async function bossAttack(cmd, rawUser) {
 
     const weapon = user.weaponStock[weaponIdx];
 
-    // 使用 NPC + 武器合成數值計算傷害
+    // 使用 NPC + 武器合成數值計算傷害（套用 bossDamage 稱號修正）
     const combined = getCombinedBattleStats(effectiveStats, weapon);
-    const damage = calcDamage(combined.atk, combined.cri, bossData.def);
+    const bossDamageMod = getModifier(user.title || null, "bossDamage");
+    const damage = Math.max(1, Math.round(calcDamage(combined.atk, combined.cri, bossData.def) * bossDamageMod));
 
     // 原子減少 Boss HP
     const updatedState = await db.findOneAndUpdate(
@@ -205,7 +207,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
     await increment(user.userId, "totalBossAttacks");
 
     // NPC 戰鬥結算（Boss 戰為單次攻擊，視為 WIN — 成功造成傷害，體力仍會損耗）
-    const npcResult = await resolveNpcBattle(user.userId, npcId, "WIN", BOSS_NPC_EXP_GAIN);
+    const npcResult = await resolveNpcBattle(user.userId, npcId, "WIN", BOSS_NPC_EXP_GAIN, user.title || null);
 
     let npcEventText = "";
     if (npcResult.levelUp) {

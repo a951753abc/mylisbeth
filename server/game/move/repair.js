@@ -4,6 +4,7 @@ const roll = require("../roll.js");
 const { deductCol } = require("../economy/col.js");
 const { calculateRarity } = require("../weapon/rarity.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
+const { getModifier } = require("../title/titleModifier.js");
 
 module.exports = async function (cmd, rawUser) {
   try {
@@ -62,8 +63,10 @@ module.exports = async function (cmd, rawUser) {
       -1,
     );
 
-    // 判定修復成敗
-    const success = roll.d100Check(config.REPAIR_SUCCESS_RATE);
+    // 判定修復成敗（套用 repairSuccess 稱號修正）
+    const repairMod = getModifier(user.title || null, "repairSuccess");
+    const effectiveSuccessRate = Math.min(99, Math.max(1, Math.round(config.REPAIR_SUCCESS_RATE * repairMod)));
+    const success = roll.d100Check(effectiveSuccessRate);
 
     let repairAmount = 0;
     let resultText = "";

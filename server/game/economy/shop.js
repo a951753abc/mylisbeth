@@ -6,6 +6,7 @@ const { destroyWeapon } = require("../weapon/weapon.js");
 const config = require("../config.js");
 const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
+const { getModifier } = require("../title/titleModifier.js");
 
 /**
  * 出售素材（以 itemStock 陣列索引定位）
@@ -32,8 +33,9 @@ async function sellItem(userId, itemIndex, quantity) {
     return { error: `素材數量不足（擁有 ${item.itemNum}，欲出售 ${quantity}）` };
   }
 
-  // 計算隨機價格：d6 Col / 個（收破爛，不看星級）
-  const pricePerUnit = d6();
+  // 計算隨機價格（套用 shopSellPrice 稱號修正）
+  const priceMod = getModifier(user.title || null, "shopSellPrice");
+  const pricePerUnit = Math.max(1, Math.round(d6() * priceMod));
   const totalPrice = pricePerUnit * quantity;
 
   // 原子扣除素材
@@ -83,9 +85,10 @@ async function sellWeapon(userId, weaponIndex) {
   const weapon = (user.weaponStock || [])[weaponIndex];
   if (!weapon) return { error: "找不到該武器" };
 
-  // 收破爛：不論稀有度，一律 d6 Col
+  // 收破爛：不論稀有度，基礎 d6 Col（套用 shopSellPrice 修正）
   const rarity = calculateRarity(weapon);
-  const price = d6();
+  const priceMod = getModifier(user.title || null, "shopSellPrice");
+  const price = Math.max(1, Math.round(d6() * priceMod));
 
   // 銷毀武器
   await destroyWeapon(userId, weaponIndex);

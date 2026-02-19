@@ -4,6 +4,7 @@ const { deductCol } = require("../economy/col.js");
 const { generateNpc } = require("./generator.js");
 const { getExpToNextLevel } = require("./npcStats.js");
 const { getGameDaysSince } = require("../time/gameTime.js");
+const { getModifier } = require("../title/titleModifier.js");
 
 const NPC_CFG = config.NPC;
 
@@ -134,7 +135,7 @@ async function healNpc(userId, npcId, healType) {
  * @param {number} expGain
  * @returns {{ survived: boolean, levelUp: boolean, died?: boolean }}
  */
-async function resolveNpcBattle(userId, npcId, outcome, expGain) {
+async function resolveNpcBattle(userId, npcId, outcome, expGain, userTitle = null) {
   const user = await db.findOne("user", { userId });
   if (!user) return { survived: false };
 
@@ -143,14 +144,19 @@ async function resolveNpcBattle(userId, npcId, outcome, expGain) {
   if (npcIdx === -1) return { survived: false };
 
   const npc = hired[npcIdx];
-  const condLoss = NPC_CFG.CONDITION_LOSS[outcome] || 15;
+  // 套用 npcCondLoss 稱號修正
+  const condLossMod = getModifier(userTitle, "npcCondLoss");
+  const baseCondLoss = NPC_CFG.CONDITION_LOSS[outcome] || 15;
+  const condLoss = Math.max(1, Math.round(baseCondLoss * condLossMod));
   const newCond = Math.max(0, (npc.condition ?? 100) - condLoss);
 
-  // 判斷死亡：敗北 + 體力 ≤ 20% → 80% 死亡
+  // 判斷死亡：敗北 + 體力 ≤ 閾值 → 套用 npcDeathChance 修正
+  const deathChanceMod = getModifier(userTitle, "npcDeathChance");
+  const effectiveDeathChance = Math.max(1, Math.round(NPC_CFG.DEATH_CHANCE * deathChanceMod));
   const isDeath =
     outcome === "LOSE" &&
     newCond <= NPC_CFG.DEATH_THRESHOLD &&
-    Math.random() * 100 < NPC_CFG.DEATH_CHANCE;
+    Math.random() * 100 < effectiveDeathChance;
 
   if (isDeath) {
     return await killNpc(userId, npcId, "戰死");

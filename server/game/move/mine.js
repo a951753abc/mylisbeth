@@ -6,6 +6,7 @@ const config = require("../config.js");
 const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
+const { getModifier } = require("../title/titleModifier.js");
 
 const drawLevelList = [
   [
@@ -52,10 +53,11 @@ module.exports = async function (cmd, rawUser) {
   const allItems = await db.find("item", {});
   const minePool = getFloorMinePool(allItems, currentFloor);
 
+  const starMod = getModifier(user.title || null, "mineStarChance");
   let count = item[0].values;
   while (nowItems > count) {
     const mine = _.clone(minePool[Math.floor(Math.random() * minePool.length)]);
-    mine.level = drawItemLevel(mineLevel);
+    mine.level = drawItemLevel(mineLevel, starMod);
     text += "獲得[" + mine.level.text + "]" + mine.name + "\n";
     await db.saveItemToUser(user.userId, mine);
     count++;
@@ -84,8 +86,14 @@ function getFloorMinePool(allItems, floorNumber) {
   return pool.length > 0 ? pool : allItems;
 }
 
-function drawItemLevel(level) {
-  const thisItemLevelList = drawLevelList[Math.min(level - 1, drawLevelList.length - 1)];
+function drawItemLevel(level, starMod = 1.0) {
+  const baseList = drawLevelList[Math.min(level - 1, drawLevelList.length - 1)];
+  // 套用三星機率修正（僅調整第一格，即 ★★★ 的門檻）
+  const thisItemLevelList = baseList.map((entry, i) =>
+    i === 0
+      ? { ...entry, less: Math.min(99, Math.max(1, Math.round(entry.less * starMod))) }
+      : entry,
+  );
   let itemLevel = 0;
   let count = 0;
   while (itemLevel === 0) {

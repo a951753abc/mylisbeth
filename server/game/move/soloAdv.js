@@ -12,6 +12,7 @@ const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const { getFloor } = require("../floor/floorData.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
+const { getModifier } = require("../title/titleModifier.js");
 
 const SOLO = config.SOLO_ADV;
 
@@ -52,7 +53,13 @@ module.exports = async function (cmd, rawUser) {
     const floorData = getFloor(currentFloor);
     const place = floorData.places[Math.floor(Math.random() * floorData.places.length)];
 
-    const battleResult = await pveBattle(soloWeapon, smithNpc, eneNameList, floorData.enemies);
+    const title = user.title || null;
+    const titleMods = {
+      battleAtk: getModifier(title, "battleAtk"),
+      battleDef: getModifier(title, "battleDef"),
+      battleAgi: getModifier(title, "battleAgi"),
+    };
+    const battleResult = await pveBattle(soloWeapon, smithNpc, eneNameList, floorData.enemies, titleMods);
 
     const narrative = generateNarrative(battleResult, {
       weaponName: thisWeapon.weaponName,
@@ -68,15 +75,16 @@ module.exports = async function (cmd, rawUser) {
     else if (battleResult.dead === 1) outcomeKey = "LOSE";
     else                              outcomeKey = "DRAW";
 
-    // 武器耐久損耗（同 adv.js）
+    // 武器耐久損耗（套用 advWeaponDmgChance 修正）
+    const weaponDmgMod = getModifier(title, "advWeaponDmgChance");
     let durabilityText = "";
     let weaponCheck;
     if (outcomeKey === "WIN") {
-      weaponCheck = roll.d100Check(config.WEAPON_DAMAGE_CHANCE.WIN);
+      weaponCheck = roll.d100Check(Math.min(100, Math.round(config.WEAPON_DAMAGE_CHANCE.WIN * weaponDmgMod)));
     } else if (outcomeKey === "LOSE") {
-      weaponCheck = roll.d100Check(config.WEAPON_DAMAGE_CHANCE.DEAD);
+      weaponCheck = roll.d100Check(Math.min(100, Math.round(config.WEAPON_DAMAGE_CHANCE.DEAD * weaponDmgMod)));
     } else {
-      weaponCheck = roll.d100Check(config.WEAPON_DAMAGE_CHANCE.DRAW);
+      weaponCheck = roll.d100Check(Math.min(100, Math.round(config.WEAPON_DAMAGE_CHANCE.DRAW * weaponDmgMod)));
     }
 
     if (weaponCheck) {
@@ -97,12 +105,13 @@ module.exports = async function (cmd, rawUser) {
       }
     }
 
-    // 死亡判定
+    // 死亡判定（套用 soloDeathChance 修正）
+    const deathMod = getModifier(title, "soloDeathChance");
     let isDead = false;
     if (outcomeKey === "LOSE") {
-      isDead = roll.d100Check(SOLO.DEATH_ON_LOSE);
+      isDead = roll.d100Check(Math.min(100, Math.max(1, Math.round(SOLO.DEATH_ON_LOSE * deathMod))));
     } else if (outcomeKey === "DRAW") {
-      isDead = roll.d100Check(SOLO.DEATH_ON_DRAW);
+      isDead = roll.d100Check(Math.min(100, Math.max(1, Math.round(SOLO.DEATH_ON_DRAW * deathMod))));
     }
 
     if (isDead) {
@@ -133,7 +142,8 @@ module.exports = async function (cmd, rawUser) {
       const winString = `${battleResult.category}Win`;
       await db.update("user", { userId: user.userId }, { $inc: { [winString]: 1 } });
 
-      const colReward = config.COL_ADVENTURE_REWARD[battleResult.category] || 50;
+      const advColMod = getModifier(title, "advColReward");
+      const colReward = Math.round((config.COL_ADVENTURE_REWARD[battleResult.category] || 50) * advColMod);
       colEarned = colReward;
       await awardCol(user.userId, colReward);
       rewardText += `獲得 ${colReward} Col\n`;

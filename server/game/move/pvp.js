@@ -5,6 +5,7 @@ const { awardCol } = require("../economy/col.js");
 const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
+const { getModifier } = require("../title/titleModifier.js");
 
 module.exports = async function (cmd, rawAttacker) {
   const attacker = await ensureUserFields(rawAttacker);
@@ -58,12 +59,19 @@ module.exports = async function (cmd, rawAttacker) {
     };
   }
 
+  const title = attacker.title || null;
+  const pvpTitleMods = {
+    battleAtk: getModifier(title, "battleAtk"),
+    battleDef: getModifier(title, "battleDef"),
+    battleAgi: getModifier(title, "battleAgi"),
+  };
   const defenderWeapon = defender.weaponStock[0];
   const battleResult = await pvpBattle(
     attacker,
     attackerWeapon,
     defender,
     defenderWeapon,
+    pvpTitleMods,
   );
 
   let resultText = battleResult.log.join("\n");
@@ -101,7 +109,8 @@ module.exports = async function (cmd, rawAttacker) {
       rewardText = `\n\n${defender.name} 身上沒有任何素材可以掠奪。`;
     }
 
-    const colReward = 150;
+    const pvpColMod = getModifier(title, "pvpColReward");
+    const colReward = Math.max(1, Math.round(150 * pvpColMod));
     await awardCol(attacker.userId, colReward);
     rewardText += `\n獲得 ${colReward} Col`;
 

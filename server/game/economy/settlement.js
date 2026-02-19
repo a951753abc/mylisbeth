@@ -4,6 +4,7 @@ const { getNextSettlementTime, isNewbie } = require("../time/gameTime.js");
 const { executeBankruptcy } = require("./bankruptcy.js");
 const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
+const { getModifier } = require("../title/titleModifier.js");
 
 const SETTLE = config.SETTLEMENT;
 
@@ -18,7 +19,9 @@ function calculateBill(user) {
     (sum, npc) => sum + (npc.weeklyCost || 0),
     0,
   );
-  return SETTLE.BASE_RENT + floor * SETTLE.FLOOR_TAX_PER_FLOOR + npcWages;
+  const baseBill = SETTLE.BASE_RENT + floor * SETTLE.FLOOR_TAX_PER_FLOOR + npcWages;
+  const billMod = getModifier(user.title || null, "settlementBill");
+  return Math.max(1, Math.round(baseBill * billMod));
 }
 
 /**

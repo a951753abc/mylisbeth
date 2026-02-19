@@ -15,6 +15,7 @@ const ensureUserFields = require("../migration/ensureUserFields.js");
 const { getEffectiveStats } = require("../npc/npcStats.js");
 const { resolveNpcBattle } = require("../npc/npcManager.js");
 const { enforceDebtPenalties } = require("../economy/debtCheck.js");
+const { getModifier } = require("../title/titleModifier.js");
 
 // 冒險結果對應 NPC 經驗值
 const NPC_EXP_GAIN = {
@@ -85,7 +86,13 @@ module.exports = async function (cmd, rawUser) {
     const floorData = getFloor(currentFloor);
     const place = floorData.places[Math.floor(Math.random() * floorData.places.length)];
 
-    const battleResult = await pveBattle(thisWeapon, npcForBattle, eneNameList, floorData.enemies);
+    const title = user.title || null;
+    const titleMods = {
+      battleAtk: getModifier(title, "battleAtk"),
+      battleDef: getModifier(title, "battleDef"),
+      battleAgi: getModifier(title, "battleAgi"),
+    };
+    const battleResult = await pveBattle(thisWeapon, npcForBattle, eneNameList, floorData.enemies, titleMods);
 
     const narrative = generateNarrative(battleResult, {
       weaponName: thisWeapon.weaponName,
@@ -101,15 +108,16 @@ module.exports = async function (cmd, rawUser) {
     else if (battleResult.dead === 1) outcomeKey = "LOSE";
     else outcomeKey = "DRAW";
 
-    // 武器耐久損耗
+    // 武器耐久損耗（套用 advWeaponDmgChance 修正）
+    const weaponDmgMod = getModifier(title, "advWeaponDmgChance");
     let durabilityText = "";
     let weaponCheck;
     if (battleResult.win === 1) {
-      weaponCheck = roll.d100Check(config.WEAPON_DAMAGE_CHANCE.WIN);
+      weaponCheck = roll.d100Check(Math.min(100, Math.round(config.WEAPON_DAMAGE_CHANCE.WIN * weaponDmgMod)));
     } else if (battleResult.dead === 1) {
-      weaponCheck = roll.d100Check(config.WEAPON_DAMAGE_CHANCE.DEAD);
+      weaponCheck = roll.d100Check(Math.min(100, Math.round(config.WEAPON_DAMAGE_CHANCE.DEAD * weaponDmgMod)));
     } else {
-      weaponCheck = roll.d100Check(config.WEAPON_DAMAGE_CHANCE.DRAW);
+      weaponCheck = roll.d100Check(Math.min(100, Math.round(config.WEAPON_DAMAGE_CHANCE.DRAW * weaponDmgMod)));
     }
 
     if (weaponCheck) {
@@ -132,7 +140,7 @@ module.exports = async function (cmd, rawUser) {
 
     // NPC 體力損耗 + 死亡判斷 + 升級
     const expGain = NPC_EXP_GAIN[outcomeKey] || 10;
-    const npcResult = await resolveNpcBattle(user.userId, npcId, outcomeKey, expGain);
+    const npcResult = await resolveNpcBattle(user.userId, npcId, outcomeKey, expGain, title);
 
     let npcEventText = "";
     let npcDeathEvent = null;
@@ -160,7 +168,8 @@ module.exports = async function (cmd, rawUser) {
       rewardText = `\n\n**戰利品:**\n${mineResultText}`;
       await db.update("user", { userId: user.userId }, { $inc: { [winString]: 1 } });
 
-      let colReward = config.COL_ADVENTURE_REWARD[battleResult.category] || 50;
+      const advColMod = getModifier(title, "advColReward");
+      let colReward = Math.round((config.COL_ADVENTURE_REWARD[battleResult.category] || 50) * advColMod);
       // 負債時獎勵減半
       colReward = Math.floor(colReward * penalties.advRewardMult);
       colEarned = colReward;

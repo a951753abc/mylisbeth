@@ -12,6 +12,7 @@ const claimDaily = require("../game/progression/daily.js");
 const { calculateBill, payDebt } = require("../game/economy/settlement.js");
 const { takeLoan, getLoanInfo } = require("../game/economy/loan.js");
 const { sellItem, sellWeapon } = require("../game/economy/shop.js");
+const { TITLE_EFFECTS } = require("../game/title/titleEffects.js");
 
 // Create character
 router.post("/create", ensureAuth, async (req, res) => {
@@ -483,6 +484,20 @@ router.get("/graveyard", async (req, res) => {
     res.json({ graves });
   } catch (err) {
     console.error("取得墓碑紀錄失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// Title effects
+router.get("/title-effects", ensureAuth, async (req, res) => {
+  try {
+    const user = await db.findOne("user", { userId: req.user.discordId });
+    if (!user) return res.status(404).json({ error: "角色不存在" });
+    const title = user.title || null;
+    const effects = title ? (TITLE_EFFECTS[title] || null) : null;
+    res.json({ title, effects, allEffects: TITLE_EFFECTS });
+  } catch (err) {
+    console.error("取得稱號效果失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
   }
 });

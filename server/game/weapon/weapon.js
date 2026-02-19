@@ -2,6 +2,7 @@ const _ = require("lodash");
 const db = require("../../db.js");
 const randWeapon = require("./category.json");
 const roll = require("../roll.js");
+const { getModifier, getRawModifier } = require("../title/titleModifier.js");
 
 const weaponPer = ["hp", "atk", "def", "agi", "durability"];
 const hpUp = [1, 5, 10, 15, 20, 25, 30, 35, 40];
@@ -34,8 +35,10 @@ function getStatName(itemId) {
 module.exports.buffWeapon = function (cmd, user) {
   const thisWeapon = user.weaponStock[cmd[2]];
   const forgeLevel = _.get(user, "forgeLevel", 1);
+  const title = user.title || null;
   thisWeapon.text = "";
-  const per = 20 + user.itemStock[cmd[3]].itemLevel * 5 + forgeLevel * 10;
+  const basePer = 20 + user.itemStock[cmd[3]].itemLevel * 5 + forgeLevel * 10;
+  const per = Math.min(99, Math.max(1, Math.round(basePer * getModifier(title, "forgeBuffChance"))));
   let isBuff = false;
   if (roll.d100Check(per)) {
     let perName = getStatName(user.itemStock[cmd[3]].itemId);
@@ -72,6 +75,9 @@ module.exports.buffWeapon = function (cmd, user) {
 
 module.exports.createWeapon = async function (cmd, user) {
   const forceLevel = _.get(user, "forceLevel", 1);
+  const title = user.title || null;
+  const critFailExtra = getRawModifier(title, "forgeCritFailExtra") * 100; // 0.05 → 5
+  const critSuccessAdj = getRawModifier(title, "forgeCritSuccessAdj"); // integer
   const query = {
     forge1: user.itemStock[cmd[2]].itemId,
     forge2: user.itemStock[cmd[3]].itemId,
@@ -82,7 +88,9 @@ module.exports.createWeapon = async function (cmd, user) {
   }
   weapon.weaponName = cmd[4];
   weapon.hp = 0;
-  weapon.durability = roll.d66();
+  const baseDurability = roll.d66();
+  const durMod = getModifier(title, "forgeDurability");
+  weapon.durability = Math.max(1, Math.round(baseDurability * durMod));
   weapon.maxDurability = weapon.durability;
   weapon.text = "";
   weapon.text +=
@@ -123,11 +131,15 @@ module.exports.createWeapon = async function (cmd, user) {
   }
 
   let rollResult = roll.d66();
-  if (rollResult === 2) {
+  // 大失敗：自然骰出 2，或額外機率觸發
+  const isCritFail = rollResult === 2 || (rollResult > 2 && critFailExtra > 0 && roll.d100Check(critFailExtra));
+  if (isCritFail) {
     changeWeapon(weapon, "fail");
     return weapon;
   }
-  while (rollResult >= 10) {
+  // 大成功門檻：基礎 10，正值代表更難觸發
+  const critSuccessThresh = 10 + critSuccessAdj;
+  while (rollResult >= critSuccessThresh) {
     changeWeapon(weapon, "success");
     rollResult = roll.d66();
   }

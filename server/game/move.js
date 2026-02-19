@@ -58,8 +58,8 @@ module.exports = async function (cmd, userOrId) {
     };
   }
 
-  // 體力檢查：挖礦/鍛造/修復才消耗
-  const staminaResult = await checkAndConsumeStamina(userId, cmd[1]);
+  // 體力檢查：挖礦/鍛造/修復才消耗（傳入稱號以套用修正）
+  const staminaResult = await checkAndConsumeStamina(userId, cmd[1], user.title || null);
   if (!staminaResult.ok) {
     return { error: staminaResult.error };
   }

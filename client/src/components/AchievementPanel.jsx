@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import TitleEffectHint from './TitleEffectHint.jsx';
 
 export default function AchievementPanel({ user, onTitleChange }) {
   const [achievements, setAchievements] = useState([]);
@@ -6,9 +7,14 @@ export default function AchievementPanel({ user, onTitleChange }) {
   const [titleMsg, setTitleMsg] = useState('');
 
   const [totalCount, setTotalCount] = useState(0);
+  const [allTitleEffects, setAllTitleEffects] = useState({});
 
   useEffect(() => {
     fetchAchievements();
+    fetch('/api/game/title-effects', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((d) => setAllTitleEffects(d.allEffects || {}))
+      .catch(() => {});
   }, []);
 
   const fetchAchievements = async () => {
@@ -69,14 +75,16 @@ export default function AchievementPanel({ user, onTitleChange }) {
             移除稱號
           </button>
           {(user.availableTitles || []).map((t) => (
-            <button
-              key={t}
-              className={user.title === t ? 'btn-warning' : 'btn-primary'}
-              style={{ fontSize: '0.8rem', padding: '0.3rem 0.75rem' }}
-              onClick={() => setTitle(t)}
-            >
-              {t}
-            </button>
+            <div key={t} style={{ display: 'inline-flex', flexDirection: 'column', maxWidth: '160px' }}>
+              <button
+                className={user.title === t ? 'btn-warning' : 'btn-primary'}
+                style={{ fontSize: '0.8rem', padding: '0.3rem 0.75rem' }}
+                onClick={() => setTitle(t)}
+              >
+                {t}
+              </button>
+              <TitleEffectHint title={t} allEffects={allTitleEffects} />
+            </div>
           ))}
         </div>
         {titleMsg && (

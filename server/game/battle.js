@@ -139,7 +139,7 @@ function processAttack(attacker, defender, battleLog) {
 
 const battleModule = {};
 
-battleModule.pveBattle = async function (weapon, npc, npcNameList, floorEnemies) {
+battleModule.pveBattle = async function (weapon, npc, npcNameList, floorEnemies, titleMods = {}) {
   const roundLimit = 5;
   let round = 1;
 
@@ -157,6 +157,17 @@ battleModule.pveBattle = async function (weapon, npc, npcNameList, floorEnemies)
     playerDef = (weapon.def || 0) + Math.floor(es.def * 0.5);
     playerAgi = Math.max(weapon.agi || 0, es.agi);
     playerCri = weapon.cri || 10;
+  }
+
+  // 套用稱號戰鬥屬性修正
+  if (titleMods.battleAtk && titleMods.battleAtk !== 1) {
+    playerAtk = Math.max(1, Math.round(playerAtk * titleMods.battleAtk));
+  }
+  if (titleMods.battleDef && titleMods.battleDef !== 1) {
+    playerDef = Math.max(0, Math.round(playerDef * titleMods.battleDef));
+  }
+  if (titleMods.battleAgi && titleMods.battleAgi !== 1) {
+    playerAgi = Math.max(1, Math.round(playerAgi * titleMods.battleAgi));
   }
 
   const playerSide = {
@@ -259,6 +270,7 @@ battleModule.pvpBattle = async function (
   attackerWeapon,
   defenderData,
   defenderWeapon,
+  titleMods = {},
 ) {
   const roundLimit = 5;
   let round = 1;
@@ -267,7 +279,12 @@ battleModule.pvpBattle = async function (
   const attacker = {
     name: attackerData.name,
     hp: 100 + (attackerWeapon.hp || 0),
-    stats: { ...attackerWeapon },
+    stats: {
+      ...attackerWeapon,
+      atk: titleMods.battleAtk ? Math.max(1, Math.round((attackerWeapon.atk || 0) * titleMods.battleAtk)) : (attackerWeapon.atk || 0),
+      def: titleMods.battleDef ? Math.max(0, Math.round((attackerWeapon.def || 0) * titleMods.battleDef)) : (attackerWeapon.def || 0),
+      agi: titleMods.battleAgi ? Math.max(1, Math.round((attackerWeapon.agi || 0) * titleMods.battleAgi)) : (attackerWeapon.agi || 0),
+    },
   };
   const defender = {
     name: defenderData.name,

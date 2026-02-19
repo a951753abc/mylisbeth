@@ -1,6 +1,7 @@
 const db = require("../../db.js");
 const config = require("../config.js");
 const { d6 } = require("../roll.js");
+const { getModifier } = require("../title/titleModifier.js");
 
 const STAMINA_ACTIONS = new Set(["mine", "forge", "repair", "soloAdv"]);
 
@@ -83,7 +84,7 @@ async function regenStamina(userId) {
  * @param {string} action
  * @returns {Promise<{ ok: boolean, cost?: number, stamina?: number, error?: string }>}
  */
-async function checkAndConsumeStamina(userId, action) {
+async function checkAndConsumeStamina(userId, action, userTitle = null) {
   if (!STAMINA_ACTIONS.has(action)) {
     return { ok: true };
   }
@@ -91,7 +92,9 @@ async function checkAndConsumeStamina(userId, action) {
   // 先執行自然回復
   await regenStamina(userId);
 
-  const cost = rollStaminaCost(action);
+  const baseCost = rollStaminaCost(action);
+  const staminaMod = getModifier(userTitle, "staminaCost");
+  const cost = Math.max(1, Math.round(baseCost * staminaMod));
   const maxStamina = config.STAMINA.MAX;
 
   // 原子扣除：只有體力足夠才成功
