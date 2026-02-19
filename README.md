@@ -170,6 +170,31 @@ npm run client:build
 NODE_ENV=production npm start
 ```
 
+### Docker 部署（推薦）
+
+使用 Docker Compose 一鍵部署，包含 App 與 MongoDB：
+
+```bash
+# 1. 建立 .env
+cp .env.example .env
+# 編輯 .env，填入 Discord OAuth、Gemini API Key 等
+# 注意：MONGODB_URI 不需要設定，docker-compose 會自動指向容器內的 MongoDB
+
+# 2. 啟動
+docker compose up -d --build
+
+# 3. 初始化資料庫（首次部署）
+docker compose exec app node server/scripts/seed-season2.js
+docker compose exec app node server/scripts/init-season3-indexes.js
+
+# 4. 查看 log
+docker compose logs -f app
+```
+
+預設對外 port 為 `4000`，可在 `docker-compose.yml` 中修改。
+
+> **Discord OAuth Callback URL** 記得更新為 `http://你的伺服器IP:4000/api/auth/callback`
+
 ## API 一覽
 
 ### 認證
