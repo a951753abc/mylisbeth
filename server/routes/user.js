@@ -7,6 +7,7 @@ const { checkSettlement } = require('../game/economy/debtCheck.js');
 const { recoverConditions } = require('../game/npc/npcManager.js');
 const { getGameDaysSince } = require('../game/time/gameTime.js');
 const { regenStamina } = require('../game/stamina/staminaCheck.js');
+const ensureUserFields = require('../game/migration/ensureUserFields.js');
 
 // Get current user game info
 router.get('/me', ensureAuth, async (req, res) => {
@@ -15,6 +16,9 @@ router.get('/me', ensureAuth, async (req, res) => {
         if (!user) {
             return res.json({ exists: false });
         }
+
+        // 遷移檢查：補缺失欄位 + 修復損壞的 nextSettlementAt
+        user = await ensureUserFields(user);
 
         // 補算離線期間的帳單
         const settlementResult = await checkSettlement(user.userId);
