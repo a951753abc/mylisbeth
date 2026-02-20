@@ -17,12 +17,6 @@ function setCache(key, data) {
   cache.set(key, { data, ts: Date.now() });
 }
 
-// Exclude large arrays from projections (inclusion-only — use in inclusion $project stages)
-const EXCLUDE_FIELDS = {
-  itemStock: 0,
-  weaponStock: 0,
-};
-
 // NPC quality $switch expression (reusable)
 const NPC_QUALITY_SWITCH = {
   $switch: {
@@ -99,7 +93,6 @@ const CATEGORIES = {
         { $skip: skip },
         { $limit: limit },
         { $project: {
-          ...EXCLUDE_FIELDS,
           userId: 1, name: 1, title: 1, isPK: 1,
           powerScore: 1, currentFloor: 1, forgeLevel: 1,
           mineLevel: 1, battleLevel: 1,
@@ -136,7 +129,6 @@ const CATEGORIES = {
         { $skip: skip },
         { $limit: limit },
         { $project: {
-          ...EXCLUDE_FIELDS,
           userId: 1, name: 1, title: 1, isPK: 1,
           "bossContribution.totalDamage": 1,
           "bossContribution.bossesDefeated": 1,
@@ -193,7 +185,6 @@ const CATEGORIES = {
           ]},
         }},
         { $project: {
-          ...EXCLUDE_FIELDS,
           userId: 1, name: 1, title: 1, isPK: 1,
           "stats.duelKills": 1, "stats.duelLosses": 1,
           "stats.firstStrikeWins": 1,
@@ -235,7 +226,6 @@ const CATEGORIES = {
         { $skip: skip },
         { $limit: limit },
         { $project: {
-          ...EXCLUDE_FIELDS,
           userId: 1, name: 1, title: 1, isPK: 1,
           col: 1,
           "stats.totalColEarned": 1,
@@ -276,7 +266,6 @@ const CATEGORIES = {
           { $skip: skip },
           { $limit: limit },
           { $project: {
-            ...EXCLUDE_FIELDS,
             userId: 1, name: 1, title: 1, isPK: 1,
             achievementCount: 1,
           }},
@@ -290,7 +279,6 @@ const CATEGORIES = {
         { $skip: skip },
         { $limit: limit },
         { $project: {
-          ...EXCLUDE_FIELDS,
           userId: 1, name: 1, title: 1, isPK: 1,
           "stats.totalForges": 1, "stats.totalMines": 1,
           "stats.totalAdventures": 1, "stats.totalMissionsCompleted": 1,
@@ -343,7 +331,6 @@ const CATEGORIES = {
           { $skip: skip },
           { $limit: limit },
           { $project: {
-            ...EXCLUDE_FIELDS,
             userId: 1, name: 1, title: 1, isPK: 1,
             relicCount: 1,
           }},
