@@ -17,6 +17,7 @@ const { resolveNpcBattle } = require("../npc/npcManager.js");
 const { enforceDebtPenalties } = require("../economy/debtCheck.js");
 const { getModifier } = require("../title/titleModifier.js");
 const { mineBattle } = require("../loot/battleLoot.js");
+const { awardAdvExp } = require("../progression/adventureLevel.js");
 
 // 冒險結果對應 NPC 經驗值
 const NPC_EXP_GAIN = {
@@ -154,6 +155,13 @@ module.exports = async function (cmd, rawUser) {
       npcEventText = `\n\n✨ ${hiredNpc.name} 升級了！LV ${npcResult.newLevel}`;
     } else if (npcResult.newCondition !== undefined) {
       npcEventText = `\n（${hiredNpc.name} 體力: ${npcResult.newCondition}%）`;
+    }
+
+    // 冒險等級經驗
+    const advExpMap = { WIN: config.ADV_LEVEL.EXP_ADV_WIN, DRAW: config.ADV_LEVEL.EXP_ADV_DRAW, LOSE: config.ADV_LEVEL.EXP_ADV_LOSE };
+    const advExpResult = await awardAdvExp(user.userId, advExpMap[outcomeKey] || 3);
+    if (advExpResult.levelUp) {
+      npcEventText += `\n\n🎖️ 冒險等級提升至 LV ${advExpResult.newLevel}！`;
     }
 
     // 獎勵

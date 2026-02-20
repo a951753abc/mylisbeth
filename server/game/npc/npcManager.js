@@ -1,12 +1,23 @@
 const db = require("../../db.js");
 const config = require("../config.js");
-const { deductCol } = require("../economy/col.js");
+const { deductCol, awardCol } = require("../economy/col.js");
 const { generateNpc } = require("./generator.js");
 const { getExpToNextLevel } = require("./npcStats.js");
 const { getGameDaysSince } = require("../time/gameTime.js");
 const { getModifier } = require("../title/titleModifier.js");
 
 const NPC_CFG = config.NPC;
+
+/**
+ * 計算玩家可雇用 NPC 上限
+ * @param {number} adventureLevel - 冒險等級
+ * @returns {number}
+ */
+function getHireLimit(adventureLevel) {
+  const base = NPC_CFG.HIRE_LIMIT_BASE;
+  const bonus = Math.floor((adventureLevel || 1) / NPC_CFG.HIRE_LIMIT_PER_ADV_LEVEL);
+  return Math.min(NPC_CFG.HIRE_LIMIT_MAX, base + bonus);
+}
 
 /**
  * 雇用 NPC
@@ -19,6 +30,13 @@ async function hireNpc(userId, npcId) {
   if (!user) return { error: "角色不存在" };
 
   const hired = user.hiredNpcs || [];
+
+  // 雇用上限檢查
+  const limit = getHireLimit(user.adventureLevel);
+  if (hired.length >= limit) {
+    return { error: `已達雇用上限（${limit} 人）。提升鍛造等級可增加上限。` };
+  }
+
   if (hired.some((n) => n.npcId === npcId)) {
     return { error: "該 NPC 已在你的隊伍中" };
   }
@@ -57,7 +75,7 @@ async function hireNpc(userId, npcId) {
     return { error: `Col 不足，雇用需要 ${cost} Col` };
   }
 
-  // 加入 hiredNpcs
+  // 加入 hiredNpcs（原子性保證不超過上限）
   const npcEntry = {
     npcId: npcDoc.npcId,
     name: npcDoc.name,
@@ -71,7 +89,18 @@ async function hireNpc(userId, npcId) {
     mission: null,
     hiredAt: Date.now(),
   };
-  await db.update("user", { userId }, { $push: { hiredNpcs: npcEntry } });
+  const pushResult = await db.findOneAndUpdate(
+    "user",
+    { userId, [`hiredNpcs.${limit - 1}`]: { $exists: false } },
+    { $push: { hiredNpcs: npcEntry } },
+    { returnDocument: "after" },
+  );
+  if (!pushResult) {
+    // 競爭條件：雇用上限已在其他併發請求中達到，回滾 NPC 狀態 + 退款
+    await db.update("npc", { npcId }, { $set: { status: "available", hiredBy: null } });
+    await awardCol(userId, cost);
+    return { error: `已達雇用上限（${limit} 人）。提升鍛造等級可增加上限。` };
+  }
 
   return { success: true, npc: npcEntry, cost };
 }
@@ -290,4 +319,5 @@ module.exports = {
   equipWeapon,
   recoverConditions,
   releaseAllNpcs,
+  getHireLimit,
 };

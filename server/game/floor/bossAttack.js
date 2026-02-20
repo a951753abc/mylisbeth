@@ -11,6 +11,7 @@ const { getEffectiveStats, getCombinedBattleStats } = require("../npc/npcStats.j
 const { resolveNpcBattle } = require("../npc/npcManager.js");
 const { getCombinedModifier } = require("../title/titleModifier.js");
 const bossCounterAttack = require("./bossCounterAttack.js");
+const { awardAdvExp } = require("../progression/adventureLevel.js");
 
 function calcDamage(atk, cri, def) {
   let atkDam = 0;
@@ -317,6 +318,9 @@ module.exports = async function bossAttack(cmd, rawUser) {
 
     await increment(user.userId, "totalBossAttacks");
 
+    // 冒險等級經驗
+    const advExpResult = await awardAdvExp(user.userId, config.ADV_LEVEL.EXP_BOSS_ATTACK);
+
     // Boss 反擊計算
     const bossAtkBoost = getEffectiveBossAtk(bossData, [...activatedPhases, ...phaseCheck.newPhases]);
     const counterResult = bossCounterAttack({ bossData, bossAtkBoost, combined });
@@ -328,6 +332,9 @@ module.exports = async function bossAttack(cmd, rawUser) {
     let npcEventText = "";
     if (npcResult.levelUp) {
       npcEventText = `${hiredNpc.name} 升級了！LV ${npcResult.newLevel}`;
+    }
+    if (advExpResult.levelUp) {
+      npcEventText += `${npcEventText ? "\n" : ""}冒險等級提升至 LV ${advExpResult.newLevel}！`;
     }
 
     const counterAttackData = {

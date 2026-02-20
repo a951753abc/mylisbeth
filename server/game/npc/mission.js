@@ -6,6 +6,7 @@ const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const { getModifier } = require("../title/titleModifier.js");
 const roll = require("../roll.js");
+const { awardAdvExp } = require("../progression/adventureLevel.js");
 
 const MISSIONS = config.NPC_MISSIONS;
 
@@ -64,6 +65,13 @@ async function startMission(userId, npcId, missionType) {
   // 檢查是否已在任務中
   if (npc.mission) return { error: `${npc.name} 正在執行任務中` };
 
+  // 同時派遣任務上限（快速前檢）
+  const activeMissions = hired.filter((n) => n.mission).length;
+  const concurrentLimit = MISSIONS.CONCURRENT_LIMIT ?? 2;
+  if (activeMissions >= concurrentLimit) {
+    return { error: `同時派遣任務已達上限（${concurrentLimit} 個）。請等待現有任務完成。` };
+  }
+
   // 體力檢查（>= 10%）
   if ((npc.condition ?? 100) < 10) {
     return { error: `${npc.name} 體力過低，無法執行任務` };
@@ -84,11 +92,25 @@ async function startMission(userId, npcId, missionType) {
     floor: user.currentFloor || 1,
   };
 
-  await db.update(
+  // 原子性寫入：同時驗證該 NPC 未在任務中 + 活躍任務數未超上限
+  const updateResult = await db.findOneAndUpdate(
     "user",
-    { userId },
+    {
+      userId,
+      [`hiredNpcs.${npcIdx}.mission`]: null,
+      $expr: {
+        $lt: [
+          { $size: { $filter: { input: "$hiredNpcs", cond: { $ne: ["$$this.mission", null] } } } },
+          concurrentLimit,
+        ],
+      },
+    },
     { $set: { [`hiredNpcs.${npcIdx}.mission`]: mission } },
+    { returnDocument: "after" },
   );
+  if (!updateResult) {
+    return { error: `同時派遣任務已達上限（${concurrentLimit} 個），或 NPC 狀態已變更。` };
+  }
 
   return {
     success: true,
@@ -145,6 +167,9 @@ async function resolveMission(userId, npcIdx, npc, title) {
       await increment(userId, "totalEscortMissions");
     }
 
+    // 冒險等級經驗
+    const advExpResult = await awardAdvExp(userId, config.ADV_LEVEL.EXP_MISSION_SUCCESS);
+
     // 體力損耗
     const condLossMod = getModifier(title, "npcCondLoss");
     const condLoss = Math.max(1, Math.round(missionDef.condCost * condLossMod));
@@ -165,6 +190,9 @@ async function resolveMission(userId, npcIdx, npc, title) {
       commission,
       condLoss,
       newCondition: newCond,
+      advExpGained: config.ADV_LEVEL.EXP_MISSION_SUCCESS,
+      advLevelUp: advExpResult.levelUp,
+      advNewLevel: advExpResult.newLevel,
     };
   } else {
     // 失敗：體力大幅損耗 + 死亡判定
@@ -175,6 +203,9 @@ async function resolveMission(userId, npcIdx, npc, title) {
     const effectiveDeathChance = Math.max(1, Math.round(missionDef.deathChance * deathMod));
     const isDeath = newCond <= 20 && roll.d100Check(effectiveDeathChance);
 
+    // 失敗也給少量冒險經驗
+    const advExpResultFail = await awardAdvExp(userId, config.ADV_LEVEL.EXP_MISSION_FAIL);
+
     if (isDeath) {
       await killNpc(userId, npc.npcId, `任務失敗：${missionDef.name}`);
       await increment(userId, "npcDeaths");
@@ -184,6 +215,9 @@ async function resolveMission(userId, npcIdx, npc, title) {
         missionName: missionDef.name,
         npcName: npc.name,
         condLoss,
+        advExpGained: config.ADV_LEVEL.EXP_MISSION_FAIL,
+        advLevelUp: advExpResultFail.levelUp,
+        advNewLevel: advExpResultFail.newLevel,
       };
     } else {
       await db.update("user", { userId }, {
@@ -200,6 +234,9 @@ async function resolveMission(userId, npcIdx, npc, title) {
         npcName: npc.name,
         condLoss,
         newCondition: newCond,
+        advExpGained: config.ADV_LEVEL.EXP_MISSION_FAIL,
+        advLevelUp: advExpResultFail.levelUp,
+        advNewLevel: advExpResultFail.newLevel,
       };
     }
   }

@@ -30,6 +30,7 @@ export default function NpcPanel({ user, onRefresh }) {
   const [missionTypes, setMissionTypes] = useState([]);
   const [missionResults, setMissionResults] = useState([]);
   const [countdowns, setCountdowns] = useState({});
+  const [concurrentLimit, setConcurrentLimit] = useState(2);
 
   const npcs = user.hiredNpcs || [];
   const weapons = user.weapons || [];
@@ -102,6 +103,7 @@ export default function NpcPanel({ user, onRefresh }) {
       const res = await fetch(`/api/npc/mission/types?npcId=${npcId}`, { credentials: "include" });
       const data = await res.json();
       setMissionTypes(data.missions || []);
+      if (data.concurrentLimit != null) setConcurrentLimit(data.concurrentLimit);
     } catch {
       setMessage("❌ 無法載入任務列表");
     }
@@ -146,6 +148,9 @@ export default function NpcPanel({ user, onRefresh }) {
     );
   }
 
+  const activeMissionCount = npcs.filter((n) => n.mission).length;
+  const missionsFull = activeMissionCount >= concurrentLimit;
+
   const hasCompletedMissions = npcs.some(
     (n) => n.mission && Date.now() >= n.mission.endsAt,
   );
@@ -164,6 +169,22 @@ export default function NpcPanel({ user, onRefresh }) {
             {busy === "check_missions" ? "結算中..." : "結算任務"}
           </button>
         )}
+      </div>
+
+      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.3rem", display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+        <span>
+          冒險 LV.{user.adventureLevel || 1}
+          <span style={{ color: "var(--text-secondary)", marginLeft: "0.3rem" }}>
+            ({user.adventureExp || 0}/{user.adventureExpNext || "???"})
+          </span>
+        </span>
+        <span>
+          任務派遣：
+          <span style={{ color: missionsFull ? "#f44336" : "var(--gold)" }}>
+            {activeMissionCount}/{concurrentLimit}
+          </span>
+          {missionsFull && <span style={{ color: "#f44336" }}>（已滿）</span>}
+        </span>
       </div>
 
       {isPaused && (
@@ -202,6 +223,12 @@ export default function NpcPanel({ user, onRefresh }) {
                 <span style={{ color: "#fca5a5" }}>失敗...{r.npcName} 在任務中犧牲了</span>
               ) : (
                 <span style={{ color: "#fca5a5" }}>失敗，體力 -{r.condLoss}%</span>
+              )}
+              {r.advExpGained > 0 && (
+                <span style={{ color: "#93c5fd", marginLeft: "0.4rem", fontSize: "0.8rem" }}>
+                  +{r.advExpGained} 冒險EXP
+                  {r.advLevelUp && ` LV UP! → LV ${r.advNewLevel}`}
+                </span>
               )}
             </div>
           ))}
@@ -391,7 +418,7 @@ export default function NpcPanel({ user, onRefresh }) {
                               <button
                                 className="btn-primary"
                                 style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem", whiteSpace: "nowrap" }}
-                                disabled={busy === `mission_${npc.npcId}` || cond < 10 || isPaused}
+                                disabled={busy === `mission_${npc.npcId}` || cond < 10 || isPaused || missionsFull}
                                 onClick={() => handleStartMission(npc.npcId, m.id)}
                               >
                                 派遣
@@ -411,10 +438,10 @@ export default function NpcPanel({ user, onRefresh }) {
                     <button
                       className="btn-primary"
                       style={{ fontSize: "0.75rem", padding: "0.2rem 0.6rem" }}
-                      disabled={cond < 10 || isPaused}
+                      disabled={cond < 10 || isPaused || missionsFull}
                       onClick={() => openMissionPicker(npc.npcId)}
                     >
-                      派遣任務
+                      {missionsFull ? "派遣已滿" : "派遣任務"}
                     </button>
                   )}
                 </div>

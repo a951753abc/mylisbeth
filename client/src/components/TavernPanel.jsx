@@ -13,6 +13,8 @@ export default function TavernPanel({ user, onRefresh }) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(null);
   const [message, setMessage] = useState("");
+  const [hireLimit, setHireLimit] = useState(null);
+  const [currentHired, setCurrentHired] = useState(0);
 
   const fetchTavern = async () => {
     setLoading(true);
@@ -20,6 +22,8 @@ export default function TavernPanel({ user, onRefresh }) {
       const res = await fetch("/api/npc/tavern", { credentials: "include" });
       const data = await res.json();
       setNpcs(data.npcs || []);
+      if (data.hireLimit != null) setHireLimit(data.hireLimit);
+      if (data.currentHired != null) setCurrentHired(data.currentHired);
     } catch {
       setMessage("無法載入酒館資料");
     } finally {
@@ -74,6 +78,15 @@ export default function TavernPanel({ user, onRefresh }) {
       </div>
       <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
         每 5 分鐘（1 遊戲日）刷新一次陣容
+        {hireLimit != null && (
+          <span style={{ marginLeft: "0.6rem", color: currentHired >= hireLimit ? "#f44336" : "var(--gold)" }}>
+            ｜隊伍 {currentHired}/{hireLimit} 人
+            {currentHired >= hireLimit && "（已滿）"}
+          </span>
+        )}
+        <span style={{ marginLeft: "0.6rem" }}>
+          ｜冒險 LV.{user.adventureLevel || 1}
+        </span>
       </div>
 
       {isPaused && (
@@ -124,11 +137,11 @@ export default function TavernPanel({ user, onRefresh }) {
                 </div>
                 <button
                   className="btn-success"
-                  disabled={alreadyHired || busy === npc.npcId || isPaused}
+                  disabled={alreadyHired || busy === npc.npcId || isPaused || (hireLimit != null && currentHired >= hireLimit)}
                   onClick={() => handleHire(npc.npcId)}
                   style={{ fontSize: "0.8rem", padding: "0.3rem 0.7rem" }}
                 >
-                  {alreadyHired ? "已在隊伍" : busy === npc.npcId ? "雇用中..." : "雇用"}
+                  {alreadyHired ? "已在隊伍" : (hireLimit != null && currentHired >= hireLimit) ? "已滿員" : busy === npc.npcId ? "雇用中..." : "雇用"}
                 </button>
               </div>
             );

@@ -3,6 +3,7 @@ const type = require("./type.js");
 const { calculateRarity } = require("./weapon/rarity.js");
 const config = require("./config.js");
 const { getExpForNextLevel } = require("./level.js");
+const { getAdvExpToNextLevel } = require("./progression/adventureLevel.js");
 
 module.exports = function (user) {
   const lose = _.get(user, "lost", 0);
@@ -156,5 +157,9 @@ module.exports = function (user) {
     // Season 7: 暫停營業
     businessPaused: _.get(user, "businessPaused", false),
     businessPausedAt: _.get(user, "businessPausedAt", null),
+    // Season 7: 冒險等級
+    adventureLevel: _.get(user, "adventureLevel", 1),
+    adventureExp: _.get(user, "adventureExp", 0),
+    adventureExpNext: getAdvExpToNextLevel(_.get(user, "adventureLevel", 1)),
   };
 };

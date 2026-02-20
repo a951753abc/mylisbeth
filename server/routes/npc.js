@@ -7,6 +7,7 @@ const {
   fireNpc,
   healNpc,
   equipWeapon,
+  getHireLimit,
 } = require("../game/npc/npcManager.js");
 const {
   startMission,
@@ -14,12 +15,16 @@ const {
   getMissionPreviews,
 } = require("../game/npc/mission.js");
 const db = require("../db.js");
+const config = require("../game/config.js");
 
-// GET /api/npc/tavern — 酒館 NPC 列表
+// GET /api/npc/tavern — 酒館 NPC 列表（含雇用上限）
 router.get("/tavern", ensureAuth, async (req, res) => {
   try {
     const npcs = await getTavernNpcs();
-    res.json({ npcs });
+    const user = await db.findOne("user", { userId: req.user.discordId });
+    const hireLimit = user ? getHireLimit(user.adventureLevel) : 2;
+    const currentHired = (user?.hiredNpcs || []).length;
+    res.json({ npcs, hireLimit, currentHired });
   } catch (err) {
     console.error("取得酒館 NPC 失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
@@ -124,7 +129,9 @@ router.get("/mission/types", ensureAuth, async (req, res) => {
     if (!npc) return res.status(404).json({ error: "找不到該 NPC" });
 
     const previews = getMissionPreviews(npc, user.currentFloor || 1, user.title || null);
-    res.json({ missions: previews });
+    const activeMissions = (user.hiredNpcs || []).filter((n) => n.mission).length;
+    const concurrentLimit = config.NPC_MISSIONS.CONCURRENT_LIMIT ?? 2;
+    res.json({ missions: previews, activeMissions, concurrentLimit });
   } catch (err) {
     console.error("取得任務預覽失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });

@@ -69,6 +69,10 @@ module.exports = {
     HEAL_FULL_COST: 200,   // 完全治療（100% condition）
     // 每遊戲日自然恢復
     DAILY_RECOVER: 5,
+    // 雇用上限（公式：min(MAX, BASE + floor(adventureLevel / PER_ADV_LEVEL))）
+    HIRE_LIMIT_BASE: 2,
+    HIRE_LIMIT_PER_ADV_LEVEL: 3, // 每 3 級冒險等級 +1 人
+    HIRE_LIMIT_MAX: 6,
     // 升級經驗需求基數
     EXP_BASE: 100,
     EXP_MULTIPLIER: 1.5,
@@ -233,6 +237,20 @@ module.exports = {
     STAT_RATE: { atk: 0.04, def: 0.03, agi: 0.02 },  // 每級 % 加成
   },
 
+  // Season 7: 冒險等級（決定 NPC 雇用上限）
+  ADV_LEVEL: {
+    MAX_LEVEL: 30,
+    EXP_BASE: 80,
+    EXP_MULTIPLIER: 1.4,
+    // 經驗值來源
+    EXP_ADV_WIN: 25,            // NPC 冒險勝利
+    EXP_ADV_DRAW: 8,            // NPC 冒險平手
+    EXP_ADV_LOSE: 3,            // NPC 冒險敗北
+    EXP_MISSION_SUCCESS: 20,    // NPC 任務成功
+    EXP_MISSION_FAIL: 5,        // NPC 任務失敗
+    EXP_BOSS_ATTACK: 30,        // Boss 攻擊
+  },
+
   // 死亡原因常數（用於 bankruptcy_log 查詢，list.js / graveyard 共用）
   DEATH_CAUSES: [
     "solo_adventure_death",
@@ -268,6 +286,7 @@ module.exports = {
     ],
     QUALITY_MULT: { 見習: 0.6, 普通: 1.0, 優秀: 1.5, 精銳: 2.0, 傳說: 3.0 },
     COMMISSION_RATE: 0.10,
+    CONCURRENT_LIMIT: 2,       // 同時派遣任務上限
   },
 
   // Season 3.5: 鍛造師親自冒險
