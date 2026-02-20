@@ -5,6 +5,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const session = require("express-session");
+const MongoStore = require("connect-mongo");
 const passport = require("passport");
 const path = require("path");
 const db = require("./db.js");
@@ -45,6 +46,11 @@ const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET || "dev-secret-change-this",
   resave: false,
   saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI || "mongodb://localhost:27017/lisbeth",
+    collectionName: "sessions",
+    ttl: 24 * 60 * 60,
+  }),
   cookie: {
     secure: false,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
