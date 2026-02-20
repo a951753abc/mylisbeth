@@ -222,6 +222,77 @@ router.post("/pvp", ensureAuth, async (req, res) => {
   }
 });
 
+// PVP vs NPC: 挑戰其他玩家的 NPC
+router.post("/pvp-npc", ensureAuth, async (req, res) => {
+  try {
+    const { targetNpcId, weaponId, mode, wagerCol } = req.body;
+    const cmd = [null, "pvpNpc", targetNpcId, weaponId, mode, wagerCol];
+    const result = await move(cmd, req.user.discordId);
+    if (result.error) {
+      return res.status(400).json(result);
+    }
+    const io = req.app.get("io");
+    if (io) {
+      if (result.socketEvents) {
+        for (const evt of result.socketEvents) {
+          io.emit(evt.event, evt.data);
+        }
+      }
+      // 通知 NPC 擁有者
+      if (result.defenderId) {
+        io.to("user:" + result.defenderId).emit("pvp:attacked", {
+          attacker: result.attackerName,
+          defender: result.defenderName,
+          defenderOwner: result.defenderOwnerName,
+          winner: result.winner,
+          loser: result.loser,
+          reward: result.reward,
+          duelMode: result.duelMode,
+          battleLog: result.battleLog,
+          loserDied: result.loserDied,
+          npcDied: result.npcDied,
+          isNpcDuel: true,
+        });
+      }
+    }
+    const { socketEvents, ...clientResult } = result;
+    res.json(clientResult);
+  } catch (err) {
+    console.error("PVP-NPC 失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// 查詢某玩家的 NPC 列表（供 NPC 決鬥選擇用）
+router.get("/players/:userId/npcs", ensureAuth, async (req, res) => {
+  try {
+    const targetUserId = req.params.userId;
+    const user = await db.findOne("user", { userId: targetUserId });
+    if (!user) {
+      return res.status(404).json({ error: "找不到該玩家" });
+    }
+    const npcs = (user.hiredNpcs || []).map((npc, idx) => {
+      const weapon = npc.equippedWeaponIndex != null
+        ? user.weaponStock?.[npc.equippedWeaponIndex]
+        : null;
+      return {
+        npcId: npc.npcId,
+        name: npc.name,
+        quality: npc.quality,
+        level: npc.level || 1,
+        condition: npc.condition ?? 100,
+        hasWeapon: !!weapon,
+        weaponName: weapon?.weaponName || null,
+        weaponAtk: weapon?.atk || 0,
+      };
+    });
+    res.json({ npcs, ownerName: user.name });
+  } catch (err) {
+    console.error("查詢玩家 NPC 失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
 // PVP: 設定防禦武器
 router.post("/pvp/set-defense-weapon", ensureAuth, async (req, res) => {
   try {

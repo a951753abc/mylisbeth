@@ -64,12 +64,14 @@ module.exports = async function (cmd, rawAttacker) {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  const todayDuels = await db.count("duel_log", {
-    attackerId: attacker.userId,
-    timestamp: { $gte: todayStart.getTime() },
-  });
-  if (todayDuels >= PVP.DAILY_DUEL_LIMIT) {
-    return { error: `今日決鬥次數已達上限（${PVP.DAILY_DUEL_LIMIT} 次）。` };
+  if (PVP.DAILY_DUEL_LIMIT > 0) {
+    const todayDuels = await db.count("duel_log", {
+      attackerId: attacker.userId,
+      timestamp: { $gte: todayStart.getTime() },
+    });
+    if (todayDuels >= PVP.DAILY_DUEL_LIMIT) {
+      return { error: `今日決鬥次數已達上限（${PVP.DAILY_DUEL_LIMIT} 次）。` };
+    }
   }
 
   const lastDuel = await db.findOne("duel_log", {

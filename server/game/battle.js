@@ -384,6 +384,94 @@ battleModule.pvpBattle = async function (
 };
 
 /**
+ * 通用 PVP 戰鬥（接受預計算的雙方數據，適用於玩家 vs NPC 等場景）
+ * @param {object} atkFighter - { name, hp, atk, def, agi, cri }
+ * @param {object} defFighter - { name, hp, atk, def, agi, cri }
+ * @param {string} duelMode - "first_strike" | "half_loss" | "total_loss"
+ * @returns {{ log, winnerSide, attackerHp, defenderHp, attackerMaxHp, defenderMaxHp }}
+ */
+battleModule.pvpRawBattle = function (atkFighter, defFighter, duelMode = "half_loss") {
+  const roundLimit = 5;
+  let round = 1;
+  const battleLog = [];
+
+  const attacker = {
+    name: atkFighter.name,
+    hp: atkFighter.hp,
+    maxHp: atkFighter.hp,
+    stats: {
+      atk: Math.max(1, atkFighter.atk),
+      def: Math.max(0, atkFighter.def),
+      agi: Math.max(1, atkFighter.agi),
+      cri: atkFighter.cri || 10,
+    },
+  };
+
+  const defender = {
+    name: defFighter.name,
+    hp: defFighter.hp,
+    maxHp: defFighter.hp,
+    stats: {
+      atk: Math.max(1, defFighter.atk),
+      def: Math.max(0, defFighter.def),
+      agi: Math.max(1, defFighter.agi),
+      cri: defFighter.cri || 10,
+    },
+  };
+
+  let winnerSide = null;
+
+  while (attacker.hp > 0 && defender.hp > 0 && round <= roundLimit) {
+    battleLog.push(`\n**第 ${round} 回合**`);
+    const atkAct = roll.d66() + attacker.stats.agi;
+    const defAct = roll.d66() + defender.stats.agi;
+
+    const firstSide = atkAct >= defAct ? "attacker" : "defender";
+    const order = firstSide === "attacker"
+      ? [{ src: attacker, dst: defender, srcKey: "attacker", dstKey: "defender" },
+         { src: defender, dst: attacker, srcKey: "defender", dstKey: "attacker" }]
+      : [{ src: defender, dst: attacker, srcKey: "defender", dstKey: "attacker" },
+         { src: attacker, dst: defender, srcKey: "attacker", dstKey: "defender" }];
+
+    for (const { src, dst, srcKey } of order) {
+      if (dst.hp <= 0) break;
+      const dmgResult = damCheck(src.stats.atk, src.stats.cri, dst.stats.def);
+      dst.hp -= dmgResult.damage;
+      battleLog.push(`${src.name} 對 ${dst.name} 造成了 ${dmgResult.damage} 點傷害。`);
+
+      if (duelMode === "first_strike" && dmgResult.damage >= dst.maxHp * 0.10) {
+        winnerSide = srcKey;
+        break;
+      }
+      if (duelMode === "half_loss" && dst.hp <= dst.maxHp * 0.50) {
+        winnerSide = srcKey;
+        break;
+      }
+      if (dst.hp <= 0) {
+        winnerSide = srcKey;
+        break;
+      }
+    }
+
+    if (winnerSide) break;
+    round++;
+  }
+
+  if (!winnerSide) {
+    winnerSide = attacker.hp >= defender.hp ? "attacker" : "defender";
+  }
+
+  return {
+    log: battleLog,
+    winnerSide,
+    attackerHp: attacker.hp,
+    defenderHp: defender.hp,
+    attackerMaxHp: attacker.maxHp,
+    defenderMaxHp: defender.maxHp,
+  };
+};
+
+/**
  * 直接傳入敵人數據的 PvE 戰鬥（不走 getEneFromFloor 隨機選擇）
  * @param {object} weapon - 玩家武器
  * @param {object} npc - 玩家/NPC 資料（同 pveBattle 格式）

@@ -10,12 +10,13 @@ const forge = require("./move/forge.js");
 const up = require("./move/up.js");
 const adv = require("./move/adv.js");
 const pvp = require("./move/pvp.js");
+const pvpNpc = require("./move/pvpNpc.js");
 const repair = require("./move/repair.js");
 const soloAdv = require("./move/soloAdv.js");
 const bossAttack = require("./floor/bossAttack.js");
 
 const coolTime = config.MOVE_COOLDOWN;
-const cmdList = { mine, forge, up, adv, pvp, repair, soloAdv, boss: bossAttack };
+const cmdList = { mine, forge, up, adv, pvp, pvpNpc, repair, soloAdv, boss: bossAttack };
 
 module.exports = async function (cmd, userOrId) {
   if (!(cmd[1] in cmdList)) {

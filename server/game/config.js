@@ -220,8 +220,8 @@ module.exports = {
     TOTAL_LOSS_COL_LOOT_RATE: 0.50,      // 搶走 50% Col
     TOTAL_LOSS_STEAL_ITEM: true,          // 隨機偷 1 素材
     // 冷卻與限制
-    DAILY_DUEL_LIMIT: 10,                // 每日決鬥上限
-    SAME_TARGET_COOLDOWN_MS: 10 * 60 * 1000,  // 同一對手冷卻 10 分鐘
+    DAILY_DUEL_LIMIT: 0,                 // 0 = 無限制
+    SAME_TARGET_COOLDOWN_MS: 1 * 60 * 1000,   // 同一對手冷卻 1 分鐘
     STAMINA_COST: { min: 5, max: 10 },   // 體力消耗
   },
 

@@ -12,6 +12,13 @@ const MODE_DESCS = {
   total_loss: 'HP 歸零即勝。掠奪制，敗者可能死亡！',
 };
 
+const QUALITY_COLORS = {
+  S: '#f59e0b',
+  A: '#a855f7',
+  B: '#3b82f6',
+  C: '#6b7280',
+};
+
 export default function PlayerList({ user, onAction }) {
   const [view, setView] = useState('alive'); // 'alive' | 'graveyard'
   const [players, setPlayers] = useState([]);
@@ -22,7 +29,7 @@ export default function PlayerList({ user, onAction }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Duel UI state
+  // Player Duel UI state
   const [duelTarget, setDuelTarget] = useState(null); // { userId, name }
   const [duelMode, setDuelMode] = useState('half_loss');
   const [duelWeapon, setDuelWeapon] = useState('');
@@ -30,6 +37,21 @@ export default function PlayerList({ user, onAction }) {
   const [duelBusy, setDuelBusy] = useState(false);
   const [duelResult, setDuelResult] = useState(null);
   const [duelError, setDuelError] = useState('');
+
+  // NPC view state
+  const [npcViewUserId, setNpcViewUserId] = useState(null);
+  const [npcList, setNpcList] = useState([]);
+  const [npcOwnerName, setNpcOwnerName] = useState('');
+  const [npcLoading, setNpcLoading] = useState(false);
+
+  // NPC Duel UI state
+  const [npcDuelTarget, setNpcDuelTarget] = useState(null); // { npcId, name }
+  const [npcDuelMode, setNpcDuelMode] = useState('half_loss');
+  const [npcDuelWeapon, setNpcDuelWeapon] = useState('');
+  const [npcDuelWager, setNpcDuelWager] = useState(0);
+  const [npcDuelBusy, setNpcDuelBusy] = useState(false);
+  const [npcDuelResult, setNpcDuelResult] = useState(null);
+  const [npcDuelError, setNpcDuelError] = useState('');
 
   useEffect(() => {
     fetchPlayers(page);
@@ -83,6 +105,24 @@ export default function PlayerList({ user, onAction }) {
     }
   };
 
+  const fetchNpcs = async (userId) => {
+    setNpcLoading(true);
+    try {
+      const res = await fetch(`/api/game/players/${userId}/npcs`, { credentials: 'include' });
+      const data = await res.json();
+      if (data.error) {
+        setNpcList([]);
+      } else {
+        setNpcList(data.npcs || []);
+        setNpcOwnerName(data.ownerName || '');
+      }
+    } catch {
+      setNpcList([]);
+    } finally {
+      setNpcLoading(false);
+    }
+  };
+
   const formatDate = (ts) => {
     if (!ts) return '不明';
     const d = new Date(ts);
@@ -113,7 +153,138 @@ export default function PlayerList({ user, onAction }) {
     }
   };
 
+  const handleNpcDuel = async () => {
+    if (!npcDuelTarget) return;
+    setNpcDuelBusy(true);
+    setNpcDuelError('');
+    setNpcDuelResult(null);
+    try {
+      const data = await onAction('pvp-npc', {
+        targetNpcId: npcDuelTarget.npcId,
+        weaponId: npcDuelWeapon || '0',
+        mode: npcDuelMode,
+        wagerCol: npcDuelMode === 'total_loss' ? 0 : parseInt(npcDuelWager, 10) || 0,
+      });
+      if (data.error) {
+        setNpcDuelError(data.error);
+      } else {
+        setNpcDuelResult(data);
+      }
+    } catch {
+      setNpcDuelError('NPC 決鬥請求失敗');
+    } finally {
+      setNpcDuelBusy(false);
+    }
+  };
+
+  const toggleNpcView = (userId) => {
+    if (npcViewUserId === userId) {
+      setNpcViewUserId(null);
+      setNpcList([]);
+      setNpcDuelTarget(null);
+      setNpcDuelResult(null);
+      setNpcDuelError('');
+    } else {
+      setNpcViewUserId(userId);
+      setNpcDuelTarget(null);
+      setNpcDuelResult(null);
+      setNpcDuelError('');
+      fetchNpcs(userId);
+    }
+  };
+
   const weapons = user?.weapons || [];
+
+  // Shared duel config UI renderer
+  const renderDuelConfig = (opts) => {
+    const { mode, setMode, weapon, setWeapon, wager, setWager, busy, onSubmit, targetLabel, result, error: duelErr, isNpc } = opts;
+    return (
+      <div style={{
+        background: isNpc ? 'rgba(59,130,246,0.05)' : 'rgba(239,68,68,0.05)',
+        border: `1px solid ${isNpc ? 'rgba(59,130,246,0.2)' : 'rgba(239,68,68,0.2)'}`,
+        borderRadius: '6px',
+        padding: '0.6rem 0.8rem',
+        marginTop: '0.3rem',
+      }}>
+        <div style={{ fontSize: '0.82rem', marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
+          挑戰 <strong>{targetLabel}</strong>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
+          {Object.entries(MODE_LABELS).map(([key, label]) => (
+            <button
+              key={key}
+              className={mode === key ? 'btn-primary' : 'btn-secondary'}
+              style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+              onClick={() => setMode(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
+          {MODE_DESCS[mode]}
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.4rem' }}>
+          <select
+            value={weapon}
+            onChange={(e) => setWeapon(e.target.value)}
+            style={{ fontSize: '0.8rem' }}
+          >
+            <option value="">— 武器（預設#0）—</option>
+            {weapons.map((w) => (
+              <option key={w.index} value={String(w.index)}>
+                #{w.index} {w.rarityLabel ? `【${w.rarityLabel}】` : ''}{w.weaponName} ATK:{w.atk}
+              </option>
+            ))}
+          </select>
+          {mode !== 'total_loss' && (
+            <input
+              type="number"
+              min="0"
+              max="5000"
+              placeholder="賭注 Col"
+              value={wager}
+              onChange={(e) => setWager(e.target.value)}
+              style={{ width: '80px', fontSize: '0.8rem' }}
+            />
+          )}
+          <button
+            className="btn-danger"
+            disabled={busy}
+            onClick={onSubmit}
+            style={{ padding: '0.25rem 0.6rem', fontSize: '0.8rem' }}
+          >
+            {busy ? '決鬥中...' : '確認決鬥'}
+          </button>
+        </div>
+
+        {mode === 'total_loss' && (
+          <div style={{ fontSize: '0.72rem', color: '#f87171', marginBottom: '0.3rem' }}>
+            {isNpc
+              ? '⚠️ 全損決着：敗者可能死亡（你或 NPC），勝方搶走 50% Col。'
+              : '⚠️ 全損決着：敗者 20~80% 機率死亡，勝者搶走 50% Col + 1 素材。殺死非紅名玩家自己會變紅名！'
+            }
+          </div>
+        )}
+
+        {duelErr && <div className="error-msg" style={{ fontSize: '0.8rem' }}>{duelErr}</div>}
+        {result && (
+          <div style={{
+            background: 'rgba(0,0,0,0.2)',
+            borderRadius: '4px',
+            padding: '0.5rem',
+            marginTop: '0.3rem',
+            fontSize: '0.8rem',
+            whiteSpace: 'pre-wrap',
+          }}>
+            {result.battleLog}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="card">
@@ -167,116 +338,124 @@ export default function PlayerList({ user, onAction }) {
                   )}
                   {player.name}
                 </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                   <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                     {player.battleLevel > 1 ? `BLv.${player.battleLevel} ` : ''}
                     {player.currentFloor > 1 ? `${player.currentFloor}F ` : ''}
                     鍛造 Lv.{player.forgeLevel} | 挖礦 Lv.{player.mineLevel}
                   </span>
                   {player.userId !== user?.userId && (
-                    <button
-                      className="btn-danger"
-                      style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
-                      onClick={() => {
-                        setDuelTarget(duelTarget?.userId === player.userId ? null : { userId: player.userId, name: player.name });
-                        setDuelResult(null);
-                        setDuelError('');
-                      }}
-                    >
-                      {duelTarget?.userId === player.userId ? '取消' : '決鬥'}
-                    </button>
+                    <>
+                      <button
+                        className="btn-danger"
+                        style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+                        onClick={() => {
+                          setDuelTarget(duelTarget?.userId === player.userId ? null : { userId: player.userId, name: player.name });
+                          setDuelResult(null);
+                          setDuelError('');
+                        }}
+                      >
+                        {duelTarget?.userId === player.userId ? '取消' : '決鬥'}
+                      </button>
+                      <button
+                        className="btn-secondary"
+                        style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+                        onClick={() => toggleNpcView(player.userId)}
+                      >
+                        {npcViewUserId === player.userId ? '收起' : 'NPC'}
+                      </button>
+                    </>
                   )}
                 </span>
               </div>
 
-              {/* Duel panel */}
-              {duelTarget?.userId === player.userId && (
+              {/* Player Duel panel */}
+              {duelTarget?.userId === player.userId && renderDuelConfig({
+                mode: duelMode,
+                setMode: setDuelMode,
+                weapon: duelWeapon,
+                setWeapon: setDuelWeapon,
+                wager: duelWager,
+                setWager: setDuelWager,
+                busy: duelBusy,
+                onSubmit: handleDuel,
+                targetLabel: player.name,
+                result: duelResult,
+                error: duelError,
+                isNpc: false,
+              })}
+
+              {/* NPC List panel */}
+              {npcViewUserId === player.userId && (
                 <div style={{
-                  background: 'rgba(239,68,68,0.05)',
-                  border: '1px solid rgba(239,68,68,0.2)',
+                  background: 'rgba(59,130,246,0.03)',
+                  border: '1px solid rgba(59,130,246,0.15)',
                   borderRadius: '6px',
-                  padding: '0.6rem 0.8rem',
+                  padding: '0.5rem 0.8rem',
                   marginTop: '0.3rem',
                 }}>
-                  <div style={{ fontSize: '0.82rem', marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-                    挑戰 <strong>{player.name}</strong>
+                  <div style={{ fontSize: '0.82rem', marginBottom: '0.3rem', color: 'var(--text-primary)' }}>
+                    {npcOwnerName || player.name} 的 NPC
                   </div>
-
-                  {/* Mode selection */}
-                  <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
-                    {Object.entries(MODE_LABELS).map(([key, label]) => (
-                      <button
-                        key={key}
-                        className={duelMode === key ? 'btn-primary' : 'btn-secondary'}
-                        style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
-                        onClick={() => setDuelMode(key)}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                    {MODE_DESCS[duelMode]}
-                  </div>
-
-                  {/* Weapon + Wager */}
-                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.4rem' }}>
-                    <select
-                      value={duelWeapon}
-                      onChange={(e) => setDuelWeapon(e.target.value)}
-                      style={{ fontSize: '0.8rem' }}
-                    >
-                      <option value="">— 武器（預設#0）—</option>
-                      {weapons.map((w) => (
-                        <option key={w.index} value={String(w.index)}>
-                          #{w.index} {w.rarityLabel ? `【${w.rarityLabel}】` : ''}{w.weaponName} ATK:{w.atk}
-                        </option>
-                      ))}
-                    </select>
-                    {duelMode !== 'total_loss' && (
-                      <input
-                        type="number"
-                        min="0"
-                        max="5000"
-                        placeholder="賭注 Col"
-                        value={duelWager}
-                        onChange={(e) => setDuelWager(e.target.value)}
-                        style={{ width: '80px', fontSize: '0.8rem' }}
-                      />
-                    )}
-                    <button
-                      className="btn-danger"
-                      disabled={duelBusy}
-                      onClick={handleDuel}
-                      style={{ padding: '0.25rem 0.6rem', fontSize: '0.8rem' }}
-                    >
-                      {duelBusy ? '決鬥中...' : '確認決鬥'}
-                    </button>
-                  </div>
-
-                  {duelMode === 'total_loss' && (
-                    <div style={{
-                      fontSize: '0.72rem',
-                      color: '#f87171',
-                      marginBottom: '0.3rem',
-                    }}>
-                      ⚠️ 全損決着：敗者 20~80% 機率死亡，勝者搶走 50% Col + 1 素材。殺死非紅名玩家自己會變紅名！
-                    </div>
+                  {npcLoading && <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>載入中...</div>}
+                  {!npcLoading && npcList.length === 0 && (
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>沒有已雇用的 NPC。</div>
                   )}
+                  {!npcLoading && npcList.map((npc) => (
+                    <div key={npc.npcId} style={{ marginBottom: '0.3rem' }}>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '0.3rem 0',
+                        borderBottom: '1px solid rgba(255,255,255,0.05)',
+                      }}>
+                        <span style={{ fontSize: '0.82rem' }}>
+                          <span style={{ color: QUALITY_COLORS[npc.quality] || '#6b7280', fontWeight: 'bold', marginRight: '0.3rem' }}>
+                            [{npc.quality}]
+                          </span>
+                          {npc.name}
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginLeft: '0.4rem' }}>
+                            Lv.{npc.level} | 體力 {npc.condition}%
+                            {npc.hasWeapon ? ` | ${npc.weaponName} ATK:${npc.weaponAtk}` : ' | 無武器'}
+                          </span>
+                        </span>
+                        {npc.hasWeapon && npc.condition >= 10 && (
+                          <button
+                            className="btn-danger"
+                            style={{ padding: '0.15rem 0.4rem', fontSize: '0.72rem' }}
+                            onClick={() => {
+                              setNpcDuelTarget(
+                                npcDuelTarget?.npcId === npc.npcId
+                                  ? null
+                                  : { npcId: npc.npcId, name: npc.name }
+                              );
+                              setNpcDuelResult(null);
+                              setNpcDuelError('');
+                            }}
+                          >
+                            {npcDuelTarget?.npcId === npc.npcId ? '取消' : '挑戰'}
+                          </button>
+                        )}
+                      </div>
 
-                  {duelError && <div className="error-msg" style={{ fontSize: '0.8rem' }}>{duelError}</div>}
-                  {duelResult && (
-                    <div style={{
-                      background: 'rgba(0,0,0,0.2)',
-                      borderRadius: '4px',
-                      padding: '0.5rem',
-                      marginTop: '0.3rem',
-                      fontSize: '0.8rem',
-                      whiteSpace: 'pre-wrap',
-                    }}>
-                      {duelResult.battleLog}
+                      {/* NPC Duel config */}
+                      {npcDuelTarget?.npcId === npc.npcId && renderDuelConfig({
+                        mode: npcDuelMode,
+                        setMode: setNpcDuelMode,
+                        weapon: npcDuelWeapon,
+                        setWeapon: setNpcDuelWeapon,
+                        wager: npcDuelWager,
+                        setWager: setNpcDuelWager,
+                        busy: npcDuelBusy,
+                        onSubmit: handleNpcDuel,
+                        targetLabel: `${npc.name}（${npcOwnerName || player.name} 的 NPC）`,
+                        result: npcDuelResult,
+                        error: npcDuelError,
+                        isNpc: true,
+                      })}
                     </div>
-                  )}
+                  ))}
                 </div>
               )}
             </div>
