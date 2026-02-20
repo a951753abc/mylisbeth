@@ -54,7 +54,7 @@ async function getTavernNpcs(gameDay) {
         condition: existing.condition ?? 100,
         level: existing.level ?? 1,
         hireCost: existing.hireCost || config.NPC.HIRE_COST[existing.quality],
-        weeklyCost: existing.weeklyCost || config.NPC.WEEKLY_WAGE[existing.quality],
+        monthlyCost: existing.monthlyCost || existing.weeklyCost || config.NPC.MONTHLY_WAGE[existing.quality],
       });
     } else {
       // 即時生成（尚未寫入 DB）
@@ -67,7 +67,7 @@ async function getTavernNpcs(gameDay) {
         condition: 100,
         level: 1,
         hireCost: generated.hireCost,
-        weeklyCost: generated.weeklyCost,
+        monthlyCost: generated.monthlyCost,
       });
     }
   }

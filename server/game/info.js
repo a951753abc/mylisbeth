@@ -87,7 +87,7 @@ module.exports = function (user) {
     level: npc.level ?? 1,
     exp: npc.exp ?? 0,
     equippedWeaponIndex: npc.equippedWeaponIndex ?? null,
-    weeklyCost: npc.weeklyCost,
+    monthlyCost: npc.monthlyCost || npc.weeklyCost,
   }));
 
   return {
