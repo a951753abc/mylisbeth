@@ -296,6 +296,7 @@ export default function Game({ user, onLogout }) {
             user={gameUser}
             onAction={handleAction}
             setCooldown={setCooldown}
+            onUserUpdate={fetchUser}
           />
         )}
         {tab === "floor" && (
@@ -317,7 +318,7 @@ export default function Game({ user, onLogout }) {
             onTitleChange={handleTitleChange}
           />
         )}
-        {tab === "inventory" && <InventoryPanel user={gameUser} />}
+        {tab === "inventory" && <InventoryPanel user={gameUser} onUserUpdate={fetchUser} />}
         {tab === "log" && <BattleLog logs={battleLogs} />}
         {tab === "players" && <LeaderboardPanel user={gameUser} onAction={handleAction} />}
         {tab === "tavern" && (

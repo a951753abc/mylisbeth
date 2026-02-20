@@ -59,11 +59,16 @@ router.post("/mine", ensureAuth, async (req, res) => {
 router.post("/forge", ensureAuth, async (req, res) => {
   try {
     const { material1, material2 } = req.body;
-    const nameCheck = validateName(req.body.weaponName, "武器名稱");
-    if (!nameCheck.valid) {
-      return res.status(400).json({ error: nameCheck.error });
+    // 武器名稱為選填，鍛造後可改名一次
+    let weaponName = null;
+    if (req.body.weaponName && String(req.body.weaponName).trim().length > 0) {
+      const nameCheck = validateName(req.body.weaponName, "武器名稱");
+      if (!nameCheck.valid) {
+        return res.status(400).json({ error: nameCheck.error });
+      }
+      weaponName = nameCheck.value;
     }
-    const cmd = [null, "forge", material1, material2, nameCheck.value];
+    const cmd = [null, "forge", material1, material2, weaponName];
     const result = await move(cmd, req.user.discordId);
     if (result.error) {
       return res.status(400).json(result);
@@ -71,6 +76,40 @@ router.post("/forge", ensureAuth, async (req, res) => {
     res.json(result);
   } catch (err) {
     console.error("鍛造失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// Rename weapon (once per weapon)
+router.post("/rename-weapon", ensureAuth, async (req, res) => {
+  try {
+    const { weaponIndex, newName } = req.body;
+    const nameCheck = validateName(newName, "武器名稱");
+    if (!nameCheck.valid) {
+      return res.status(400).json({ error: nameCheck.error });
+    }
+    const userId = req.user.discordId;
+    const idx = parseInt(weaponIndex, 10);
+    if (isNaN(idx) || idx < 0) {
+      return res.status(400).json({ error: "找不到該武器" });
+    }
+    // 原子操作：確保 renameCount < 1 才允許改名，防止並發競態
+    const filter = {
+      userId,
+      [`weaponStock.${idx}`]: { $exists: true },
+      [`weaponStock.${idx}.renameCount`]: { $not: { $gte: 1 } },
+    };
+    const update = {
+      $set: { [`weaponStock.${idx}.weaponName`]: nameCheck.value },
+      $inc: { [`weaponStock.${idx}.renameCount`]: 1 },
+    };
+    const result = await db.findOneAndUpdate("user", filter, update);
+    if (!result) {
+      return res.status(400).json({ error: "這把武器已經改過名了，或武器不存在。" });
+    }
+    res.json({ success: true, weaponName: nameCheck.value });
+  } catch (err) {
+    console.error("武器改名失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
   }
 });

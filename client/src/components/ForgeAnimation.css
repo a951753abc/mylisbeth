@@ -292,6 +292,91 @@
   margin-top: 0.25rem;
 }
 
+/* ── Rename UI ── */
+.fa-rename-section {
+  margin-top: 0.6rem;
+  margin-bottom: 0.2rem;
+}
+
+.fa-rename-btn {
+  background: transparent;
+  border: 1px solid #4b5563;
+  color: #94a3b8;
+  border-radius: 6px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.fa-rename-btn:hover {
+  border-color: var(--rarity-color, #94a3b8);
+  color: #e2e8f0;
+}
+
+.fa-rename-form {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.fa-rename-input {
+  background: #111827;
+  border: 1px solid #4b5563;
+  color: #e2e8f0;
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
+  width: 130px;
+  outline: none;
+}
+.fa-rename-input:focus {
+  border-color: var(--rarity-color, #60a5fa);
+}
+
+.fa-rename-confirm {
+  background: #2563eb;
+  border: none;
+  color: #fff;
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.fa-rename-confirm:hover {
+  background: #1d4ed8;
+}
+.fa-rename-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fa-rename-cancel {
+  background: transparent;
+  border: 1px solid #4b5563;
+  color: #94a3b8;
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.fa-rename-cancel:hover {
+  color: #e2e8f0;
+}
+
+.fa-rename-msg {
+  font-size: 0.72rem;
+  color: #f87171;
+  margin-top: 0.2rem;
+}
+
+.fa-rename-done {
+  font-size: 0.8rem;
+  color: #4ade80;
+  margin-top: 0.4rem;
+}
+
 /* ── Responsive ── */
 @media (max-width: 375px) {
   .fa-weapon-card {

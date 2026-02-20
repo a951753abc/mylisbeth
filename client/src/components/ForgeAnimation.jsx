@@ -39,7 +39,7 @@ function generateSparks(count) {
   });
 }
 
-export default function ForgeAnimation({ weapon, forgeText, onComplete }) {
+export default function ForgeAnimation({ weapon, forgeText, onComplete, onRenamed }) {
   const isBroken = weapon?.durability <= 0;
   const config   = getRarityConfig(weapon?.rarity);
 
@@ -50,6 +50,15 @@ export default function ForgeAnimation({ weapon, forgeText, onComplete }) {
   const [phase, setPhase]       = useState("hammer");
   const [particles, setParticles] = useState([]);
   const timerRef = useRef(null);
+
+  // Rename state
+  const [displayName, setDisplayName] = useState(weapon?.weaponName || "");
+  const [renaming, setRenaming] = useState(false);
+  const [renameName, setRenameName] = useState("");
+  const [renameMsg, setRenameMsg] = useState("");
+  const [renameBusy, setRenameBusy] = useState(false);
+  const [renamed, setRenamed] = useState(false);
+  const renameInputRef = useRef(null);
 
   const sparks = useMemo(
     () => generateSparks(config.hammerHits + 4),
@@ -79,7 +88,39 @@ export default function ForgeAnimation({ weapon, forgeText, onComplete }) {
     return () => clearTimeout(timerRef.current);
   }, [phase, config, goToReveal]);
 
-  const handleClick = () => {
+  const handleRename = async () => {
+    if (!renameName.trim() || renameBusy) return;
+    setRenameBusy(true);
+    setRenameMsg("");
+    try {
+      const res = await fetch("/api/game/rename-weapon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          weaponIndex: weapon.weaponIndex,
+          newName: renameName.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setRenameMsg(data.error);
+      } else {
+        setDisplayName(data.weaponName);
+        setRenamed(true);
+        setRenaming(false);
+        setRenameMsg("");
+        if (onRenamed) onRenamed();
+      }
+    } catch {
+      setRenameMsg("改名失敗");
+    }
+    setRenameBusy(false);
+  };
+
+  const handleClick = (e) => {
+    // Don't close if interacting with rename UI
+    if (renaming) return;
     if (phase === "reveal") {
       onComplete();
     } else {
@@ -169,8 +210,60 @@ export default function ForgeAnimation({ weapon, forgeText, onComplete }) {
               >
                 {rarityLabel}
               </div>
-              <div className="fa-weapon-name">{weapon.weaponName}</div>
+              <div className="fa-weapon-name">{displayName}</div>
               <div className="fa-weapon-type">[{weapon.name}]</div>
+
+              {/* Rename UI */}
+              {!isBroken && weapon.weaponIndex >= 0 && (weapon.renameCount || 0) < 1 && !renamed && (
+                <div className="fa-rename-section" onClick={(e) => e.stopPropagation()}>
+                  {!renaming ? (
+                    <button
+                      className="fa-rename-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRenaming(true);
+                        setRenameName(weapon.weaponName);
+                        setTimeout(() => renameInputRef.current?.focus(), 50);
+                      }}
+                    >
+                      ✏️ 命名
+                    </button>
+                  ) : (
+                    <div className="fa-rename-form">
+                      <input
+                        ref={renameInputRef}
+                        type="text"
+                        className="fa-rename-input"
+                        value={renameName}
+                        onChange={(e) => setRenameName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleRename();
+                          if (e.key === "Escape") setRenaming(false);
+                        }}
+                        maxLength={20}
+                        placeholder="輸入武器名稱"
+                      />
+                      <button
+                        className="fa-rename-confirm"
+                        disabled={renameBusy || !renameName.trim()}
+                        onClick={handleRename}
+                      >
+                        {renameBusy ? "..." : "確定"}
+                      </button>
+                      <button
+                        className="fa-rename-cancel"
+                        onClick={() => setRenaming(false)}
+                      >
+                        取消
+                      </button>
+                    </div>
+                  )}
+                  {renameMsg && <div className="fa-rename-msg">{renameMsg}</div>}
+                </div>
+              )}
+              {renamed && (
+                <div className="fa-rename-done">✅ 已命名</div>
+              )}
               <div className="fa-stat-grid">
                 <div className="fa-stat">
                   <span className="fa-stat-label">ATK</span>
@@ -205,7 +298,7 @@ export default function ForgeAnimation({ weapon, forgeText, onComplete }) {
               {forgeText && (
                 <div className="fa-forge-text">{forgeText}</div>
               )}
-              <div className="fa-hint">點擊關閉</div>
+              <div className="fa-hint">{renaming ? "Enter 確認 / Esc 取消" : "點擊關閉"}</div>
             </div>
           </div>
         )}

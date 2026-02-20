@@ -124,7 +124,8 @@ module.exports.createWeapon = async function (cmd, user) {
   if (!weapon) {
     weapon = _.clone(randWeapon[Math.floor(Math.random() * randWeapon.length)]);
   }
-  weapon.weaponName = cmd[4];
+  weapon.weaponName = cmd[4] || weapon.name;
+  weapon.renameCount = 0;
   weapon.hp = 0;
   const baseDurability = roll.d66();
   const durMod = getModifier(title, "forgeDurability");

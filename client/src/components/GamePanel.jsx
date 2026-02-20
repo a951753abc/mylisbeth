@@ -15,7 +15,6 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
   // Forge state
   const [forgeMat1, setForgeMat1] = useState("");
   const [forgeMat2, setForgeMat2] = useState("");
-  const [forgeWeaponName, setForgeWeaponName] = useState("");
 
   // Upgrade state
   const [upWeapon, setUpWeapon] = useState("");
@@ -127,6 +126,9 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
           onComplete={() => {
             setResult(forgeResult);
             setForgeResult(null);
+          }}
+          onRenamed={() => {
+            if (onUserUpdate) onUserUpdate();
           }}
         />
       )}
@@ -263,21 +265,13 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
               );
             })}
           </select>
-          <input
-            type="text"
-            placeholder="武器名稱"
-            value={forgeWeaponName}
-            onChange={(e) => setForgeWeaponName(e.target.value)}
-            style={{ width: "120px" }}
-          />
           <button
             className="btn-warning"
-            disabled={busy || !forgeMat1 || !forgeMat2 || !forgeWeaponName || displayStamina < 3}
+            disabled={busy || !forgeMat1 || !forgeMat2 || displayStamina < 3}
             onClick={() =>
               doAction("forge", {
                 material1: forgeMat1,
                 material2: forgeMat2,
-                weaponName: forgeWeaponName,
               })
             }
           >

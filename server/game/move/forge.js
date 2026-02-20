@@ -53,11 +53,11 @@ module.exports = async function (cmd, rawUser) {
   if (user.itemStock[cmd[3]].itemNum < 1) {
     return { error: "錯誤！素材" + cmd[3] + " 數量不足" };
   }
-  if (cmd[4] === undefined || cmd[4] === null || String(cmd[4]).trim().length === 0) {
-    return { error: "必須輸入武器名稱" };
-  }
-  if (String(cmd[4]).length > 20) {
-    return { error: "武器名稱不得超過 20 個字" };
+  // 武器名稱為選填，鍛造後可改名一次
+  if (cmd[4] !== undefined && cmd[4] !== null && String(cmd[4]).trim().length > 0) {
+    if (String(cmd[4]).length > 20) {
+      return { error: "武器名稱不得超過 20 個字" };
+    }
   }
 
   const thisWeapon = await weapon.createWeapon(cmd, user);
@@ -109,6 +109,7 @@ module.exports = async function (cmd, rawUser) {
   thisWeapon.rarityLabel = rarity.label;
   thisWeapon.rarityColor = rarity.color;
 
+  let weaponIndex = -1;
   if (thisWeapon.durability <= 0) {
     thisWeapon.text += thisWeapon.weaponName + " 爆發四散了。";
     await increment(user.userId, "weaponsBroken");
@@ -118,6 +119,11 @@ module.exports = async function (cmd, rawUser) {
       { userId: user.userId },
       { $push: { weaponStock: thisWeapon } },
     );
+    // 取得新武器在 weaponStock 中的 index
+    const updated = await db.findOne("user", { userId: user.userId });
+    if (updated && updated.weaponStock) {
+      weaponIndex = updated.weaponStock.length - 1;
+    }
   }
 
   thisWeapon.text += await level(cmd[1], user);
@@ -139,6 +145,8 @@ module.exports = async function (cmd, rawUser) {
       rarityLabel: rarity.label,
       rarityColor: rarity.color,
       totalScore: rarity.totalScore,
+      renameCount: thisWeapon.renameCount || 0,
+      weaponIndex,
     },
     text: thisWeapon.text,
   };

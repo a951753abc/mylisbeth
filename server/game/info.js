@@ -58,6 +58,7 @@ module.exports = function (user) {
             Math.max(0, 14 - (value.cri || 10)) +
             (value.hp || 0) +
             (value.maxDurability || value.durability || 0),
+        renameCount: value.renameCount || 0,
       });
     });
   }

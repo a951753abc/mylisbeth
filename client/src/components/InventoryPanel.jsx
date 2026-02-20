@@ -1,6 +1,36 @@
-import React from "react";
+import React, { useState } from "react";
 
-export default function InventoryPanel({ user }) {
+export default function InventoryPanel({ user, onUserUpdate }) {
+  const [renamingIdx, setRenamingIdx] = useState(null);
+  const [renameName, setRenameName] = useState("");
+  const [renameMsg, setRenameMsg] = useState("");
+  const [renameBusy, setRenameBusy] = useState(false);
+
+  const handleRename = async (weaponIndex) => {
+    if (!renameName.trim() || renameBusy) return;
+    setRenameBusy(true);
+    setRenameMsg("");
+    try {
+      const res = await fetch("/api/game/rename-weapon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ weaponIndex, newName: renameName.trim() }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setRenameMsg(data.error);
+      } else {
+        setRenamingIdx(null);
+        setRenameMsg("");
+        if (onUserUpdate) onUserUpdate();
+      }
+    } catch {
+      setRenameMsg("改名失敗");
+    }
+    setRenameBusy(false);
+  };
+
   return (
     <div>
       {/* Items */}
@@ -80,6 +110,27 @@ export default function InventoryPanel({ user }) {
                   >
                     [{weapon.name}]
                   </span>
+                  {(weapon.renameCount || 0) < 1 && renamingIdx !== weapon.index && (
+                    <button
+                      onClick={() => {
+                        setRenamingIdx(weapon.index);
+                        setRenameName(weapon.weaponName.replace(/\+\d+$/, ""));
+                        setRenameMsg("");
+                      }}
+                      style={{
+                        background: "transparent",
+                        border: "1px solid #4b5563",
+                        color: "#94a3b8",
+                        borderRadius: "4px",
+                        padding: "0.1rem 0.4rem",
+                        fontSize: "0.7rem",
+                        cursor: "pointer",
+                        marginLeft: "0.4rem",
+                      }}
+                    >
+                      ✏️ 改名
+                    </button>
+                  )}
                 </span>
                 {weapon.rarityLabel && (
                   <span
@@ -96,6 +147,65 @@ export default function InventoryPanel({ user }) {
                   </span>
                 )}
               </div>
+              {/* Inline rename form */}
+              {renamingIdx === weapon.index && (
+                <div style={{ display: "flex", gap: "0.3rem", alignItems: "center", marginBottom: "0.5rem", flexWrap: "wrap" }}>
+                  <input
+                    type="text"
+                    value={renameName}
+                    onChange={(e) => setRenameName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleRename(weapon.index);
+                      if (e.key === "Escape") setRenamingIdx(null);
+                    }}
+                    maxLength={20}
+                    placeholder="輸入新名稱"
+                    autoFocus
+                    style={{
+                      background: "#111827",
+                      border: "1px solid #4b5563",
+                      color: "#e2e8f0",
+                      borderRadius: "4px",
+                      padding: "0.25rem 0.4rem",
+                      fontSize: "0.8rem",
+                      width: "120px",
+                    }}
+                  />
+                  <button
+                    disabled={renameBusy || !renameName.trim()}
+                    onClick={() => handleRename(weapon.index)}
+                    style={{
+                      background: "#2563eb",
+                      border: "none",
+                      color: "#fff",
+                      borderRadius: "4px",
+                      padding: "0.25rem 0.5rem",
+                      fontSize: "0.75rem",
+                      cursor: "pointer",
+                      opacity: renameBusy || !renameName.trim() ? 0.5 : 1,
+                    }}
+                  >
+                    {renameBusy ? "..." : "確定"}
+                  </button>
+                  <button
+                    onClick={() => setRenamingIdx(null)}
+                    style={{
+                      background: "transparent",
+                      border: "1px solid #4b5563",
+                      color: "#94a3b8",
+                      borderRadius: "4px",
+                      padding: "0.25rem 0.5rem",
+                      fontSize: "0.75rem",
+                      cursor: "pointer",
+                    }}
+                  >
+                    取消
+                  </button>
+                  {renameMsg && (
+                    <span style={{ fontSize: "0.72rem", color: "#f87171" }}>{renameMsg}</span>
+                  )}
+                </div>
+              )}
               <div className="stat-grid">
                 <div className="stat-item">
                   <div className="label">ATK</div>
