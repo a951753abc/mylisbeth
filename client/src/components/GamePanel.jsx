@@ -127,11 +127,11 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
         <div className="stat-grid">
           <div className="stat-item">
             <div className="label">挖礦等級</div>
-            <div className="value">Lv.{user.mineLevel}{user.mineLevel < 3 ? ` (${user.mineExp || 0}/${user.mineLevel === 1 ? 150 : 200})` : " MAX"}</div>
+            <div className="value">Lv.{user.mineLevel}{user.mineExpNext ? ` (${user.mineExp || 0}/${user.mineExpNext})` : " MAX"}</div>
           </div>
           <div className="stat-item">
             <div className="label">鍛造等級</div>
-            <div className="value">Lv.{user.forgeLevel}{user.forgeLevel < 3 ? ` (${user.forgeExp || 0}/500)` : " MAX"}</div>
+            <div className="value">Lv.{user.forgeLevel}{user.forgeExpNext ? ` (${user.forgeExp || 0}/${user.forgeExpNext})` : " MAX"}</div>
           </div>
           <div className="stat-item">
             <div className="label">死亡次數</div>

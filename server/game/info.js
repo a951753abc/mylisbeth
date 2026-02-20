@@ -2,6 +2,7 @@ const _ = require("lodash");
 const type = require("./type.js");
 const { calculateRarity } = require("./weapon/rarity.js");
 const config = require("./config.js");
+const { getExpForNextLevel } = require("./level.js");
 
 module.exports = function (user) {
   const lose = _.get(user, "lost", 0);
@@ -96,7 +97,9 @@ module.exports = function (user) {
     mineLevel: _.get(user, "mineLevel", 1),
     forgeLevel: _.get(user, "forgeLevel", 1),
     mineExp: _.get(user, "mine", 0),
+    mineExpNext: getExpForNextLevel("mine", _.get(user, "mineLevel", 1)),
     forgeExp: _.get(user, "forge", 0),
+    forgeExpNext: getExpForNextLevel("forge", _.get(user, "forgeLevel", 1)),
     items,
     weapons,
     wins,

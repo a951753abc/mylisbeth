@@ -10,19 +10,64 @@ const { getModifier } = require("../title/titleModifier.js");
 const itemCache = require("../cache/itemCache.js");
 
 const drawLevelList = [
+  // Lv1: 4% ★★★, 20% ★★
   [
     { itemLevel: 3, less: 4, text: "★★★" },
     { itemLevel: 2, less: 20, text: "★★" },
     { itemLevel: 1, less: 100, text: "★" },
   ],
+  // Lv2: 6% ★★★, 24% ★★
   [
     { itemLevel: 3, less: 6, text: "★★★" },
     { itemLevel: 2, less: 24, text: "★★" },
     { itemLevel: 1, less: 100, text: "★" },
   ],
+  // Lv3: 8% ★★★, 24% ★★
   [
     { itemLevel: 3, less: 8, text: "★★★" },
     { itemLevel: 2, less: 24, text: "★★" },
+    { itemLevel: 1, less: 100, text: "★" },
+  ],
+  // Lv4: 10% ★★★, 28% ★★
+  [
+    { itemLevel: 3, less: 10, text: "★★★" },
+    { itemLevel: 2, less: 28, text: "★★" },
+    { itemLevel: 1, less: 100, text: "★" },
+  ],
+  // Lv5: 13% ★★★, 30% ★★
+  [
+    { itemLevel: 3, less: 13, text: "★★★" },
+    { itemLevel: 2, less: 30, text: "★★" },
+    { itemLevel: 1, less: 100, text: "★" },
+  ],
+  // Lv6: 16% ★★★, 32% ★★
+  [
+    { itemLevel: 3, less: 16, text: "★★★" },
+    { itemLevel: 2, less: 32, text: "★★" },
+    { itemLevel: 1, less: 100, text: "★" },
+  ],
+  // Lv7: 19% ★★★, 34% ★★
+  [
+    { itemLevel: 3, less: 19, text: "★★★" },
+    { itemLevel: 2, less: 34, text: "★★" },
+    { itemLevel: 1, less: 100, text: "★" },
+  ],
+  // Lv8: 22% ★★★, 36% ★★
+  [
+    { itemLevel: 3, less: 22, text: "★★★" },
+    { itemLevel: 2, less: 36, text: "★★" },
+    { itemLevel: 1, less: 100, text: "★" },
+  ],
+  // Lv9: 25% ★★★, 38% ★★
+  [
+    { itemLevel: 3, less: 25, text: "★★★" },
+    { itemLevel: 2, less: 38, text: "★★" },
+    { itemLevel: 1, less: 100, text: "★" },
+  ],
+  // Lv10: 30% ★★★, 40% ★★
+  [
+    { itemLevel: 3, less: 30, text: "★★★" },
+    { itemLevel: 2, less: 40, text: "★★" },
     { itemLevel: 1, less: 100, text: "★" },
   ],
 ];

@@ -13,8 +13,8 @@ export default function ShopPanel({ user, onRefresh }) {
     setQuantities((prev) => ({ ...prev, [index]: val }));
   };
 
-  const handleSellItem = async (itemIndex) => {
-    const qty = parseInt(quantities[itemIndex], 10) || 1;
+  const handleSellItem = async (itemIndex, overrideQty) => {
+    const qty = overrideQty ?? (parseInt(quantities[itemIndex], 10) || 1);
     setBusy(true);
     setMessage("");
     setError("");
@@ -134,7 +134,7 @@ export default function ShopPanel({ user, onRefresh }) {
                     <td style={{ padding: "0.4rem 0.5rem", color: "var(--gold)", fontSize: "0.75rem" }}>
                       {minPrice}~{maxPrice} Col
                     </td>
-                    <td style={{ padding: "0.4rem 0.5rem" }}>
+                    <td style={{ padding: "0.4rem 0.5rem", whiteSpace: "nowrap" }}>
                       <button
                         className="btn-warning"
                         disabled={busy || item.num < 1 || isPK}
@@ -143,6 +143,16 @@ export default function ShopPanel({ user, onRefresh }) {
                       >
                         回收
                       </button>
+                      {item.num > 1 && (
+                        <button
+                          className="btn-warning"
+                          disabled={busy || isPK}
+                          onClick={() => handleSellItem(item.index, item.num)}
+                          style={{ padding: "0.2rem 0.6rem", fontSize: "0.78rem", marginLeft: "0.3rem", opacity: 0.85 }}
+                        >
+                          全部
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );

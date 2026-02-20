@@ -4,8 +4,8 @@ const db = require("../db.js");
 
 const expList = { mine: 10, forge: 10, adv: 10 };
 const levelList = {
-  mine: { level: [150, 200] },
-  forge: { level: [500, 500] },
+  mine: { level: [150, 200, 300, 450, 650, 900, 1200, 1600, 2100] },
+  forge: { level: [500, 500, 700, 1000, 1400, 1900, 2500, 3200, 4000] },
   adv: { level: [500] },
 };
 
@@ -46,4 +46,14 @@ module.exports = async function (type, user) {
   }
 
   return text;
+};
+
+module.exports.getExpForNextLevel = function (type, level) {
+  const thresholds = levelList[type]?.level || [];
+  if (level - 1 >= thresholds.length) return null;
+  return thresholds[level - 1];
+};
+
+module.exports.getMaxLevel = function (type) {
+  return (levelList[type]?.level.length || 0) + 1;
 };

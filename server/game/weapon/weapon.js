@@ -5,7 +5,7 @@ const roll = require("../roll.js");
 const { getModifier, getRawModifier } = require("../title/titleModifier.js");
 
 const weaponPer = ["hp", "atk", "def", "agi", "durability"];
-const hpUp = [1, 5, 10, 15, 20, 25, 30, 35, 40];
+const hpUp = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75];
 
 // Season 2 floor items use string itemIds with mainStat from seed-season2.js
 const FLOOR_ITEM_STATS = {
@@ -44,7 +44,8 @@ module.exports.buffWeapon = function (cmd, user) {
     let perName = getStatName(user.itemStock[cmd[3]].itemId);
     let statBoost = forgeLevel;
     if (perName === "hp") {
-      statBoost = hpUp[roll.d6() - 1 + forgeLevel];
+      const hpIndex = Math.min(roll.d6() - 1 + forgeLevel, hpUp.length - 1);
+      statBoost = hpUp[hpIndex];
     }
     thisWeapon.text += "強化成功！\n";
     thisWeapon.text += perName;
@@ -74,7 +75,7 @@ module.exports.buffWeapon = function (cmd, user) {
 };
 
 module.exports.createWeapon = async function (cmd, user) {
-  const forceLevel = _.get(user, "mineLevel", 1);
+  const forgeLevel = _.get(user, "forgeLevel", 1);
   const title = user.title || null;
   const critFailExtra = getRawModifier(title, "forgeCritFailExtra") * 100; // 0.05 → 5
   const critSuccessAdj = getRawModifier(title, "forgeCritSuccessAdj"); // integer
@@ -108,8 +109,8 @@ module.exports.createWeapon = async function (cmd, user) {
       const perName = getStatName(user.itemStock[cmd[2]].itemId);
       weapon.text += "強化成功！\n";
       weapon.text += perName;
-      weapon.text += " 提升" + forceLevel + "點。 \n";
-      weapon[perName] += forceLevel;
+      weapon.text += " 提升" + forgeLevel + "點。 \n";
+      weapon[perName] += forgeLevel;
     }
   } else {
     let per = 20 + user.itemStock[cmd[2]].itemLevel * 5;
@@ -117,16 +118,16 @@ module.exports.createWeapon = async function (cmd, user) {
       const perName = getStatName(user.itemStock[cmd[2]].itemId);
       weapon.text += "強化成功！\n";
       weapon.text += perName;
-      weapon.text += " 提升" + forceLevel + "點。 \n";
-      weapon[perName] += forceLevel;
+      weapon.text += " 提升" + forgeLevel + "點。 \n";
+      weapon[perName] += forgeLevel;
     }
     per = 20 + user.itemStock[cmd[3]].itemLevel * 5;
     if (roll.d100Check(per)) {
       const perName = getStatName(user.itemStock[cmd[3]].itemId);
       weapon.text += "強化成功！\n";
       weapon.text += perName;
-      weapon.text += " 提升" + forceLevel + "點。 \n";
-      weapon[perName] += forceLevel;
+      weapon.text += " 提升" + forgeLevel + "點。 \n";
+      weapon[perName] += forgeLevel;
     }
   }
 
