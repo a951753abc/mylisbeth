@@ -46,15 +46,20 @@ export default function FloorPanel({ user, onAction, bossUpdate }) {
       if (data.error) {
         setError(data.error);
       } else if (data.bossDefeated) {
-        let msg = `⚔️ ${data.npcName || '冒險者'} 對 ${data.bossName} 造成了 ${data.damage} 點傷害！\n💥 Boss 被擊敗了！ 第 ${data.floorNumber} 層攻略完成！MVP: ${data.mvp?.name || '—'}`;
-        if (data.lastAttackDrop) {
-          msg += `\n🗡️ Last Attack! 獲得聖遺物「${data.lastAttackDrop.nameCn}（${data.lastAttackDrop.name}）」！`;
-          if (data.laColBonus > 0) msg += ` +${data.laColBonus} Col`;
-        }
-        if (data.drops && data.drops.length > 0) {
-          msg += '\n🎁 掉落物：';
-          for (const d of data.drops) {
-            msg += `\n  ${d.playerName}: ${'★'.repeat(d.itemLevel)}${d.itemName}${d.isMvp ? ' (MVP保證掉落)' : ''}`;
+        let msg;
+        if (data.bossAlreadyProcessed) {
+          msg = `⚔️ ${data.npcName || '冒險者'} 對 ${data.bossName} 造成了 ${data.damage} 點傷害！\n💥 Boss 被其他玩家同時擊敗了！獎勵已由最後一擊的玩家獲得。`;
+        } else {
+          msg = `⚔️ ${data.npcName || '冒險者'} 對 ${data.bossName} 造成了 ${data.damage} 點傷害！\n💥 Boss 被擊敗了！ 第 ${data.floorNumber} 層攻略完成！MVP: ${data.mvp?.name || '—'}`;
+          if (data.lastAttackDrop) {
+            msg += `\n🗡️ Last Attack! 獲得聖遺物「${data.lastAttackDrop.nameCn}（${data.lastAttackDrop.name}）」！`;
+            if (data.laColBonus > 0) msg += ` +${data.laColBonus} Col`;
+          }
+          if (data.drops && data.drops.length > 0) {
+            msg += '\n🎁 掉落物：';
+            for (const d of data.drops) {
+              msg += `\n  ${d.playerName}: ${'★'.repeat(d.itemLevel)}${d.itemName}${d.isMvp ? ' (MVP保證掉落)' : ''}`;
+            }
           }
         }
         if (data.npcEventText) msg += `\n${data.npcEventText}`;

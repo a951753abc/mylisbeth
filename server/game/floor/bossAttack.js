@@ -517,7 +517,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
             nameCn: lastAttackDrop.nameCn,
             effects: lastAttackDrop.effects,
           } : null,
-          laColBonus: bossData.lastAttackDrop ? config.COL_BOSS_LA_BONUS : 0,
+          laColBonus: lastAttackDrop ? config.COL_BOSS_LA_BONUS : 0,
           npcName: hiredNpc.name,
           npcEventText,
           npcResult: {
@@ -529,6 +529,26 @@ module.exports = async function bossAttack(cmd, rawUser) {
           socketEvents,
         };
       }
+
+      // Race condition: Boss 已被另一個請求處理完畢
+      return {
+        success: true,
+        damage,
+        bossDefeated: true,
+        bossAlreadyProcessed: true,
+        floorNumber: currentFloor,
+        bossName: bossData.name,
+        npcName: hiredNpc.name,
+        npcEventText,
+        npcResult: {
+          survived: npcResult.survived !== false,
+          died: !!npcResult.died,
+          levelUp: !!npcResult.levelUp,
+          newCondition: npcResult.newCondition,
+          newLevel: npcResult.newLevel,
+        },
+        socketEvents,
+      };
     }
 
     return {

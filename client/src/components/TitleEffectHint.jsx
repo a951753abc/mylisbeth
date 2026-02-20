@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 // 效果鍵對應顯示名稱
 const EFFECT_LABELS = {
@@ -47,8 +47,25 @@ const POSITIVE_IS_GOOD = {
 };
 
 /**
- * 半隱藏稱號效果提示
- * 顯示效果類別與方向（有利/不利），隱藏具體數值
+ * 根據效果數值的絕對值判斷強度等級
+ * forgeCritSuccessAdj 為整數加法，其餘為比例型
+ */
+function getStrengthLevel(key, value) {
+  const abs = Math.abs(value);
+  if (key === 'forgeCritSuccessAdj') {
+    // 整數型：1 = 小, 2+ = 大
+    if (abs <= 1) return 1;
+    return abs <= 2 ? 2 : 3;
+  }
+  // 比例型：<= 0.10 小, <= 0.20 中, > 0.20 大
+  if (abs <= 0.10) return 1;
+  return abs <= 0.20 ? 2 : 3;
+}
+
+const STRENGTH_LABELS = { 1: '微', 2: '中', 3: '強' };
+
+/**
+ * 稱號效果提示 — 顯示效果方向與強度等級
  */
 export default function TitleEffectHint({ title, allEffects }) {
   if (!title || !allEffects || !allEffects[title]) return null;
@@ -65,8 +82,14 @@ export default function TitleEffectHint({ title, allEffects }) {
           const label = EFFECT_LABELS[key] || key;
           const isGoodWhenPositive = POSITIVE_IS_GOOD[key] !== false;
           const isAdvantageous = (value > 0 && isGoodWhenPositive) || (value < 0 && !isGoodWhenPositive);
-          const arrow = isAdvantageous ? '↑' : '↓';
+          const level = getStrengthLevel(key, value);
+          const arrows = isAdvantageous
+            ? '↑'.repeat(level)
+            : '↓'.repeat(level);
+          const strengthTag = STRENGTH_LABELS[level];
           const color = isAdvantageous ? 'var(--success, #4caf50)' : 'var(--danger, #f44336)';
+          // 高強度效果更明顯
+          const opacity = level === 1 ? 0.7 : level === 2 ? 0.85 : 1.0;
 
           return (
             <span
@@ -76,11 +99,12 @@ export default function TitleEffectHint({ title, allEffects }) {
                 border: `1px solid ${color}`,
                 borderRadius: '3px',
                 padding: '0.05rem 0.25rem',
-                opacity: 0.85,
+                opacity,
                 whiteSpace: 'nowrap',
+                fontWeight: level >= 3 ? 'bold' : 'normal',
               }}
             >
-              {label} {arrow}
+              {label} {arrows}{level >= 2 ? ` ${strengthTag}` : ''}
             </span>
           );
         })}
