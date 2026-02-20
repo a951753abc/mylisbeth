@@ -84,6 +84,10 @@ module.exports = {
   },
 
   BUFF_BASE_CHANCE: 20,
+  BUFF_MAX: 10,                    // 武器強化上限
+  BUFF_FORGE_LEVEL_MULT: 3,       // 成功率公式：forgeLevel * 3（原本 * 10）
+  BUFF_COUNT_PENALTY: 5,          // 每次已強化 -5% 成功率
+  BUFF_HP_MULTIPLIER: 5,          // HP 屬性倍率（相對其他屬性）
 
   WEAPON_DAMAGE_CHANCE: {
     WIN: 50,

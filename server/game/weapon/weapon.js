@@ -3,9 +3,9 @@ const db = require("../../db.js");
 const randWeapon = require("./category.json");
 const roll = require("../roll.js");
 const { getModifier, getRawModifier } = require("../title/titleModifier.js");
+const config = require("../config.js");
 
 const weaponPer = ["hp", "atk", "def", "agi", "durability"];
-const hpUp = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75];
 
 // Season 2 floor items use string itemIds with mainStat from seed-season2.js
 const FLOOR_ITEM_STATS = {
@@ -61,21 +61,34 @@ module.exports.buffWeapon = function (cmd, user) {
   const thisWeapon = user.weaponStock[cmd[2]];
   const forgeLevel = _.get(user, "forgeLevel", 1);
   const title = user.title || null;
+  const buffCount = _.get(thisWeapon, "buff", 0);
   thisWeapon.text = "";
-  const basePer = 20 + user.itemStock[cmd[3]].itemLevel * 5 + forgeLevel * 10;
+
+  // 強化上限檢查
+  if (buffCount >= config.BUFF_MAX) {
+    thisWeapon.text += "這把武器已達強化上限（+" + config.BUFF_MAX + "），無法繼續強化。\n";
+    return thisWeapon;
+  }
+
+  // 新成功率公式：20 + itemLevel*5 + forgeLevel*3 - buffCount*5
+  const basePer = config.BUFF_BASE_CHANCE
+    + user.itemStock[cmd[3]].itemLevel * 5
+    + forgeLevel * config.BUFF_FORGE_LEVEL_MULT
+    - buffCount * config.BUFF_COUNT_PENALTY;
   const per = Math.min(99, Math.max(1, Math.round(basePer * getModifier(title, "forgeBuffChance"))));
   let isBuff = false;
   if (roll.d100Check(per)) {
     let perName = getStatName(user.itemStock[cmd[3]].itemId);
-    let statBoost = forgeLevel;
+    // 新屬性增益公式：max(1, round(forgeLevel * d66() / 7))，7 = 2d6 中位數
+    let statBoost = Math.max(1, Math.round(forgeLevel * roll.d66() / 7));
     if (perName === "hp") {
-      const hpIndex = Math.min(roll.d6() - 1 + forgeLevel, hpUp.length - 1);
-      statBoost = hpUp[hpIndex];
+      // HP 特殊處理：statBoost * 5
+      statBoost = statBoost * config.BUFF_HP_MULTIPLIER;
     }
     thisWeapon.text += "強化成功！\n";
     thisWeapon.text += getStatBoostText(perName, statBoost);
     applyStatBoost(thisWeapon, perName, statBoost);
-    thisWeapon.buff = _.get(thisWeapon, "buff", 0) + 1;
+    thisWeapon.buff = buffCount + 1;
     isBuff = true;
   } else {
     thisWeapon.text += "武器強化失敗！\n";

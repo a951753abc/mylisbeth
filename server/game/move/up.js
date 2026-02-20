@@ -6,6 +6,7 @@ const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { calculateRarity } = require("../weapon/rarity.js");
+const config = require("../config.js");
 
 module.exports = async function (cmd, rawUser) {
   const user = await ensureUserFields(rawUser);
@@ -18,6 +19,12 @@ module.exports = async function (cmd, rawUser) {
   }
   if (user.itemStock[cmd[3]].itemNum < 1) {
     return { error: "錯誤！素材" + cmd[3] + " 數量不足" };
+  }
+
+  // 強化上限前置檢查（避免消耗素材後才發現已達上限）
+  const currentBuff = _.get(user.weaponStock[cmd[2]], "buff", 0);
+  if (currentBuff >= config.BUFF_MAX) {
+    return { error: "這把武器已達強化上限（+" + config.BUFF_MAX + "），無法繼續強化。" };
   }
 
   const thisWeapon = weapon.buffWeapon(cmd, user);
