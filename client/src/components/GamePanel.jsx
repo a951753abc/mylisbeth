@@ -405,21 +405,15 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
             ⚠️ 負債中：冒險獎勵減半
           </div>
         )}
-        {(() => {
-          const floor = user.currentFloor || 1;
-          const advFee = 30 + floor * 10;
-          return (
-            <div
-              style={{
-                fontSize: "0.75rem",
-                color: "var(--text-secondary)",
-                marginBottom: "0.4rem",
-              }}
-            >
-              委託費：{advFee} Col（第 {floor} 層）
-            </div>
-          );
-        })()}
+        <div
+          style={{
+            fontSize: "0.75rem",
+            color: "var(--text-secondary)",
+            marginBottom: "0.4rem",
+          }}
+        >
+          委託費：勝利時從獎勵扣除 10%（敗北不收費）
+        </div>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
           <select
             value={advNpc}
@@ -428,11 +422,12 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
             <option value="">— 選擇冒險者（必填）—</option>
             {(user.hiredNpcs || []).map((npc) => {
               const cond = npc.condition ?? 100;
-              const disabled = cond < 10;
+              const onMission = !!npc.mission;
+              const disabled = cond < 10 || onMission;
               return (
                 <option key={npc.npcId} value={npc.npcId} disabled={disabled}>
                   {npc.name}【{npc.quality}】{npc.class} LV.{npc.level} 體力:{cond}%
-                  {disabled ? " (無法出戰)" : ""}
+                  {onMission ? " (任務中)" : disabled ? " (無法出戰)" : ""}
                 </option>
               );
             })}

@@ -73,9 +73,9 @@ export default function MarketPanel({ user, onRefresh }) {
       if (data.error) {
         setError(data.error);
       } else {
-        setMessage("購買成功！");
-        fetchListings();
-        if (onRefresh) onRefresh();
+        setMessage(`購買成功！花費 ${data.listing?.totalPrice?.toLocaleString() || ""} Col`);
+        await fetchListings();
+        if (onRefresh) await onRefresh();
       }
     } catch {
       setError("購買失敗");
@@ -98,8 +98,8 @@ export default function MarketPanel({ user, onRefresh }) {
         setError(data.error);
       } else {
         setMessage("已下架，物品已歸還（手續費不退）");
-        fetchMyListings();
-        if (onRefresh) onRefresh();
+        await fetchMyListings();
+        if (onRefresh) await onRefresh();
       }
     } catch {
       setError("下架失敗");
@@ -132,7 +132,7 @@ export default function MarketPanel({ user, onRefresh }) {
         setSelectedItem("");
         setSellQty(1);
         setSellPrice("");
-        if (onRefresh) onRefresh();
+        if (onRefresh) await onRefresh();
       }
     } catch {
       setError("上架失敗");
@@ -163,7 +163,7 @@ export default function MarketPanel({ user, onRefresh }) {
         setMessage(`上架成功！手續費 ${data.fee} Col`);
         setSelectedWeapon("");
         setWeaponPrice("");
-        if (onRefresh) onRefresh();
+        if (onRefresh) await onRefresh();
       }
     } catch {
       setError("上架失敗");

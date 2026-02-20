@@ -165,11 +165,12 @@ export default function FloorPanel({ user, onAction, bossUpdate }) {
                 <option value="">— 選擇冒險者（必填）—</option>
                 {(user.hiredNpcs || []).map((npc) => {
                   const cond = npc.condition ?? 100;
-                  const disabled = cond < 10;
+                  const onMission = !!npc.mission;
+                  const disabled = cond < 10 || onMission;
                   return (
                     <option key={npc.npcId} value={npc.npcId} disabled={disabled}>
                       {npc.name}【{npc.quality}】{npc.class} LV.{npc.level} 體力:{cond}%
-                      {disabled ? ' (無法出戰)' : ''}
+                      {onMission ? ' (任務中)' : disabled ? ' (無法出戰)' : ''}
                     </option>
                   );
                 })}

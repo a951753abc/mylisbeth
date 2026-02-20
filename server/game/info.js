@@ -81,6 +81,7 @@ module.exports = function (user) {
   const hiredNpcs = (_.get(user, "hiredNpcs", [])).map((npc) => ({
     npcId: npc.npcId,
     name: npc.name,
+    class: npc.class,
     quality: npc.quality,
     baseStats: npc.baseStats,
     condition: npc.condition ?? 100,
@@ -88,6 +89,11 @@ module.exports = function (user) {
     exp: npc.exp ?? 0,
     equippedWeaponIndex: npc.equippedWeaponIndex ?? null,
     monthlyCost: npc.monthlyCost || npc.weeklyCost,
+    mission: npc.mission ? {
+      type: npc.mission.type,
+      name: npc.mission.name,
+      endsAt: npc.mission.endsAt,
+    } : null,
   }));
 
   return {
