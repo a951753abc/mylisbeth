@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { ensureAuth } = require("../middleware/auth.js");
+const { ensureAuth, ensureNotPaused } = require("../middleware/auth.js");
 const {
   listMaterial,
   listWeapon,
@@ -11,7 +11,7 @@ const {
 } = require("../game/economy/market.js");
 
 // POST /api/market/list-item — 掛賣素材
-router.post("/list-item", ensureAuth, async (req, res) => {
+router.post("/list-item", ensureAuth, ensureNotPaused, async (req, res) => {
   try {
     const { itemIndex, quantity, pricePerUnit } = req.body;
     const result = await listMaterial(
@@ -29,7 +29,7 @@ router.post("/list-item", ensureAuth, async (req, res) => {
 });
 
 // POST /api/market/list-weapon — 掛賣武器
-router.post("/list-weapon", ensureAuth, async (req, res) => {
+router.post("/list-weapon", ensureAuth, ensureNotPaused, async (req, res) => {
   try {
     const { weaponIndex, totalPrice } = req.body;
     const result = await listWeapon(
@@ -70,7 +70,7 @@ router.get("/my-listings", ensureAuth, async (req, res) => {
 });
 
 // POST /api/market/buy — 購買
-router.post("/buy", ensureAuth, async (req, res) => {
+router.post("/buy", ensureAuth, ensureNotPaused, async (req, res) => {
   try {
     const { listingId } = req.body;
     if (!listingId) return res.status(400).json({ error: "請提供 listingId" });

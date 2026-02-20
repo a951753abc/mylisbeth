@@ -56,6 +56,8 @@ export default function TavernPanel({ user, onRefresh }) {
     }
   };
 
+  const isPaused = user.businessPaused;
+
   if (loading) return <div className="card">載入酒館中...</div>;
 
   return (
@@ -73,6 +75,12 @@ export default function TavernPanel({ user, onRefresh }) {
       <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
         每 5 分鐘（1 遊戲日）刷新一次陣容
       </div>
+
+      {isPaused && (
+        <div className="error-msg" style={{ marginBottom: "0.5rem" }}>
+          店鋪暫停營業中，無法雇用冒險者。請先恢復營業。
+        </div>
+      )}
 
       {message && (
         <div className={`${message.startsWith("✅") ? "" : "error-msg"}`} style={{ marginBottom: "0.5rem" }}>
@@ -116,7 +124,7 @@ export default function TavernPanel({ user, onRefresh }) {
                 </div>
                 <button
                   className="btn-success"
-                  disabled={alreadyHired || busy === npc.npcId}
+                  disabled={alreadyHired || busy === npc.npcId || isPaused}
                   onClick={() => handleHire(npc.npcId)}
                   style={{ fontSize: "0.8rem", padding: "0.3rem 0.7rem" }}
                 >

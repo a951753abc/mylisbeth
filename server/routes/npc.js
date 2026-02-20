@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { ensureAuth } = require("../middleware/auth.js");
+const { ensureAuth, ensureNotPaused } = require("../middleware/auth.js");
 const { getTavernNpcs } = require("../game/npc/tavern.js");
 const {
   hireNpc,
@@ -27,7 +27,7 @@ router.get("/tavern", ensureAuth, async (req, res) => {
 });
 
 // POST /api/npc/hire — 雇用 NPC
-router.post("/hire", ensureAuth, async (req, res) => {
+router.post("/hire", ensureAuth, ensureNotPaused, async (req, res) => {
   try {
     const { npcId } = req.body;
     if (!npcId) return res.status(400).json({ error: "請提供 npcId" });
@@ -41,7 +41,7 @@ router.post("/hire", ensureAuth, async (req, res) => {
 });
 
 // POST /api/npc/fire — 解雇 NPC
-router.post("/fire", ensureAuth, async (req, res) => {
+router.post("/fire", ensureAuth, ensureNotPaused, async (req, res) => {
   try {
     const { npcId } = req.body;
     if (!npcId) return res.status(400).json({ error: "請提供 npcId" });
@@ -55,7 +55,7 @@ router.post("/fire", ensureAuth, async (req, res) => {
 });
 
 // POST /api/npc/heal — 治療 NPC
-router.post("/heal", ensureAuth, async (req, res) => {
+router.post("/heal", ensureAuth, ensureNotPaused, async (req, res) => {
   try {
     const { npcId, healType } = req.body;
     if (!npcId) return res.status(400).json({ error: "請提供 npcId" });
@@ -72,7 +72,7 @@ router.post("/heal", ensureAuth, async (req, res) => {
 });
 
 // POST /api/npc/equip — 裝備武器
-router.post("/equip", ensureAuth, async (req, res) => {
+router.post("/equip", ensureAuth, ensureNotPaused, async (req, res) => {
   try {
     const { npcId, weaponIndex } = req.body;
     if (!npcId) return res.status(400).json({ error: "請提供 npcId" });
@@ -87,7 +87,7 @@ router.post("/equip", ensureAuth, async (req, res) => {
 });
 
 // POST /api/npc/mission/start — 派遣 NPC 執行任務
-router.post("/mission/start", ensureAuth, async (req, res) => {
+router.post("/mission/start", ensureAuth, ensureNotPaused, async (req, res) => {
   try {
     const { npcId, missionType } = req.body;
     if (!npcId) return res.status(400).json({ error: "請提供 npcId" });
@@ -102,7 +102,7 @@ router.post("/mission/start", ensureAuth, async (req, res) => {
 });
 
 // POST /api/npc/mission/check — 結算完成的任務
-router.post("/mission/check", ensureAuth, async (req, res) => {
+router.post("/mission/check", ensureAuth, ensureNotPaused, async (req, res) => {
   try {
     const results = await checkMissions(req.user.discordId);
     res.json({ results });

@@ -33,6 +33,7 @@ export default function NpcPanel({ user, onRefresh }) {
 
   const npcs = user.hiredNpcs || [];
   const weapons = user.weapons || [];
+  const isPaused = user.businessPaused;
 
   // 倒計時更新
   useEffect(() => {
@@ -157,13 +158,19 @@ export default function NpcPanel({ user, onRefresh }) {
           <button
             className="btn-success"
             style={{ fontSize: "0.8rem", padding: "0.3rem 0.7rem" }}
-            disabled={busy === "check_missions"}
+            disabled={busy === "check_missions" || isPaused}
             onClick={handleCheckMissions}
           >
             {busy === "check_missions" ? "結算中..." : "結算任務"}
           </button>
         )}
       </div>
+
+      {isPaused && (
+        <div className="error-msg" style={{ marginBottom: "0.5rem" }}>
+          店鋪暫停營業中，無法進行 NPC 相關操作。請先恢復營業。
+        </div>
+      )}
 
       {message && (
         <div className={message.startsWith("❌") ? "error-msg" : ""} style={{ marginBottom: "0.5rem" }}>
@@ -241,7 +248,7 @@ export default function NpcPanel({ user, onRefresh }) {
                   <button
                     className="btn-primary"
                     style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem" }}
-                    disabled={busy === `heal_${npc.npcId}_quick` || cond >= 100 || onMission}
+                    disabled={busy === `heal_${npc.npcId}_quick` || cond >= 100 || onMission || isPaused}
                     onClick={() => handleHeal(npc.npcId, "quick")}
                   >
                     快速治療 (50 Col)
@@ -249,7 +256,7 @@ export default function NpcPanel({ user, onRefresh }) {
                   <button
                     className="btn-success"
                     style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem" }}
-                    disabled={busy === `heal_${npc.npcId}_full` || cond >= 100 || onMission}
+                    disabled={busy === `heal_${npc.npcId}_full` || cond >= 100 || onMission || isPaused}
                     onClick={() => handleHeal(npc.npcId, "full")}
                   >
                     完全治療 (200 Col)
@@ -257,7 +264,7 @@ export default function NpcPanel({ user, onRefresh }) {
                   <button
                     className="btn-danger"
                     style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem" }}
-                    disabled={busy === `fire_${npc.npcId}` || onMission}
+                    disabled={busy === `fire_${npc.npcId}` || onMission || isPaused}
                     onClick={() => handleFire(npc.npcId, npc.name)}
                   >
                     解雇
@@ -322,7 +329,7 @@ export default function NpcPanel({ user, onRefresh }) {
                   style={{ fontSize: "0.75rem" }}
                   value={npc.equippedWeaponIndex != null ? String(npc.equippedWeaponIndex) : ""}
                   onChange={(e) => handleEquip(npc.npcId, e.target.value)}
-                  disabled={busy === `equip_${npc.npcId}` || onMission}
+                  disabled={busy === `equip_${npc.npcId}` || onMission || isPaused}
                 >
                   <option value="">— 無裝備 —</option>
                   {weapons.map((w) => (
@@ -384,7 +391,7 @@ export default function NpcPanel({ user, onRefresh }) {
                               <button
                                 className="btn-primary"
                                 style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem", whiteSpace: "nowrap" }}
-                                disabled={busy === `mission_${npc.npcId}` || cond < 10}
+                                disabled={busy === `mission_${npc.npcId}` || cond < 10 || isPaused}
                                 onClick={() => handleStartMission(npc.npcId, m.id)}
                               >
                                 派遣
@@ -404,7 +411,7 @@ export default function NpcPanel({ user, onRefresh }) {
                     <button
                       className="btn-primary"
                       style={{ fontSize: "0.75rem", padding: "0.2rem 0.6rem" }}
-                      disabled={cond < 10}
+                      disabled={cond < 10 || isPaused}
                       onClick={() => openMissionPicker(npc.npcId)}
                     >
                       派遣任務

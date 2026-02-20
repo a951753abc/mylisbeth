@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { ensureAuth } = require("../middleware/auth.js");
+const { ensureAuth, ensureNotPaused } = require("../middleware/auth.js");
 const create = require("../game/create.js");
 const move = require("../game/move.js");
 const help = require("../game/help.js");
@@ -317,7 +317,7 @@ router.get("/floor/history", ensureAuth, async (req, res) => {
 });
 
 // Daily reward
-router.post("/daily", ensureAuth, async (req, res) => {
+router.post("/daily", ensureAuth, ensureNotPaused, async (req, res) => {
   try {
     const result = await claimDaily(req.user.discordId);
     if (result.error) {
@@ -419,7 +419,7 @@ router.post("/pay-debt", ensureAuth, async (req, res) => {
 });
 
 // Loan (擴大負債)
-router.post("/loan", ensureAuth, async (req, res) => {
+router.post("/loan", ensureAuth, ensureNotPaused, async (req, res) => {
   try {
     const { amount } = req.body;
     if (!amount || amount <= 0) return res.status(400).json({ error: "借款金額無效" });
@@ -436,7 +436,7 @@ router.post("/loan", ensureAuth, async (req, res) => {
 });
 
 // Sell item (回收素材，不走 move 冷卻)
-router.post("/sell-item", ensureAuth, async (req, res) => {
+router.post("/sell-item", ensureAuth, ensureNotPaused, async (req, res) => {
   try {
     const { itemIndex, quantity } = req.body;
     if (itemIndex === undefined || itemIndex === null) {
@@ -456,7 +456,7 @@ router.post("/sell-item", ensureAuth, async (req, res) => {
 });
 
 // Sell weapon (回收武器，不走 move 冷卻)
-router.post("/sell-weapon", ensureAuth, async (req, res) => {
+router.post("/sell-weapon", ensureAuth, ensureNotPaused, async (req, res) => {
   try {
     const { weaponIndex } = req.body;
     if (weaponIndex === undefined || weaponIndex === null) {
