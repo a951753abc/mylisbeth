@@ -30,6 +30,7 @@
  *   missionSuccessRate  乘法 → mission 任務成功率
  *   missionReward       乘法 → mission 任務獎勵
  *   marketListingFee    乘法 → market 掛賣手續費率
+ *   lcDeathChance       乘法 → laughingCoffin 事件死亡率（負值=↓）
  */
 const TITLE_EFFECTS = {
   // 1. 見習い鍛冶師 — 鍛造類
@@ -329,9 +330,16 @@ const TITLE_EFFECTS = {
     battleDef: -0.20,           // 防禦力 -20%
   },
 
+  // 41. 送葬的 — 冒險者死神
+  "送葬的": {
+    npcDeathChance: 0.25,           // NPC 死亡率 +25%
+    soloDeathChance: -0.20,         // 獨自冒險死亡率 -20%
+    lcDeathChance: -0.25,           // 微笑棺木事件死亡率 -25%
+  },
+
   // === Season 7 新增稱號 ===
 
-  // 40. 休暇中 — 暫停營業休假者
+  // 42. 休暇中 — 暫停營業休假者
   "休暇中": {
     settlementBill: -0.15,      // 帳單 -15%
     staminaCost: -0.20,         // 體力消耗 -20%

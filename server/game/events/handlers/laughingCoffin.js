@@ -9,6 +9,7 @@ const { killNpc } = require("../../npc/npcManager.js");
 const { increment } = require("../../progression/statsTracker.js");
 const { getEffectiveStats } = require("../../npc/npcStats.js");
 const { getBattleLevelBonus, awardBattleExp } = require("../../battleLevel.js");
+const { getModifier } = require("../../title/titleModifier.js");
 
 const LC = config.RANDOM_EVENTS.LAUGHING_COFFIN;
 const SOLO = config.SOLO_ADV;
@@ -276,8 +277,10 @@ async function processLose(user, actionType, actionResult, battleResult, opts) {
     }
   }
 
-  // 4. 死亡判定（依動作類型）
-  const deathChance = LC.DEATH_CHANCE[actionType] || 0;
+  // 4. 死亡判定（依動作類型），套用 lcDeathChance 稱號修正
+  const baseDeathChance = LC.DEATH_CHANCE[actionType] || 0;
+  const lcDeathMod = getModifier(user.title, "lcDeathChance");
+  const deathChance = Math.max(1, Math.round(baseDeathChance * lcDeathMod));
 
   if (actionType === "adv") {
     // NPC 冒險：NPC 替玩家擋刀

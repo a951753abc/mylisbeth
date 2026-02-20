@@ -155,6 +155,14 @@ const ACHIEVEMENTS = [
     titleReward: null,
   },
   {
+    id: "npc_death_10",
+    name: "葬送者",
+    nameCn: "送葬的",
+    desc: "累計 10 位 NPC 冒險者在你麾下犧牲",
+    check: (user) => (user.stats?.npcDeaths || 0) >= 10,
+    titleReward: "送葬的",
+  },
+  {
     id: "debt_survivor",
     name: "借金返済",
     nameCn: "還清負債",
