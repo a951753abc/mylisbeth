@@ -177,7 +177,8 @@ export default function Game({ user, onLogout }) {
             )}
           </h1>
           <div style={{ fontSize: '0.8rem', color: 'var(--gold)' }}>
-            {(gameUser.col || 0).toLocaleString()} Col ｜ 第 {gameUser.currentFloor || 1} 層
+            {(gameUser.col || 0).toLocaleString()} Col ｜ 第 {gameUser.currentFloor || 1} 層 ｜ 戰鬥 Lv.{gameUser.battleLevel || 1}
+            {gameUser.isPK && <span style={{ color: '#ef4444', marginLeft: '0.3rem', fontWeight: 'bold' }}>[紅名]</span>}
           </div>
         </div>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
@@ -197,74 +198,44 @@ export default function Game({ user, onLogout }) {
       <div className="container">
         <CooldownTimer cooldown={cooldown} onExpire={() => setCooldown(0)} />
 
-        <div className="nav-tabs">
-          <button
-            className={tab === "game" ? "active" : ""}
-            onClick={() => setTab("game")}
-          >
-            遊戲
-          </button>
-          <button
-            className={tab === "floor" ? "active" : ""}
-            onClick={() => setTab("floor")}
-          >
-            樓層
-          </button>
-          <button
-            className={tab === "daily" ? "active" : ""}
-            onClick={() => setTab("daily")}
-          >
-            每日
-          </button>
-          <button
-            className={tab === "achievement" ? "active" : ""}
-            onClick={() => setTab("achievement")}
-          >
-            成就
-          </button>
-          <button
-            className={tab === "inventory" ? "active" : ""}
-            onClick={() => setTab("inventory")}
-          >
-            物品
-          </button>
-          <button
-            className={tab === "log" ? "active" : ""}
-            onClick={() => setTab("log")}
-          >
-            日誌
-          </button>
-          <button
-            className={tab === "players" ? "active" : ""}
-            onClick={() => setTab("players")}
-          >
-            名冊
-          </button>
-          <button
-            className={tab === "tavern" ? "active" : ""}
-            onClick={() => setTab("tavern")}
-          >
-            酒館
-          </button>
-          <button
-            className={`${tab === "npc" ? "active" : ""}${(gameUser.hiredNpcs || []).length > 0 ? " npc-tab-badge" : ""}`}
-            onClick={() => setTab("npc")}
-          >
-            NPC{(gameUser.hiredNpcs || []).length > 0 ? `(${gameUser.hiredNpcs.length})` : ""}
-          </button>
-          <button
-            className={`${tab === "settlement" ? "active" : ""}${gameUser.isInDebt ? " debt-tab-badge" : ""}`}
-            onClick={() => setTab("settlement")}
-            style={gameUser.isInDebt ? { color: "#f87171" } : {}}
-          >
-            帳單{gameUser.isInDebt ? "⚠️" : ""}
-          </button>
-          <button
-            className={tab === "shop" ? "active" : ""}
-            onClick={() => setTab("shop")}
-          >
-            商店
-          </button>
+        <div className="nav-tabs-grouped">
+          <div className="nav-group">
+            <span className="nav-group-label">行動</span>
+            <div className="nav-group-buttons">
+              <button className={tab === "game" ? "active" : ""} onClick={() => setTab("game")}>遊戲</button>
+              <button className={tab === "floor" ? "active" : ""} onClick={() => setTab("floor")}>樓層</button>
+              <button className={tab === "inventory" ? "active" : ""} onClick={() => setTab("inventory")}>物品</button>
+              <button className={tab === "shop" ? "active" : ""} onClick={() => setTab("shop")}>商店</button>
+            </div>
+          </div>
+          <div className="nav-group">
+            <span className="nav-group-label">NPC</span>
+            <div className="nav-group-buttons">
+              <button className={tab === "tavern" ? "active" : ""} onClick={() => setTab("tavern")}>酒館</button>
+              <button
+                className={`${tab === "npc" ? "active" : ""}${(gameUser.hiredNpcs || []).length > 0 ? " npc-tab-badge" : ""}`}
+                onClick={() => setTab("npc")}
+              >
+                NPC{(gameUser.hiredNpcs || []).length > 0 ? `(${gameUser.hiredNpcs.length})` : ""}
+              </button>
+              <button
+                className={`${tab === "settlement" ? "active" : ""}${gameUser.isInDebt ? " debt-tab-badge" : ""}`}
+                onClick={() => setTab("settlement")}
+                style={gameUser.isInDebt ? { color: "#f87171" } : {}}
+              >
+                帳單{gameUser.isInDebt ? "⚠" : ""}
+              </button>
+            </div>
+          </div>
+          <div className="nav-group">
+            <span className="nav-group-label">紀錄</span>
+            <div className="nav-group-buttons">
+              <button className={tab === "daily" ? "active" : ""} onClick={() => setTab("daily")}>每日</button>
+              <button className={tab === "achievement" ? "active" : ""} onClick={() => setTab("achievement")}>成就</button>
+              <button className={tab === "log" ? "active" : ""} onClick={() => setTab("log")}>日誌</button>
+              <button className={tab === "players" ? "active" : ""} onClick={() => setTab("players")}>名冊</button>
+            </div>
+          </div>
         </div>
 
         {tab === "game" && (

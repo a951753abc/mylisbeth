@@ -294,6 +294,65 @@ input:focus, select:focus {
   border-color: var(--accent);
 }
 
+/* Grouped navigation tabs */
+.nav-tabs-grouped {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.nav-group-label {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  padding-left: 0.25rem;
+  opacity: 0.7;
+  letter-spacing: 0.05em;
+}
+
+.nav-group-buttons {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.nav-group-buttons button {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.7rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-group-buttons button:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.nav-group-buttons button:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.nav-group-buttons button:only-child {
+  border-radius: 6px;
+}
+
+.nav-group-buttons button.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.nav-group-buttons button:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 /* ===== Season 2 Styles ===== */
 
 /* Header title */
