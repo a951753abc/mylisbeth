@@ -165,6 +165,7 @@ module.exports = async function (cmd, rawUser) {
     }
 
     await increment(user.userId, "totalAdventures");
+    await increment(user.userId, "totalSoloAdventures");
     await checkAndAward(user.userId);
 
     return {

@@ -24,7 +24,8 @@ module.exports = async function (name, userId) {
     floorProgress: {
       [String(frontierFloor)]: { explored: 0, maxExplore: config.FLOOR_MAX_EXPLORE },
     },
-    bossContribution: { totalDamage: 0, bossesDefeated: 0, mvpCount: 0 },
+    bossContribution: { totalDamage: 0, bossesDefeated: 0, mvpCount: 0, lastAttackCount: 0 },
+    bossRelics: [],
     adventureLevel: 1,
     adventureExp: 0,
     lastLoginAt: null,
@@ -43,6 +44,12 @@ module.exports = async function (name, userId) {
       totalBossAttacks: 0,
       yukiDefeats: 0,
       totalColEarned: 0,
+      npcDeaths: 0,
+      debtCleared: 0,
+      totalShopSells: 0,
+      laughingCoffinDefeats: 0,
+      totalSoloAdventures: 0,
+      totalLoans: 0,
     },
     // Season 3
     gameCreatedAt: now,

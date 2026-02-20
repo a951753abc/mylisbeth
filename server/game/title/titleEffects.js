@@ -143,6 +143,86 @@ const TITLE_EFFECTS = {
     battleAtk: 0.05,            // 攻擊力 +5%
     forgeDurability: -0.10,     // 初始耐久 -10%
   },
+
+  // === Season 4.5 新增稱號 ===
+
+  // 17. 生存者 — 微笑棺木生還者
+  "生存者": {
+    soloDeathChance: -0.15,     // 獨自冒險死亡率 -15%
+    npcDeathChance: -0.10,      // NPC 死亡率 -10%
+    advColReward: -0.10,        // 冒險 Col -10%
+  },
+
+  // 18. PKキラー — 微笑棺木獵手
+  "PKキラー": {
+    battleAtk: 0.15,            // 攻擊力 +15%
+    battleAgi: 0.10,            // 敏捷 +10%
+    settlementBill: 0.15,       // 帳單 +15%
+  },
+
+  // 19. 戦う鍛冶師 — 親自上陣的鍛造師
+  "戦う鍛冶師": {
+    battleAtk: 0.10,            // 攻擊力 +10%
+    soloDeathChance: -0.10,     // 獨自冒險死亡率 -10%
+    forgeBuffChance: -0.10,     // 強化成功率 -10%
+    forgeCritFailExtra: 0.03,   // 額外大失敗機率 +3%
+  },
+
+  // 20. 遺物収集家 — 聖遺物收藏者
+  "遺物収集家": {
+    bossDamage: 0.10,           // Boss 傷害 +10%
+    mineStarChance: 0.10,       // 三星挖掘率 +10%
+    staminaCost: 0.10,          // 體力消耗 +10%
+  },
+
+  // 21. 解放者 — 全聖遺物收集者
+  "解放者": {
+    battleAtk: 0.15,            // 攻擊力 +15%
+    battleDef: 0.15,            // 防禦力 +15%
+    bossDamage: 0.10,           // Boss 傷害 +10%
+    settlementBill: 0.30,       // 帳單 +30%
+    staminaCost: 0.15,          // 體力消耗 +15%
+  },
+
+  // 22. 富豪 — 經濟大亨
+  "富豪": {
+    shopSellPrice: 0.20,        // 出售價格 +20%
+    settlementBill: -0.20,      // 帳單 -20%
+    battleAtk: -0.20,           // 攻擊力 -20%
+    battleDef: -0.15,           // 防禦力 -15%
+  },
+
+  // 23. 指揮官 — NPC 養成大師
+  "指揮官": {
+    npcCondLoss: -0.25,         // NPC 損耗 -25%
+    npcDeathChance: -0.20,      // NPC 死亡率 -20%
+    forgeBuffChance: -0.20,     // 強化成功率 -20%
+    mineStarChance: -0.15,      // 三星挖掘率 -15%
+  },
+
+  // 24. 匠 — 大師級鍛造師
+  "匠": {
+    forgeBuffChance: 0.25,      // 強化成功率 +25%
+    forgeDurability: 0.15,      // 初始耐久 +15%
+    battleAtk: -0.20,           // 攻擊力 -20%
+    battleDef: -0.10,           // 防禦力 -10%
+  },
+
+  // 25. 闘技王 — PvP 霸主
+  "闘技王": {
+    pvpColReward: 0.30,         // PvP Col +30%
+    battleAgi: 0.15,            // 敏捷 +15%
+    npcCondLoss: 0.25,          // NPC 損耗 +25%
+    shopSellPrice: -0.15,       // 出售價格 -15%
+  },
+
+  // 26. 地獄覇者 — 地獄難度征服者
+  "地獄覇者": {
+    battleAtk: 0.20,            // 攻擊力 +20%
+    advColReward: 0.15,         // 冒險 Col +15%
+    soloDeathChance: 0.15,      // 獨自冒險死亡率 +15%
+    staminaCost: 0.10,          // 體力消耗 +10%
+  },
 };
 
 module.exports = { TITLE_EFFECTS };

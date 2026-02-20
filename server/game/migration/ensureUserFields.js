@@ -25,6 +25,9 @@ const DEFAULT_FIELDS = {
     totalBossAttacks: 0,
     yukiDefeats: 0,
     totalColEarned: 0,
+    // Season 4
+    totalSoloAdventures: 0,
+    totalLoans: 0,
   },
   // Season 3 fields
   gameCreatedAt: null,

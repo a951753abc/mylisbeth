@@ -16,6 +16,9 @@ const VALID_STATS = [
   // Season 3.5
   "totalShopSells",
   "laughingCoffinDefeats",
+  // Season 4
+  "totalSoloAdventures",
+  "totalLoans",
 ];
 
 async function increment(userId, statName, amount = 1) {

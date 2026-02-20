@@ -3,6 +3,8 @@ const config = require("../config.js");
 const { calculateBill } = require("./settlement.js");
 const { executeBankruptcy } = require("./bankruptcy.js");
 const { isNewbie } = require("../time/gameTime.js");
+const { increment } = require("../progression/statsTracker.js");
+const { checkAndAward } = require("../progression/achievement.js");
 
 const SETTLE = config.SETTLEMENT;
 const LOAN_COOLDOWN = 5000; // 借款冷卻 5 秒
@@ -150,6 +152,9 @@ async function takeLoan(userId, amount) {
   if (!committed) {
     return { error: "借款條件已變更，請重試" };
   }
+
+  await increment(userId, "totalLoans");
+  await checkAndAward(userId);
 
   return {
     success: true,
