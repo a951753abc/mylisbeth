@@ -171,6 +171,7 @@ export default function MarketPanel({ user, onRefresh }) {
     setBusy(false);
   };
 
+  const isPK = user.isPK === true;
   const totalPrice = parseInt(sellPrice, 10) * parseInt(sellQty, 10) || 0;
   const estimatedFee = Math.max(1, Math.floor(totalPrice * 0.02));
   const wprice = parseInt(weaponPrice, 10) || 0;
@@ -192,6 +193,11 @@ export default function MarketPanel({ user, onRefresh }) {
             </button>
           ))}
         </div>
+        {isPK && (
+          <div className="error-msg" style={{ marginBottom: "0.5rem" }}>
+            你是紅名玩家，無法使用佈告板交易。
+          </div>
+        )}
         {message && <div style={{ color: "#4ade80", marginBottom: "0.5rem", fontSize: "0.85rem" }}>{message}</div>}
         {error && <div className="error-msg" style={{ marginBottom: "0.5rem" }}>{error}</div>}
       </div>
@@ -266,7 +272,7 @@ export default function MarketPanel({ user, onRefresh }) {
                     <button
                       className="btn-success"
                       style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem" }}
-                      disabled={busy || l.sellerId === user.userId}
+                      disabled={busy || l.sellerId === user.userId || isPK}
                       onClick={() => handleBuy(l.listingId)}
                     >
                       {l.sellerId === user.userId ? "自己" : "購買"}
@@ -339,7 +345,7 @@ export default function MarketPanel({ user, onRefresh }) {
               )}
               <button
                 className="btn-success"
-                disabled={busy || !selectedItem || totalPrice <= 0}
+                disabled={busy || !selectedItem || totalPrice <= 0 || isPK}
                 onClick={handleListItem}
                 style={{ alignSelf: "flex-start" }}
               >
@@ -380,7 +386,7 @@ export default function MarketPanel({ user, onRefresh }) {
               )}
               <button
                 className="btn-success"
-                disabled={busy || !selectedWeapon || wprice <= 0}
+                disabled={busy || !selectedWeapon || wprice <= 0 || isPK}
                 onClick={handleListWeapon}
                 style={{ alignSelf: "flex-start" }}
               >

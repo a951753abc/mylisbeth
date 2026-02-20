@@ -24,6 +24,7 @@ async function listMaterial(userId, itemIndex, quantity, pricePerUnit) {
 
   const user = await db.findOne("user", { userId });
   if (!user) return { error: "角色不存在" };
+  if (user.isPK) return { error: "你是紅名玩家，無法使用佈告板交易。" };
 
   // 檢查掛賣上限
   const myListings = await db.count("market_listing", { sellerId: userId, status: "active" });
@@ -77,6 +78,7 @@ async function listWeapon(userId, weaponIndex, totalPrice) {
 
   const user = await db.findOne("user", { userId });
   if (!user) return { error: "角色不存在" };
+  if (user.isPK) return { error: "你是紅名玩家，無法使用佈告板交易。" };
 
   const myListings = await db.count("market_listing", { sellerId: userId, status: "active" });
   if (myListings >= MARKET.MAX_LISTINGS) return { error: `最多掛賣 ${MARKET.MAX_LISTINGS} 件` };
@@ -145,6 +147,10 @@ async function getMyListings(userId) {
  * 購買掛賣品
  */
 async function buyListing(buyerUserId, listingId) {
+  const buyer = await db.findOne("user", { userId: buyerUserId });
+  if (!buyer) return { error: "角色不存在" };
+  if (buyer.isPK) return { error: "你是紅名玩家，無法使用佈告板交易。" };
+
   // 原子搶購（同時排除自買）
   const listing = await db.findOneAndUpdate(
     "market_listing",
