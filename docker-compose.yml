@@ -1,8 +1,21 @@
 services:
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    restart: unless-stopped
+
   app:
     build: .
-    ports:
-      - "4000:3000"
+    expose:
+      - "3000"
     env_file:
       - .env
     environment:
@@ -26,3 +39,5 @@ services:
 
 volumes:
   mongo_data:
+  caddy_data:
+  caddy_config:
