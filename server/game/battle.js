@@ -486,4 +486,7 @@ battleModule.pveBattleDirect = async function (weapon, npc, enemyData, titleMods
   return battleResult;
 };
 
+battleModule.hitCheck = hitCheck;
+battleModule.damCheck = damCheck;
+
 module.exports = battleModule;

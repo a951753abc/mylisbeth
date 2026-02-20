@@ -139,11 +139,11 @@ async function healNpc(userId, npcId, healType) {
  */
 async function resolveNpcBattle(userId, npcId, outcome, expGain, userTitle = null, bossAtkBoost = 0) {
   const user = await db.findOne("user", { userId });
-  if (!user) return { survived: false };
+  if (!user) return { survived: false, died: false };
 
   const hired = user.hiredNpcs || [];
   const npcIdx = hired.findIndex((n) => n.npcId === npcId);
-  if (npcIdx === -1) return { survived: false };
+  if (npcIdx === -1) return { survived: false, died: false };
 
   const npc = hired[npcIdx];
   // 套用 npcCondLoss 稱號修正

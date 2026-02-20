@@ -76,13 +76,43 @@ export default function BattleLog({ logs }) {
                     (剩餘 HP: {log.bossHpRemaining?.toLocaleString()})
                   </span>
                 )}
+                {log.counterAttack && (
+                  <div style={{ marginTop: '0.3rem', fontSize: '0.85rem' }}>
+                    {log.counterAttack.dodged ? (
+                      <span style={{ color: 'var(--success)' }}>🛡️ {log.npcName} 閃避了 Boss 的反擊！</span>
+                    ) : log.counterAttack.hit ? (
+                      <span style={{ color: 'var(--warning)' }}>
+                        💥 Boss 反擊！對 {log.npcName} 造成 {log.counterAttack.counterDamage} 傷害
+                        {log.counterAttack.isCrit && <span style={{ color: 'var(--danger)' }}> 暴擊！</span>}
+                      </span>
+                    ) : null}
+                    {log.counterAttack.npcDied && (
+                      <div style={{ color: 'var(--danger)', fontWeight: 'bold' }}>
+                        💀 {log.npcName} 在 Boss 的反擊中陣亡了！
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
             {/* Boss damage socket event */}
             {log.action === 'boss:damage' && (
               <div style={{ color: 'var(--warning)' }}>
-                {log.player} 對 Boss 造成 {log.damage} 傷害 | 剩餘 {log.bossHpRemaining?.toLocaleString()} HP
+                <div>{log.player} 對 Boss 造成 {log.damage} 傷害 | 剩餘 {log.bossHpRemaining?.toLocaleString()} HP</div>
+                {log.counterAttack && (
+                  <div style={{ fontSize: '0.85rem', marginTop: '0.2rem' }}>
+                    {log.counterAttack.dodged ? (
+                      <span style={{ color: 'var(--success)' }}>🛡️ {log.npcName} 閃避了反擊</span>
+                    ) : log.counterAttack.hit ? (
+                      <span>
+                        💥 Boss 反擊 {log.npcName}：{log.counterAttack.counterDamage} 傷害
+                        {log.counterAttack.isCrit && ' (暴擊)'}
+                        {log.counterAttack.npcDied && <span style={{ color: 'var(--danger)' }}> — 陣亡！</span>}
+                      </span>
+                    ) : null}
+                  </div>
+                )}
               </div>
             )}
 

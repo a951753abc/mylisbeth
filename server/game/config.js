@@ -109,6 +109,15 @@ module.exports = {
 
   // Season 2: Boss 系統
   BOSS_TIMEOUT_MS: 72 * 60 * 60 * 1000,
+
+  // Boss 反擊機制
+  BOSS_COUNTER: {
+    ATK_MULT: 0.5,        // Boss 反擊 ATK 倍率
+    BOSS_CRI: 11,         // 反擊暴擊門檻（d66 >= 11，約 8.3%）
+    WIN_THRESHOLD: 0.40,  // 傷害/HP < 40% → WIN
+    LOSE_THRESHOLD: 0.75, // 傷害/HP >= 75% → LOSE
+    // 中間 40%~75% → DRAW
+  },
   FLOOR_MAX_EXPLORE: 5,
 
   // Season 2: 武器修復

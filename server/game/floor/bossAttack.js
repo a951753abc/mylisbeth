@@ -10,6 +10,7 @@ const ensureUserFields = require("../migration/ensureUserFields.js");
 const { getEffectiveStats, getCombinedBattleStats } = require("../npc/npcStats.js");
 const { resolveNpcBattle } = require("../npc/npcManager.js");
 const { getCombinedModifier } = require("../title/titleModifier.js");
+const bossCounterAttack = require("./bossCounterAttack.js");
 
 function calcDamage(atk, cri, def) {
   let atkDam = 0;
@@ -316,15 +317,27 @@ module.exports = async function bossAttack(cmd, rawUser) {
 
     await increment(user.userId, "totalBossAttacks");
 
-    // NPC 戰鬥結算（Boss 戰為單次攻擊，視為 WIN — 成功造成傷害，體力仍會損耗）
-    // NPC 體力損耗受 Boss phase atkBoost 影響
+    // Boss 反擊計算
     const bossAtkBoost = getEffectiveBossAtk(bossData, [...activatedPhases, ...phaseCheck.newPhases]);
-    const npcResult = await resolveNpcBattle(user.userId, npcId, "WIN", BOSS_NPC_EXP_GAIN, user.title || null, bossAtkBoost);
+    const counterResult = bossCounterAttack({ bossData, bossAtkBoost, combined });
 
+    // NPC 戰鬥結算（以反擊結果取代固定 WIN）
+    const npcResult = await resolveNpcBattle(user.userId, npcId, counterResult.outcome, BOSS_NPC_EXP_GAIN, user.title || null, bossAtkBoost);
+
+    // npcEventText 只放次要事件（升級），反擊結果由 counterAttack 結構化物件傳遞
     let npcEventText = "";
     if (npcResult.levelUp) {
       npcEventText = `${hiredNpc.name} 升級了！LV ${npcResult.newLevel}`;
     }
+
+    const counterAttackData = {
+      hit: counterResult.hit,
+      dodged: counterResult.dodged,
+      counterDamage: counterResult.counterDamage,
+      outcome: counterResult.outcome,
+      isCrit: counterResult.isCrit,
+      npcDied: !!npcResult.died,
+    };
 
     const socketEvents = [
       {
@@ -337,6 +350,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
           bossHpTotal: totalHp,
           floorNumber: currentFloor,
           bossName: bossData.name,
+          counterAttack: counterAttackData,
         },
       },
       ...phaseCheck.phaseEvents,
@@ -528,8 +542,10 @@ module.exports = async function bossAttack(cmd, rawUser) {
           laColBonus: bossData.lastAttackDrop ? config.COL_BOSS_LA_BONUS : 0,
           npcName: hiredNpc.name,
           npcEventText,
+          counterAttack: counterAttackData,
           npcResult: {
-            survived: true,
+            survived: !npcResult.died,
+            died: !!npcResult.died,
             levelUp: !!npcResult.levelUp,
             newCondition: npcResult.newCondition,
             newLevel: npcResult.newLevel,
@@ -548,6 +564,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
         bossName: bossData.name,
         npcName: hiredNpc.name,
         npcEventText,
+        counterAttack: counterAttackData,
         npcResult: {
           survived: npcResult.survived !== false,
           died: !!npcResult.died,
@@ -569,6 +586,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
       bossName: bossData.name,
       npcName: hiredNpc.name,
       npcEventText,
+      counterAttack: counterAttackData,
       npcResult: {
         survived: npcResult.survived !== false,
         died: !!npcResult.died,

@@ -64,11 +64,31 @@ export default function FloorPanel({ user, onAction, bossUpdate }) {
             }
           }
         }
+        if (data.counterAttack) {
+          if (data.counterAttack.dodged) {
+            msg += `\n🛡️ ${data.npcName} 閃避了 Boss 的反擊！`;
+          } else if (data.counterAttack.hit) {
+            msg += `\n💥 Boss 反擊！${data.npcName} 受到 ${data.counterAttack.counterDamage} 傷害${data.counterAttack.isCrit ? '（暴擊！）' : ''}`;
+          }
+          if (data.counterAttack.npcDied) {
+            msg += `\n⚠️ 💀 ${data.npcName} 在 Boss 的反擊中陣亡了！`;
+          }
+        }
         if (data.npcEventText) msg += `\n${data.npcEventText}`;
         setResult(msg);
         await fetchFloor();
       } else {
         let msg = `⚔️ ${data.npcName || '冒險者'} 對 ${data.bossName} 造成了 ${data.damage} 點傷害！剩餘 HP: ${data.bossHpRemaining?.toLocaleString()}`;
+        if (data.counterAttack) {
+          if (data.counterAttack.dodged) {
+            msg += `\n🛡️ ${data.npcName} 閃避了 Boss 的反擊！`;
+          } else if (data.counterAttack.hit) {
+            msg += `\n💥 Boss 反擊！${data.npcName} 受到 ${data.counterAttack.counterDamage} 傷害${data.counterAttack.isCrit ? '（暴擊！）' : ''}`;
+          }
+          if (data.counterAttack.npcDied) {
+            msg += `\n⚠️ 💀 ${data.npcName} 在 Boss 的反擊中陣亡了！`;
+          }
+        }
         if (data.npcEventText) msg += `\n${data.npcEventText}`;
         setResult(msg);
         await fetchFloor();
