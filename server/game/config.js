@@ -5,11 +5,11 @@ module.exports = {
   TIME_SCALE: 5 * 60 * 1000, // 5 分鐘現實時間 = 1 遊戲日
   NEWBIE_PROTECTION_DAYS: 3, // 新手保護期（遊戲日）
 
-  // Season 3: 帳單結算
+  // Season 3: 帳單結算（Season 6: 週→月制）
   SETTLEMENT: {
-    BASE_RENT: 100,           // 基礎租金（每週）
-    FLOOR_TAX_PER_FLOOR: 30, // 每層樓稅（每週）
-    INTERVAL_GAME_DAYS: 7,   // 結算間隔（遊戲日）
+    BASE_RENT: 100,           // 基礎租金（每月）
+    FLOOR_TAX_PER_FLOOR: 30, // 每層樓稅（每月）
+    INTERVAL_GAME_DAYS: 30,  // 結算間隔（遊戲日）— Season 6: 7→30
     MAX_DEBT_CYCLES: 3,       // 最多負債幾個週期才破產
     LOAN_MIN: 50,              // 最低借款金額
     LOAN_MAX_BILL_MULT: 2,    // 每次最多借 bill * 此倍數
@@ -45,14 +45,16 @@ module.exports = {
       精銳: 1200,
       傳說: 3000,
     },
-    // 週薪（每結算週期）
-    WEEKLY_WAGE: {
+    // 月薪（每結算週期）— Season 6: 週薪→月薪
+    MONTHLY_WAGE: {
       見習: 50,
       普通: 100,
       優秀: 250,
       精銳: 600,
       傳說: 1500,
     },
+    // 向後相容 alias
+    get WEEKLY_WAGE() { return this.MONTHLY_WAGE; },
     // 冒險體力損耗
     CONDITION_LOSS: {
       WIN: 15,
@@ -119,7 +121,9 @@ module.exports = {
   },
   REPAIR_SUCCESS_RATE: 85,
 
-  // Season 2: 冒險委託費
+  // Season 6: 冒險委託費（勝利時從獎勵扣 10%）
+  COL_ADVENTURE_FEE_RATE: 0.10,
+  // deprecated: Season 6 改為勝利扣費制
   COL_ADVENTURE_FEE_BASE: 30,
   COL_ADVENTURE_FEE_PER_FLOOR: 10,
 
@@ -220,9 +224,33 @@ module.exports = {
     "pvp_total_loss",
   ],
 
-  // Season 3.5: 回收商店（收破爛商人，無差別低價）
-  // 素材、武器一律 d6 Col（1~6），不看星級也不看稀有度
-  SHOP: {},
+  // Season 3.5: 回收商店（Season 6: 依星級/稀有度定價）
+  SHOP: {
+    MATERIAL_STAR_MULT: { 1: 1, 2: 3, 3: 6 },
+    WEAPON_RARITY_MULT: { common: 1, fine: 3, rare: 8, epic: 20, legendary: 50 },
+  },
+
+  // Season 6: 佈告板掛賣系統
+  MARKET: {
+    MATERIAL_BASE_PRICE: { 1: 5, 2: 15, 3: 40 },
+    WEAPON_BASE_PRICE: { common: 20, fine: 60, rare: 150, epic: 400, legendary: 1000 },
+    NPC_BUY_THRESHOLD: 1.5,
+    NPC_BUY_BASE_CHANCE: 30,
+    MAX_LISTINGS: 10,
+    LISTING_FEE_RATE: 0.02,
+    MAX_LISTING_DAYS: 30,
+  },
+
+  // Season 6: NPC 自主任務
+  NPC_MISSIONS: {
+    TYPES: [
+      { id: "patrol",  name: "巡邏",     duration: 3,  baseReward: 80,  floorMult: 0.2, successRate: 85, condCost: 10, failCondCost: 25, deathChance: 10 },
+      { id: "gather",  name: "採集委託", duration: 5,  baseReward: 150, floorMult: 0.3, successRate: 75, condCost: 15, failCondCost: 30, deathChance: 15 },
+      { id: "escort",  name: "護送任務", duration: 10, baseReward: 350, floorMult: 0.5, successRate: 65, condCost: 20, failCondCost: 40, deathChance: 20 },
+    ],
+    QUALITY_MULT: { 見習: 0.6, 普通: 1.0, 優秀: 1.5, 精銳: 2.0, 傳說: 3.0 },
+    COMMISSION_RATE: 0.10,
+  },
 
   // Season 3.5: 鍛造師親自冒險
   SOLO_ADV: {

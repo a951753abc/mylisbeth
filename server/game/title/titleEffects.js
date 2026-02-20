@@ -27,6 +27,9 @@
  *   npcDeathChance      乘法 → npcManager NPC 死亡率（負值=↓）
  *   shopSellPrice       乘法 → shop 出售價格
  *   bossDamage          乘法 → bossAttack Boss 傷害
+ *   missionSuccessRate  乘法 → mission 任務成功率
+ *   missionReward       乘法 → mission 任務獎勵
+ *   marketListingFee    乘法 → market 掛賣手續費率
  */
 const TITLE_EFFECTS = {
   // 1. 見習い鍛冶師 — 鍛造類
@@ -275,6 +278,55 @@ const TITLE_EFFECTS = {
     battleDef: 0.15,            // 防禦力 +15%
     battleAgi: 0.15,            // 敏捷 +15%
     soloDeathChance: -0.15,     // 獨自冒險死亡率 -15%
+  },
+
+  // === Season 6 新增稱號 ===
+
+  // 34. 委託者 — NPC 任務入門
+  "委託者": {
+    missionReward: 0.15,        // 任務獎勵 +15%
+    npcCondLoss: -0.10,         // NPC 損耗 -10%
+    forgeBuffChance: -0.10,     // 強化成功率 -10%
+  },
+
+  // 35. 司令官 — NPC 任務大師
+  "司令官": {
+    missionSuccessRate: 0.10,   // 任務成功率 +10%
+    missionReward: 0.20,        // 任務獎勵 +20%
+    npcCondLoss: -0.15,         // NPC 損耗 -15%
+    battleAtk: -0.15,           // 攻擊力 -15%
+    staminaCost: 0.10,          // 體力消耗 +10%
+  },
+
+  // 36. 護衛隊長 — 護送任務專家
+  "護衛隊長": {
+    npcDeathChance: -0.20,      // NPC 死亡率 -20%
+    missionReward: 0.10,        // 任務獎勵 +10%
+    soloDeathChance: 0.15,      // 獨自冒險死亡率 +15%
+  },
+
+  // 37. 佈告板常客 — 市場入門
+  "佈告板常客": {
+    shopSellPrice: 0.15,        // 出售價格 +15%
+    marketListingFee: -0.50,    // 掛賣手續費 -50%
+    battleAtk: -0.10,           // 攻擊力 -10%
+  },
+
+  // 38. 大商人 — 市場大亨
+  "大商人": {
+    shopSellPrice: 0.25,        // 出售價格 +25%
+    marketListingFee: -0.30,    // 掛賣手續費 -30%
+    settlementBill: -0.15,      // 帳單 -15%
+    battleAtk: -0.20,           // 攻擊力 -20%
+    battleDef: -0.15,           // 防禦力 -15%
+  },
+
+  // 39. 財閥 — 頂級經濟
+  "財閥": {
+    settlementBill: -0.25,      // 帳單 -25%
+    shopSellPrice: 0.30,        // 出售價格 +30%
+    battleAtk: -0.25,           // 攻擊力 -25%
+    battleDef: -0.20,           // 防禦力 -20%
   },
 };
 

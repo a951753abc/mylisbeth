@@ -14,6 +14,7 @@ import SettlementPanel from "../components/SettlementPanel";
 import BankruptcyScreen from "../components/BankruptcyScreen";
 import NpcDeathToast from "../components/NpcDeathToast";
 import ShopPanel from "../components/ShopPanel";
+import MarketPanel from "../components/MarketPanel";
 
 export default function Game({ user, onLogout }) {
   const [gameUser, setGameUser] = useState(null);
@@ -206,6 +207,7 @@ export default function Game({ user, onLogout }) {
               <button className={tab === "floor" ? "active" : ""} onClick={() => setTab("floor")}>樓層</button>
               <button className={tab === "inventory" ? "active" : ""} onClick={() => setTab("inventory")}>物品</button>
               <button className={tab === "shop" ? "active" : ""} onClick={() => setTab("shop")}>商店</button>
+              <button className={tab === "market" ? "active" : ""} onClick={() => setTab("market")}>佈告板</button>
             </div>
           </div>
           <div className="nav-group">
@@ -285,6 +287,9 @@ export default function Game({ user, onLogout }) {
         )}
         {tab === "shop" && (
           <ShopPanel user={gameUser} onRefresh={fetchUser} />
+        )}
+        {tab === "market" && (
+          <MarketPanel user={gameUser} onRefresh={fetchUser} />
         )}
       </div>
     </div>

@@ -7,7 +7,7 @@ const roll = require("../roll.js");
 const eneNameList = require("../ene/name.json");
 const { pveBattle } = require("../battle");
 const { generateNarrative } = require("../narrative/generate.js");
-const { awardCol, deductCol } = require("../economy/col.js");
+const { awardCol } = require("../economy/col.js");
 const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const { getFloor } = require("../floor/floorData.js");
@@ -60,21 +60,17 @@ module.exports = async function (cmd, rawUser) {
       return { error: `${hiredNpc.name} 體力過低（< 10%），無法出戰！請先治療。` };
     }
 
+    // Season 6: 任務互斥鎖
+    if (hiredNpc.mission) {
+      return { error: `${hiredNpc.name} 正在執行任務中，無法出戰。` };
+    }
+
     const thisWeapon = user.weaponStock[cmd[2]];
     const currentFloor = user.currentFloor || 1;
 
-    // 扣除冒險委託費
-    const fee =
-      config.COL_ADVENTURE_FEE_BASE +
-      currentFloor * config.COL_ADVENTURE_FEE_PER_FLOOR;
-
-    // 負債時獎勵減半（但費用不變）
+    // Season 6: 委託費改為勝利時從獎勵扣 10%，不再預先扣費
+    // 負債時獎勵減半
     const penalties = enforceDebtPenalties(user);
-
-    const feeSuccess = await deductCol(user.userId, fee);
-    if (!feeSuccess) {
-      return { error: `Col 不足，冒險需要 ${fee} Col（第 ${currentFloor} 層委託費）。` };
-    }
 
     // 組裝 NPC 資訊傳給 battle（標記為已雇用 NPC 並帶入有效素質）
     const npcForBattle = {
@@ -163,6 +159,7 @@ module.exports = async function (cmd, rawUser) {
     // 獎勵
     let rewardText = "";
     let colEarned = 0;
+    let colSpentFee = 0;
     if (battleResult.win === 1) {
       const winString = `${battleResult.category}Win`;
       const mineResultText = await mineBattle(user, battleResult.category, currentFloor);
@@ -173,9 +170,15 @@ module.exports = async function (cmd, rawUser) {
       let colReward = Math.round((config.COL_ADVENTURE_REWARD[battleResult.category] || 50) * advColMod);
       // 負債時獎勵減半
       colReward = Math.floor(colReward * penalties.advRewardMult);
-      colEarned = colReward;
-      await awardCol(user.userId, colReward);
-      rewardText += `獲得 ${colReward} Col`;
+
+      // Season 6: 從獎勵扣 10% 委託費
+      const feeRate = config.COL_ADVENTURE_FEE_RATE || 0.10;
+      const fee = Math.floor(colReward * feeRate);
+      const netReward = colReward - fee;
+      colSpentFee = fee;
+      colEarned = netReward;
+      await awardCol(user.userId, netReward);
+      rewardText += `獲得 ${colReward} Col（委託費 ${fee} Col）→ 實收 ${netReward} Col`;
       if (penalties.advRewardMult < 1) {
         rewardText += `（負債懲罰：獎勵減半）`;
       }
@@ -217,7 +220,7 @@ module.exports = async function (cmd, rawUser) {
       durabilityText,
       reward: rewardText + npcEventText,
       colEarned,
-      colSpent: fee,
+      colSpent: colSpentFee,
       floor: currentFloor,
       floorName: floorData.name,
       npcResult: {

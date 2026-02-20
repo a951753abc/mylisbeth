@@ -136,7 +136,7 @@ export default function SettlementPanel({ user, onRefresh, onBankruptcy }) {
   if (loading) return <div className="card">載入帳單中...</div>;
   if (!data) return <div className="card error-msg">無法載入帳單</div>;
 
-  const npcWages = (user.hiredNpcs || []).reduce((s, n) => s + (n.weeklyCost || 0), 0);
+  const npcWages = (user.hiredNpcs || []).reduce((s, n) => s + (n.monthlyCost || n.weeklyCost || 0), 0);
   const floorTax = (user.currentFloor || 1) * 30;
   const loan = data.loanInfo || {};
 
@@ -185,7 +185,7 @@ export default function SettlementPanel({ user, onRefresh, onBankruptcy }) {
           </div>
           {npcWages > 0 && (
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span>NPC 週薪（{(user.hiredNpcs || []).length} 人）</span>
+              <span>NPC 月薪（{(user.hiredNpcs || []).length} 人）</span>
               <span style={{ color: "var(--gold)" }}>{npcWages} Col</span>
             </div>
           )}
@@ -218,7 +218,7 @@ export default function SettlementPanel({ user, onRefresh, onBankruptcy }) {
       {/* 下次結算倒數 */}
       <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.8rem" }}>
         下次結算：{countdown > 0 ? formatCountdown(countdown) : "即將結算"}
-        （每 7 遊戲日 = 35 分鐘結算一次）
+        （每 30 遊戲日 ≈ 2.5 小時結算一次）
       </div>
 
       {/* 還債區 */}

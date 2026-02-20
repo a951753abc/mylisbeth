@@ -111,7 +111,7 @@ export default function TavernPanel({ user, onRefresh }) {
                     HP:{npc.baseStats.hp} ATK:{npc.baseStats.atk} DEF:{npc.baseStats.def} AGI:{npc.baseStats.agi}
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "var(--gold)", marginTop: "0.1rem" }}>
-                    雇用費 {npc.hireCost} Col｜週薪 {npc.weeklyCost} Col/週
+                    雇用費 {npc.hireCost} Col｜月薪 {npc.monthlyCost || npc.weeklyCost} Col/月
                   </div>
                 </div>
                 <button

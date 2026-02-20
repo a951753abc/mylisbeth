@@ -34,9 +34,10 @@ async function sellItem(userId, itemIndex, quantity) {
     return { error: `素材數量不足（擁有 ${item.itemNum}，欲出售 ${quantity}）` };
   }
 
-  // 計算隨機價格（套用 shopSellPrice 稱號修正）
+  // Season 6: 依星級定價（星級 × d6 × 稱號修正）
   const priceMod = getModifier(user.title || null, "shopSellPrice");
-  const pricePerUnit = Math.max(1, Math.round(d6() * priceMod));
+  const starMult = (config.SHOP.MATERIAL_STAR_MULT || {})[item.itemLevel] || 1;
+  const pricePerUnit = Math.max(1, Math.round(d6() * starMult * priceMod));
   const totalPrice = pricePerUnit * quantity;
 
   // 原子扣除素材
@@ -87,10 +88,11 @@ async function sellWeapon(userId, weaponIndex) {
   const weapon = (user.weaponStock || [])[weaponIndex];
   if (!weapon) return { error: "找不到該武器" };
 
-  // 收破爛：不論稀有度，基礎 d6 Col（套用 shopSellPrice 修正）
+  // Season 6: 依稀有度定價（稀有度倍率 × d6 × 稱號修正）
   const rarity = calculateRarity(weapon);
   const priceMod = getModifier(user.title || null, "shopSellPrice");
-  const price = Math.max(1, Math.round(d6() * priceMod));
+  const rarityMult = (config.SHOP.WEAPON_RARITY_MULT || {})[rarity.id] || 1;
+  const price = Math.max(1, Math.round(d6() * rarityMult * priceMod));
 
   // 銷毀武器
   await destroyWeapon(userId, weaponIndex);

@@ -25,6 +25,12 @@ const VALID_STATS = [
   "firstStrikeWins",
   "halfLossWins",
   "totalLossWins",
+  // Season 6: 經濟改革
+  "totalMissionRewards",
+  "totalMissionsCompleted",
+  "totalEscortMissions",
+  "totalMarketSold",
+  "totalMarketEarned",
 ];
 
 async function increment(userId, statName, amount = 1) {

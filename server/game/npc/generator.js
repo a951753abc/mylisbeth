@@ -66,7 +66,7 @@ function generateNpc(index, serverSeed = "lisbeth") {
     level: 1,
     exp: 0,
     hireCost: NPC_CFG.HIRE_COST[quality],
-    weeklyCost: NPC_CFG.WEEKLY_WAGE[quality],
+    monthlyCost: NPC_CFG.MONTHLY_WAGE[quality],
   };
 }
 

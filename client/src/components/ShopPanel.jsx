@@ -79,10 +79,14 @@ export default function ShopPanel({ user, onRefresh }) {
           </div>
         )}
         <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
-          以隨機低價回收素材和武器。不公平，但能換 Col。
+          以隨機低價回收素材和武器。即時出售，但價格偏低。
         </p>
         <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
-          不論素材星級或武器稀有度，一律 1~6 Col。就是這麼黑。
+          素材：星級倍率 x d6 Col（★1:x1, ★2:x3, ★3:x6）<br />
+          武器：稀有度倍率 x d6 Col（普通:x1, 優良:x3, 稀有:x8, 史詩:x20, 傳說:x50）
+        </div>
+        <div style={{ fontSize: "0.75rem", color: "#60a5fa", marginBottom: "0.5rem" }}>
+          想賣更好的價格？前往「佈告板」掛賣給其他玩家！
         </div>
         {message && (
           <div className="success-msg" style={{ marginBottom: "0.5rem", color: "#4ade80" }}>
@@ -112,8 +116,9 @@ export default function ShopPanel({ user, onRefresh }) {
             <tbody>
               {items.map((item) => {
                 const qty = parseInt(quantities[item.index], 10) || 1;
-                const minPrice = 1 * qty;
-                const maxPrice = 6 * qty;
+                const starMult = { 1: 1, 2: 3, 3: 6 }[item.level] || 1;
+                const minPrice = starMult * 1 * qty;
+                const maxPrice = starMult * 6 * qty;
                 return (
                   <tr key={item.index} style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                     <td style={{ padding: "0.4rem 0.5rem" }}>{item.name}</td>
@@ -180,7 +185,8 @@ export default function ShopPanel({ user, onRefresh }) {
             </thead>
             <tbody>
               {weapons.map((w) => {
-                const mult = 1; // 收破爛，一律 d6
+                const rarityMultMap = { common: 1, fine: 3, rare: 8, epic: 20, legendary: 50 };
+                const mult = rarityMultMap[w.rarityId] || 1;
                 return (
                   <tr key={w.index} style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                     <td style={{ padding: "0.4rem 0.5rem" }}>{w.weaponName}</td>

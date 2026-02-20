@@ -16,7 +16,7 @@ const SETTLE = config.SETTLEMENT;
 function calculateBill(user) {
   const floor = user.currentFloor || 1;
   const npcWages = (user.hiredNpcs || []).reduce(
-    (sum, npc) => sum + (npc.weeklyCost || 0),
+    (sum, npc) => sum + (npc.monthlyCost || npc.weeklyCost || 0),
     0,
   );
   const baseBill = SETTLE.BASE_RENT + floor * SETTLE.FLOOR_TAX_PER_FLOOR + npcWages;

@@ -38,6 +38,12 @@ const DEFAULT_FIELDS = {
     npcDeaths: 0,
     debtCleared: 0,
     laughingCoffinDefeats: 0,
+    // Season 6: 經濟改革
+    totalMissionRewards: 0,
+    totalMissionsCompleted: 0,
+    totalEscortMissions: 0,
+    totalMarketSold: 0,
+    totalMarketEarned: 0,
   },
   // Season 3 fields
   gameCreatedAt: null,
@@ -100,22 +106,31 @@ module.exports = async function ensureUserFields(user) {
     if (!user.lastSettlementAt) updates.lastSettlementAt = now;
   }
 
-  // 安全檢查：nextSettlementAt 若超過正常範圍（1 小時後），視為損壞並重設
-  const maxValidFuture = Date.now() + 60 * 60 * 1000;
+  // 安全檢查：nextSettlementAt 若超過正常範圍，視為損壞並重設
+  // Season 6: 30 遊戲日 × 5 分鐘 = 150 分鐘 = 2.5 小時，容差 ×1.2 = 3 小時
+  const maxValidFuture = Date.now() + config.SETTLEMENT.INTERVAL_GAME_DAYS * config.TIME_SCALE * 1.2;
   const currentNext = updates.nextSettlementAt || user.nextSettlementAt;
   if (currentNext && currentNext > maxValidFuture) {
     updates.nextSettlementAt = getNextSettlementTime(Date.now());
   }
 
-  // 修補已雇用 NPC 缺少 weeklyCost 的問題
+  // Season 6: 遷移 NPC weeklyCost → monthlyCost + 補缺欄位
   const npcs = updates.hiredNpcs || user.hiredNpcs || [];
   let npcPatched = false;
   const patchedNpcs = npcs.map((npc) => {
-    if (npc.weeklyCost === undefined || npc.weeklyCost === null) {
+    let patched = npc;
+    // 遷移 weeklyCost → monthlyCost
+    if (npc.monthlyCost === undefined) {
       npcPatched = true;
-      return { ...npc, weeklyCost: config.NPC.WEEKLY_WAGE[npc.quality] || 100 };
+      const cost = npc.weeklyCost || config.NPC.MONTHLY_WAGE[npc.quality] || 100;
+      patched = { ...patched, monthlyCost: cost };
     }
-    return npc;
+    // 補缺 mission 欄位
+    if (npc.mission === undefined) {
+      npcPatched = true;
+      patched = { ...patched, mission: null };
+    }
+    return patched;
   });
   if (npcPatched) {
     updates.hiredNpcs = patchedNpcs;

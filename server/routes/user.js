@@ -8,6 +8,7 @@ const { recoverConditions } = require('../game/npc/npcManager.js');
 const { getGameDaysSince } = require('../game/time/gameTime.js');
 const { regenStamina } = require('../game/stamina/staminaCheck.js');
 const ensureUserFields = require('../game/migration/ensureUserFields.js');
+const { checkMissions } = require('../game/npc/mission.js');
 
 // Get current user game info
 router.get('/me', ensureAuth, async (req, res) => {
@@ -40,6 +41,9 @@ router.get('/me', ensureAuth, async (req, res) => {
         if (daysPassed > 0 && (user.hiredNpcs || []).length > 0) {
             await recoverConditions(user.userId, daysPassed);
         }
+
+        // Season 6: 懶結算 NPC 任務
+        await checkMissions(user.userId);
 
         // 重新讀取最新資料
         user = await db.findOne("user", { userId: req.user.discordId });
