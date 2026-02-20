@@ -171,20 +171,12 @@ export default function NpcPanel({ user, onRefresh }) {
         )}
       </div>
 
-      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.3rem", display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
-        <span>
-          冒險 LV.{user.adventureLevel || 1}
-          <span style={{ color: "var(--text-secondary)", marginLeft: "0.3rem" }}>
-            ({user.adventureExp || 0}/{user.adventureExpNext || "???"})
-          </span>
+      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.3rem" }}>
+        任務派遣：
+        <span style={{ color: missionsFull ? "#f44336" : "var(--gold)" }}>
+          {activeMissionCount}/{concurrentLimit}
         </span>
-        <span>
-          任務派遣：
-          <span style={{ color: missionsFull ? "#f44336" : "var(--gold)" }}>
-            {activeMissionCount}/{concurrentLimit}
-          </span>
-          {missionsFull && <span style={{ color: "#f44336" }}>（已滿）</span>}
-        </span>
+        {missionsFull && <span style={{ color: "#f44336" }}>（已滿）</span>}
       </div>
 
       {isPaused && (

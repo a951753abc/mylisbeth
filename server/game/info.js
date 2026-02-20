@@ -4,6 +4,8 @@ const { calculateRarity } = require("./weapon/rarity.js");
 const config = require("./config.js");
 const { getExpForNextLevel } = require("./level.js");
 const { getAdvExpToNextLevel } = require("./progression/adventureLevel.js");
+const { getExpForNextLevel: getBattleExpForNextLevel } = require("./battleLevel.js");
+const { getHireLimit } = require("./npc/npcManager.js");
 
 module.exports = function (user) {
   const lose = _.get(user, "lost", 0);
@@ -151,6 +153,7 @@ module.exports = function (user) {
     // Season 5: 戰鬥等級 & PVP
     battleLevel: _.get(user, "battleLevel", 1),
     battleExp: _.get(user, "battleExp", 0),
+    battleExpNext: getBattleExpForNextLevel(_.get(user, "battleLevel", 1)),
     isPK: _.get(user, "isPK", false),
     pkKills: _.get(user, "pkKills", 0),
     defenseWeaponIndex: _.get(user, "defenseWeaponIndex", 0),
@@ -161,5 +164,6 @@ module.exports = function (user) {
     adventureLevel: _.get(user, "adventureLevel", 1),
     adventureExp: _.get(user, "adventureExp", 0),
     adventureExpNext: getAdvExpToNextLevel(_.get(user, "adventureLevel", 1)),
+    hireLimit: getHireLimit(_.get(user, "adventureLevel", 1)),
   };
 };

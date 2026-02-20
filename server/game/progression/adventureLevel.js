@@ -9,6 +9,7 @@ const ADV = config.ADV_LEVEL;
  * @returns {number}
  */
 function getAdvExpToNextLevel(level) {
+  if (level >= ADV.MAX_LEVEL) return null;
   return Math.floor(ADV.EXP_BASE * Math.pow(ADV.EXP_MULTIPLIER, level - 1));
 }
 

@@ -207,7 +207,7 @@ export default function Game({ user, onLogout }) {
             )}
           </h1>
           <div style={{ fontSize: '0.8rem', color: 'var(--gold)' }}>
-            {(gameUser.col || 0).toLocaleString()} Col ｜ 第 {gameUser.currentFloor || 1} 層 ｜ 戰鬥 Lv.{gameUser.battleLevel || 1}
+            {(gameUser.col || 0).toLocaleString()} Col ｜ {gameUser.currentFloor || 1}F ｜ 冒險Lv.{gameUser.adventureLevel || 1}
             {gameUser.isPK && <span style={{ color: '#ef4444', marginLeft: '0.3rem', fontWeight: 'bold' }}>[紅名]</span>}
           </div>
         </div>

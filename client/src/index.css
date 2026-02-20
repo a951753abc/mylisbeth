@@ -604,6 +604,108 @@ input:focus, select:focus {
   content: "Lv.";
 }
 
+/* ===== Level Progress Rows (角色資訊等級條) ===== */
+.level-section {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.level-section-title {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.2rem;
+  margin-bottom: 0.1rem;
+}
+
+.level-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.level-row .level-label {
+  min-width: 4.5rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.level-row .level-label strong {
+  color: var(--text-primary);
+}
+
+.level-bar-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  min-width: 60px;
+}
+
+.level-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  background: var(--accent);
+}
+
+.level-row .level-exp {
+  min-width: 5.5rem;
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.level-row .level-extra {
+  font-size: 0.7rem;
+  color: var(--gold);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* 角色基本資訊橫排 */
+.char-info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.2rem;
+}
+
+.char-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.char-info-item .info-label {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.char-info-item .info-value {
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .level-row .level-label {
+    min-width: 3.5rem;
+    font-size: 0.75rem;
+  }
+  .level-row .level-exp {
+    min-width: 4.5rem;
+    font-size: 0.7rem;
+  }
+}
+
 /* ===== Weapon Card Rarity Color Bar ===== */
 .weapon-rarity-bar {
   height: 3px;
