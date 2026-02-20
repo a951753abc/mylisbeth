@@ -21,6 +21,9 @@ const EFFECT_LABELS = {
   npcDeathChance: 'NPC 死亡率',
   shopSellPrice: '回收售價',
   bossDamage: 'Boss 傷害',
+  missionSuccessRate: '任務成功率',
+  missionReward: '任務獎勵',
+  marketListingFee: '掛賣手續費',
 };
 
 // 正值對玩家有利為 true，不利為 false
@@ -44,6 +47,9 @@ const POSITIVE_IS_GOOD = {
   npcDeathChance: false,
   shopSellPrice: true,
   bossDamage: true,
+  missionSuccessRate: true,
+  missionReward: true,
+  marketListingFee: false,
 };
 
 /**
@@ -83,9 +89,8 @@ export default function TitleEffectHint({ title, allEffects }) {
           const isGoodWhenPositive = POSITIVE_IS_GOOD[key] !== false;
           const isAdvantageous = (value > 0 && isGoodWhenPositive) || (value < 0 && !isGoodWhenPositive);
           const level = getStrengthLevel(key, value);
-          const arrows = isAdvantageous
-            ? '↑'.repeat(level)
-            : '↓'.repeat(level);
+          // 箭頭方向代表數值的實際變化（↑ 增加 / ↓ 減少），顏色代表利弊
+          const arrows = value > 0 ? '↑'.repeat(level) : '↓'.repeat(level);
           const strengthTag = STRENGTH_LABELS[level];
           const color = isAdvantageous ? 'var(--success, #4caf50)' : 'var(--danger, #f44336)';
           // 高強度效果更明顯
