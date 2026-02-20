@@ -498,7 +498,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
         });
 
         // 解鎖全體玩家的下一層
-        if (nextFloor <= 10) {
+        if (nextFloor <= 20) {
           const nextFloorData = getFloor(nextFloor);
           await db.updateMany(
             "user",

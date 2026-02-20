@@ -27,6 +27,21 @@ const NEW_MATERIALS = [
   // 樓層 9-10
   { itemId: "mat_floor9_ore", name: "ダマスカス鋼", mainStat: "atk", floorItem: true, baseItem: false },
   { itemId: "mat_floor9_crystal", name: "雷の核", mainStat: "agi", floorItem: true, baseItem: false },
+  // 樓層 11-12
+  { itemId: "mat_floor11_ore", name: "霧鋼", mainStat: "def", floorItem: true, baseItem: false },
+  { itemId: "mat_floor11_crystal", name: "湖底の真珠", mainStat: "cri", floorItem: true, baseItem: false },
+  // 樓層 13-14
+  { itemId: "mat_floor13_ore", name: "毒牙の芯", mainStat: "agi", floorItem: true, baseItem: false },
+  { itemId: "mat_floor13_crystal", name: "風切り石", mainStat: "atk", floorItem: true, baseItem: false },
+  // 樓層 15-16
+  { itemId: "mat_floor15_ore", name: "魔獣の骨髄", mainStat: "hp", floorItem: true, baseItem: false },
+  { itemId: "mat_floor15_crystal", name: "水晶の核", mainStat: "def", floorItem: true, baseItem: false },
+  // 樓層 17-18
+  { itemId: "mat_floor17_ore", name: "雷鉄", mainStat: "atk", floorItem: true, baseItem: false },
+  { itemId: "mat_floor17_crystal", name: "死者の魂石", mainStat: "hp", floorItem: true, baseItem: false },
+  // 樓層 19-20
+  { itemId: "mat_floor19_ore", name: "深淵鋼", mainStat: "cri", floorItem: true, baseItem: false },
+  { itemId: "mat_floor19_crystal", name: "天空の欠片", mainStat: "agi", floorItem: true, baseItem: false },
 ];
 
 const SERVER_STATE_INIT = {

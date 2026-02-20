@@ -50,6 +50,22 @@ const ACHIEVEMENTS = [
     titleReward: "中層攻略者",
   },
   {
+    id: "floor_15",
+    name: "第15層到達",
+    nameCn: "到達第 15 層",
+    desc: "解鎖 Aincrad 第 15 層",
+    check: (user) => (user.currentFloor || 1) >= 15,
+    titleReward: "上層探索者",
+  },
+  {
+    id: "floor_20",
+    name: "第20層制覇",
+    nameCn: "攻略第 20 層",
+    desc: "攻略 Aincrad 第 20 層",
+    check: (user) => (user.currentFloor || 1) >= 20,
+    titleReward: "天空の征服者",
+  },
+  {
     id: "pvp_first",
     name: "初決闘",
     nameCn: "初次決鬥",
@@ -219,9 +235,17 @@ const ACHIEVEMENTS = [
     id: "relic_10",
     name: "アインクラッドの記憶",
     nameCn: "艾恩葛朗特的記憶",
-    desc: "收集全部 10 件 Boss 聖遺物",
+    desc: "收集 10 件 Boss 聖遺物",
     check: (user) => (user.bossRelics || []).length >= 10,
     titleReward: "解放者",
+  },
+  {
+    id: "relic_20",
+    name: "全てを見届けた者",
+    nameCn: "見證一切之人",
+    desc: "收集全部 20 件 Boss 聖遺物",
+    check: (user) => (user.bossRelics || []).length >= 20,
+    titleReward: "完全制覇者",
   },
   // Season 4.5: 經濟 / 借貸
   {
