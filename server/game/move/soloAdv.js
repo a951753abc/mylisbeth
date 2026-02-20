@@ -151,13 +151,14 @@ module.exports = async function (cmd, rawUser) {
 
     // 更新探索進度
     const floorProgressKey = `floorProgress.${currentFloor}.explored`;
+    const maxExploreKey = `floorProgress.${currentFloor}.maxExplore`;
     const currentExplored = _.get(user, `floorProgress.${currentFloor}.explored`, 0);
     const maxExplore = _.get(user, `floorProgress.${currentFloor}.maxExplore`, config.FLOOR_MAX_EXPLORE);
     if (currentExplored < maxExplore) {
       await db.update(
         "user",
         { userId: user.userId },
-        { $inc: { [floorProgressKey]: 1 } },
+        { $inc: { [floorProgressKey]: 1 }, $set: { [maxExploreKey]: maxExplore } },
       );
     }
 

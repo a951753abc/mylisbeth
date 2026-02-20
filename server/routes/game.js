@@ -280,9 +280,10 @@ router.get("/floor", ensureAuth, async (req, res) => {
 
     const currentFloor = user.currentFloor || 1;
     const floorData = getFloor(currentFloor);
-    const floorProgress = (user.floorProgress || {})[currentFloor] || {
-      explored: 0,
-      maxExplore: 5,
+    const rawProgress = (user.floorProgress || {})[currentFloor] || {};
+    const floorProgress = {
+      explored: rawProgress.explored ?? 0,
+      maxExplore: rawProgress.maxExplore ?? (floorData.maxExplore || config.FLOOR_MAX_EXPLORE),
     };
 
     let serverState = await db.findOne("server_state", { _id: "aincrad" });

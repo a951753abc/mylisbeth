@@ -117,7 +117,9 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive 
   if (!floorInfo) return <div className="card"><p style={{ color: 'var(--text-secondary)' }}>無法取得樓層資訊</p></div>;
 
   const { floor, progress, bossStatus, canAttackBoss } = floorInfo;
-  const exploreProgress = Math.min(progress.explored, progress.maxExplore);
+  const maxExplore = progress.maxExplore || floor.maxExplore || 5;
+  const explored = progress.explored ?? 0;
+  const exploreProgress = Math.min(explored, maxExplore);
 
   return (
     <div>
@@ -132,17 +134,17 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive 
         <div style={{ marginBottom: '0.75rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
             <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>迷宮探索進度</span>
-            <span style={{ fontSize: '0.85rem' }}>{exploreProgress} / {progress.maxExplore}</span>
+            <span style={{ fontSize: '0.85rem' }}>{exploreProgress} / {maxExplore}</span>
           </div>
           <div className="explore-track">
             <div
               className="explore-fill"
-              style={{ width: `${(exploreProgress / progress.maxExplore) * 100}%` }}
+              style={{ width: `${(exploreProgress / maxExplore) * 100}%` }}
             />
           </div>
           {!canAttackBoss && (
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.25rem' }}>
-              完成探索後可挑戰 Boss（還需 {progress.maxExplore - exploreProgress} 次冒險）
+              完成探索後可挑戰 Boss（還需 {maxExplore - exploreProgress} 次冒險）
             </p>
           )}
           {canAttackBoss && (
