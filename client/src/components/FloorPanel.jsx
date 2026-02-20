@@ -54,6 +54,8 @@ export default function FloorPanel({ user, onAction, bossUpdate }) {
           if (data.lastAttackDrop) {
             msg += `\n🗡️ Last Attack! 獲得聖遺物「${data.lastAttackDrop.nameCn}（${data.lastAttackDrop.name}）」！`;
             if (data.laColBonus > 0) msg += ` +${data.laColBonus} Col`;
+          } else if (data.lastAttackAlreadyOwned) {
+            msg += `\n🗡️ Last Attack! 已擁有該聖遺物，獲得 +${data.laColBonus} Col`;
           }
           if (data.drops && data.drops.length > 0) {
             msg += '\n🎁 掉落物：';

@@ -137,6 +137,15 @@ module.exports = function (user) {
     stamina: _.get(user, "stamina", config.STAMINA.MAX),
     maxStamina: _.get(user, "maxStamina", config.STAMINA.MAX),
     lastStaminaRegenAt: _.get(user, "lastStaminaRegenAt", null),
+    // Season 4: Boss 聖遺物
+    bossRelics: (_.get(user, "bossRelics", [])).map((r) => ({
+      id: r.id,
+      name: r.name,
+      nameCn: r.nameCn,
+      bossFloor: r.bossFloor,
+      effects: r.effects || {},
+      obtainedAt: r.obtainedAt,
+    })),
     // Season 5: 戰鬥等級 & PVP
     battleLevel: _.get(user, "battleLevel", 1),
     battleExp: _.get(user, "battleExp", 0),

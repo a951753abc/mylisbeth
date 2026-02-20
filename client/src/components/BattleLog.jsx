@@ -118,6 +118,11 @@ export default function BattleLog({ logs }) {
                     🏆 聖遺物「{log.lastAttackDrop.nameCn}（{log.lastAttackDrop.name}）」！
                   </div>
                 )}
+                {!log.lastAttackDrop && log.lastAttackAlreadyOwned && (
+                  <div style={{ marginTop: '0.3rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                    🗡️ {log.lastAttacker?.name} Last Attack! 已擁有聖遺物，獲得 +{log.laColBonus || 0} Col
+                  </div>
+                )}
                 {log.drops && log.drops.length > 0 && (
                   <div style={{ marginTop: '0.3rem', fontSize: '0.85rem' }}>
                     🎁 掉落物：

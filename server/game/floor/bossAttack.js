@@ -370,6 +370,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
 
         // LA 聖遺物獎勵
         let lastAttackDrop = null;
+        let lastAttackAlreadyOwned = false;
         if (bossData.lastAttackDrop) {
           const relicDef = bossData.lastAttackDrop;
           const existingRelics = user.bossRelics || [];
@@ -390,17 +391,19 @@ module.exports = async function bossAttack(cmd, rawUser) {
               { $push: { bossRelics: relicObj } },
             );
             lastAttackDrop = relicObj;
-
-            // LA Col 獎勵（僅首次獲得聖遺物時給予）
-            await awardCol(user.userId, config.COL_BOSS_LA_BONUS);
-
-            // 追蹤 LA 次數
-            await db.update(
-              "user",
-              { userId: user.userId },
-              { $inc: { "bossContribution.lastAttackCount": 1 } },
-            );
+          } else {
+            lastAttackAlreadyOwned = true;
           }
+
+          // LA Col 獎勵（每次 Last Attack 都給予）
+          await awardCol(user.userId, config.COL_BOSS_LA_BONUS);
+
+          // 追蹤 LA 次數
+          await db.update(
+            "user",
+            { userId: user.userId },
+            { $inc: { "bossContribution.lastAttackCount": 1 } },
+          );
         }
 
         // 給獎勵：按傷害比例計算 Col
@@ -460,6 +463,26 @@ module.exports = async function bossAttack(cmd, rawUser) {
           },
         );
 
+        // Boss 擊敗廣播（所有樓層都廣播）
+        socketEvents.push({
+          event: "boss:defeated",
+          data: {
+            floorNumber: currentFloor,
+            bossName: bossData.name,
+            mvp: mvp ? { name: mvp.name, damage: mvp.damage } : null,
+            participants: participants.map((p) => ({ name: p.name, damage: p.damage })),
+            drops: dropResults,
+            lastAttacker: { name: lastAttacker.name },
+            lastAttackDrop: lastAttackDrop ? {
+              name: lastAttackDrop.name,
+              nameCn: lastAttackDrop.nameCn,
+              effects: lastAttackDrop.effects,
+            } : null,
+            lastAttackAlreadyOwned: lastAttackAlreadyOwned || false,
+            laColBonus: bossData.lastAttackDrop ? config.COL_BOSS_LA_BONUS : 0,
+          },
+        });
+
         // 解鎖全體玩家的下一層
         if (nextFloor <= 10) {
           const nextFloorData = getFloor(nextFloor);
@@ -476,22 +499,6 @@ module.exports = async function bossAttack(cmd, rawUser) {
               },
             },
           );
-
-          socketEvents.push({
-            event: "boss:defeated",
-            data: {
-              floorNumber: currentFloor,
-              bossName: bossData.name,
-              mvp: mvp ? { name: mvp.name, damage: mvp.damage } : null,
-              participants: participants.map((p) => ({ name: p.name, damage: p.damage })),
-              drops: dropResults,
-              lastAttacker: { name: lastAttacker.name },
-              lastAttackDrop: lastAttackDrop ? {
-                name: lastAttackDrop.name,
-                nameCn: lastAttackDrop.nameCn,
-              } : null,
-            },
-          });
 
           socketEvents.push({
             event: "floor:unlocked",
@@ -517,7 +524,8 @@ module.exports = async function bossAttack(cmd, rawUser) {
             nameCn: lastAttackDrop.nameCn,
             effects: lastAttackDrop.effects,
           } : null,
-          laColBonus: lastAttackDrop ? config.COL_BOSS_LA_BONUS : 0,
+          lastAttackAlreadyOwned: lastAttackAlreadyOwned || false,
+          laColBonus: bossData.lastAttackDrop ? config.COL_BOSS_LA_BONUS : 0,
           npcName: hiredNpc.name,
           npcEventText,
           npcResult: {
