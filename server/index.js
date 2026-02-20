@@ -9,6 +9,7 @@ const passport = require("passport");
 const path = require("path");
 const db = require("./db.js");
 
+const itemCache = require("./game/cache/itemCache.js");
 const authRoutes = require("./routes/auth.js");
 const userRoutes = require("./routes/user.js");
 const gameRoutes = require("./routes/game.js");
@@ -79,6 +80,7 @@ const PORT = process.env.PORT || 3000;
 
 async function start() {
   await db.connect();
+  await itemCache.load();
   server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });

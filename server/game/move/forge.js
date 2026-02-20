@@ -53,8 +53,11 @@ module.exports = async function (cmd, rawUser) {
   if (user.itemStock[cmd[3]].itemNum < 1) {
     return { error: "錯誤！素材" + cmd[3] + " 數量不足" };
   }
-  if (cmd[4] === undefined || cmd[4] === null) {
+  if (cmd[4] === undefined || cmd[4] === null || String(cmd[4]).trim().length === 0) {
     return { error: "必須輸入武器名稱" };
+  }
+  if (String(cmd[4]).length > 20) {
+    return { error: "武器名稱不得超過 20 個字" };
   }
 
   const thisWeapon = await weapon.createWeapon(cmd, user);

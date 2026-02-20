@@ -7,6 +7,7 @@ const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { getModifier } = require("../title/titleModifier.js");
+const itemCache = require("../cache/itemCache.js");
 
 const drawLevelList = [
   [
@@ -50,7 +51,7 @@ module.exports = async function (cmd, rawUser) {
   }
 
   const currentFloor = user.currentFloor || 1;
-  const allItems = await db.find("item", {});
+  const allItems = itemCache.getAll();
   const minePool = getFloorMinePool(allItems, currentFloor);
 
   const starMod = getModifier(user.title || null, "mineStarChance");

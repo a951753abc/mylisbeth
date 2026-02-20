@@ -13,6 +13,7 @@ const { checkAndAward } = require("../progression/achievement.js");
 const { getFloor } = require("../floor/floorData.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { getModifier } = require("../title/titleModifier.js");
+const { mineBattle } = require("../loot/battleLoot.js");
 
 const SOLO = config.SOLO_ADV;
 
@@ -189,74 +190,4 @@ module.exports = async function (cmd, rawUser) {
   }
 };
 
-// 與 adv.js 共用的戰利品邏輯
-async function mineBattle(user, category, floorNumber) {
-  const battleMineList = [
-    { category: "[優樹]", list: [{ itemLevel: 3, less: 100, text: "★★★" }] },
-    {
-      category: "[Hell]",
-      list: [
-        { itemLevel: 3, less: 40, text: "★★★" },
-        { itemLevel: 2, less: 100, text: "★★" },
-      ],
-    },
-    {
-      category: "[Hard]",
-      list: [
-        { itemLevel: 3, less: 30, text: "★★★" },
-        { itemLevel: 2, less: 100, text: "★★" },
-      ],
-    },
-    {
-      category: "[Normal]",
-      list: [
-        { itemLevel: 3, less: 20, text: "★★★" },
-        { itemLevel: 2, less: 100, text: "★★" },
-      ],
-    },
-    {
-      category: "[Easy]",
-      list: [
-        { itemLevel: 3, less: 10, text: "★★★" },
-        { itemLevel: 2, less: 100, text: "★★" },
-      ],
-    },
-  ];
-
-  const allItems = await db.find("item", {});
-  const floorItems = getFloorMineList(allItems, floorNumber);
-  const mine = _.clone(floorItems[Math.floor(Math.random() * floorItems.length)]);
-
-  const list = _.find(battleMineList, ["category", category]);
-  if (!list || !list.list) return "";
-
-  const thisItemLevelList = list.list;
-  let itemLevel = 0;
-  let levelCount = 0;
-  while (itemLevel === 0) {
-    if (levelCount >= thisItemLevelList.length) break;
-    if (roll.d100Check(thisItemLevelList[levelCount].less)) {
-      itemLevel = thisItemLevelList[levelCount].itemLevel;
-    }
-    levelCount++;
-  }
-  if (itemLevel === 0) return "";
-
-  mine.level = thisItemLevelList[levelCount - 1];
-  await db.saveItemToUser(user.userId, mine);
-  return "獲得[" + mine.level.text + "]" + mine.name + "\n";
-}
-
-function getFloorMineList(allItems, floorNumber) {
-  const floorMaterials = config.FLOOR_MATERIAL_GROUPS;
-  const floorSpecificIds = [];
-  for (const group of floorMaterials) {
-    if (group.floors.includes(floorNumber)) {
-      floorSpecificIds.push(...group.itemIds);
-    }
-  }
-  const baseItems = allItems.filter((item) => item.baseItem === true || !item.floorItem);
-  const floorItems = allItems.filter((item) => floorSpecificIds.includes(item.itemId));
-  const pool = [...baseItems, ...floorItems];
-  return pool.length > 0 ? pool : allItems;
-}
+// mineBattle 和 getFloorMineList 已提取到 ../loot/battleLoot.js

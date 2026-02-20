@@ -13,12 +13,16 @@ const { calculateBill, payDebt } = require("../game/economy/settlement.js");
 const { takeLoan, getLoanInfo } = require("../game/economy/loan.js");
 const { sellItem, sellWeapon } = require("../game/economy/shop.js");
 const { TITLE_EFFECTS } = require("../game/title/titleEffects.js");
+const { validateName } = require("../utils/sanitize.js");
 
 // Create character
 router.post("/create", ensureAuth, async (req, res) => {
   try {
-    const { name } = req.body;
-    const result = await create(name, req.user.discordId);
+    const nameCheck = validateName(req.body.name, "角色名稱");
+    if (!nameCheck.valid) {
+      return res.status(400).json({ error: nameCheck.error });
+    }
+    const result = await create(nameCheck.value, req.user.discordId);
     if (result.error) {
       return res.status(400).json(result);
     }
@@ -50,8 +54,12 @@ router.post("/mine", ensureAuth, async (req, res) => {
 // Forge
 router.post("/forge", ensureAuth, async (req, res) => {
   try {
-    const { material1, material2, weaponName } = req.body;
-    const cmd = [null, "forge", material1, material2, weaponName];
+    const { material1, material2 } = req.body;
+    const nameCheck = validateName(req.body.weaponName, "武器名稱");
+    if (!nameCheck.valid) {
+      return res.status(400).json({ error: nameCheck.error });
+    }
+    const cmd = [null, "forge", material1, material2, nameCheck.value];
     const result = await move(cmd, req.user.discordId);
     if (result.error) {
       return res.status(400).json(result);
