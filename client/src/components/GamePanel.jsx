@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import ForgeAnimation from "./ForgeAnimation.jsx";
 import NarrativeDisplay from "./NarrativeDisplay.jsx";
 import RandomEventDisplay from "./RandomEventDisplay.jsx";
@@ -33,9 +33,21 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
   const [soloWeapon, setSoloWeapon] = useState("");
   const [soloConfirm, setSoloConfirm] = useState(false);
 
-  // Defense weapon state
-  const [defenseWeapon, setDefenseWeapon] = useState(user.defenseWeaponIndex ?? 0);
+  // Defense weapon state — validate against actual weapon indices
+  const [defenseWeapon, setDefenseWeapon] = useState(() => {
+    const saved = user.defenseWeaponIndex ?? 0;
+    const indices = (user.weapons || []).map((w) => w.index);
+    return indices.includes(saved) ? saved : (indices[0] ?? 0);
+  });
   const [defenseMsg, setDefenseMsg] = useState("");
+
+  // Sync defenseWeapon when weapons change (e.g. weapon destroyed → array reindexed)
+  useEffect(() => {
+    const indices = (user.weapons || []).map((w) => w.index);
+    if (indices.length > 0 && !indices.includes(defenseWeapon)) {
+      setDefenseWeapon(indices[0]);
+    }
+  }, [user.weapons, defenseWeapon]);
 
   // Forge: items available for mat1 (exclude mat2 selection if quantity insufficient)
   const availableForMat1 = useMemo(() => {
