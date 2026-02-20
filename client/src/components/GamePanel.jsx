@@ -186,8 +186,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
         {/* 體力區塊 */}
         <div className="level-section">
           <div className="level-section-title">體力</div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", marginBottom: "0.25rem" }}>
-            <span style={{ color: "var(--text-secondary)" }}>體力</span>
+          <div style={{ display: "flex", justifyContent: "flex-end", fontSize: "0.8rem", marginBottom: "0.25rem" }}>
             <span style={{
               color: staminaRatio <= 0.2 ? "#f87171" : staminaRatio <= 0.5 ? "#fbbf24" : "#4ade80",
               fontWeight: "600",
