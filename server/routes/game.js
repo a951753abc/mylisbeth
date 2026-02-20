@@ -17,6 +17,7 @@ const { validateName } = require("../utils/sanitize.js");
 const config = require("../game/config.js");
 const { getNextSettlementTime } = require("../game/time/gameTime.js");
 const { increment } = require("../game/progression/statsTracker.js");
+const { getLeaderboard, getMyRank } = require("../game/leaderboard.js");
 
 // Create character
 router.post("/create", ensureAuth, async (req, res) => {
@@ -603,6 +604,39 @@ router.post("/pause-business", ensureAuth, async (req, res) => {
     res.json({ success: true, businessPaused: paused });
   } catch (err) {
     console.error("暫停營業失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// Leaderboard
+router.get("/leaderboard", ensureAuth, async (req, res) => {
+  try {
+    const { category, sub, page } = req.query;
+    if (!category) {
+      return res.status(400).json({ error: "缺少排行榜分類" });
+    }
+    const result = await getLeaderboard(category, sub || null, page || 1, req.user.discordId);
+    if (result.error) {
+      return res.status(400).json(result);
+    }
+    res.json(result);
+  } catch (err) {
+    console.error("取得排行榜失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// Leaderboard: my rank
+router.get("/leaderboard/my-rank", ensureAuth, async (req, res) => {
+  try {
+    const { category, sub } = req.query;
+    if (!category) {
+      return res.status(400).json({ error: "缺少排行榜分類" });
+    }
+    const myRank = await getMyRank(category, sub || null, req.user.discordId);
+    res.json({ myRank });
+  } catch (err) {
+    console.error("取得我的排名失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
   }
 });

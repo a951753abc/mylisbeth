@@ -3,7 +3,7 @@ import { useSocket } from "../hooks/useSocket";
 import GamePanel from "../components/GamePanel";
 import InventoryPanel from "../components/InventoryPanel";
 import BattleLog from "../components/BattleLog";
-import PlayerList from "../components/PlayerList";
+import LeaderboardPanel from "../components/LeaderboardPanel";
 import CooldownTimer from "../components/CooldownTimer";
 import FloorPanel from "../components/FloorPanel";
 import AchievementPanel from "../components/AchievementPanel";
@@ -286,7 +286,7 @@ export default function Game({ user, onLogout }) {
               <button className={tab === "daily" ? "active" : ""} onClick={() => setTab("daily")}>每日</button>
               <button className={tab === "achievement" ? "active" : ""} onClick={() => setTab("achievement")}>成就</button>
               <button className={tab === "log" ? "active" : ""} onClick={() => setTab("log")}>日誌</button>
-              <button className={tab === "players" ? "active" : ""} onClick={() => setTab("players")}>名冊</button>
+              <button className={tab === "players" ? "active" : ""} onClick={() => setTab("players")}>排行榜</button>
             </div>
           </div>
         </div>
@@ -319,7 +319,7 @@ export default function Game({ user, onLogout }) {
         )}
         {tab === "inventory" && <InventoryPanel user={gameUser} />}
         {tab === "log" && <BattleLog logs={battleLogs} />}
-        {tab === "players" && <PlayerList user={gameUser} onAction={handleAction} />}
+        {tab === "players" && <LeaderboardPanel user={gameUser} onAction={handleAction} />}
         {tab === "tavern" && (
           <TavernPanel user={gameUser} onRefresh={fetchUser} />
         )}
