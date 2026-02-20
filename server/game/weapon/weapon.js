@@ -74,7 +74,7 @@ module.exports.buffWeapon = function (cmd, user) {
 };
 
 module.exports.createWeapon = async function (cmd, user) {
-  const forceLevel = _.get(user, "forceLevel", 1);
+  const forceLevel = _.get(user, "mineLevel", 1);
   const title = user.title || null;
   const critFailExtra = getRawModifier(title, "forgeCritFailExtra") * 100; // 0.05 → 5
   const critSuccessAdj = getRawModifier(title, "forgeCritSuccessAdj"); // integer

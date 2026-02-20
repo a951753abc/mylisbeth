@@ -28,6 +28,16 @@ const DEFAULT_FIELDS = {
     // Season 4
     totalSoloAdventures: 0,
     totalLoans: 0,
+    // Season 5: PVP 決鬥
+    totalDuelsPlayed: 0,
+    duelKills: 0,
+    firstStrikeWins: 0,
+    halfLossWins: 0,
+    totalLossWins: 0,
+    totalShopSells: 0,
+    npcDeaths: 0,
+    debtCleared: 0,
+    laughingCoffinDefeats: 0,
   },
   // Season 3 fields
   gameCreatedAt: null,
@@ -46,6 +56,17 @@ const DEFAULT_FIELDS = {
   stamina: 100,
   maxStamina: 100,
   lastStaminaRegenAt: null,
+  // 挖礦 & 鍛造等級
+  mineLevel: 1,
+  mine: 0,
+  forgeLevel: 1,
+  forge: 0,
+  // Season 5: 戰鬥等級 & PVP
+  battleLevel: 1,
+  battleExp: 0,
+  isPK: false,
+  pkKills: 0,
+  defenseWeaponIndex: 0,
 };
 
 module.exports = async function ensureUserFields(user) {
@@ -54,6 +75,20 @@ module.exports = async function ensureUserFields(user) {
   for (const [key, defaultVal] of Object.entries(DEFAULT_FIELDS)) {
     if (user[key] === undefined) {
       updates[key] = defaultVal;
+    }
+  }
+
+  // 嵌套 stats 合併：舊玩家已有 stats 但缺少新賽季鍵值
+  if (user.stats && !updates.stats) {
+    const statsDefaults = DEFAULT_FIELDS.stats;
+    const statsPatch = {};
+    for (const [statKey, statDefault] of Object.entries(statsDefaults)) {
+      if (user.stats[statKey] === undefined) {
+        statsPatch[`stats.${statKey}`] = statDefault;
+      }
+    }
+    if (Object.keys(statsPatch).length > 0) {
+      Object.assign(updates, statsPatch);
     }
   }
 
@@ -89,7 +124,21 @@ module.exports = async function ensureUserFields(user) {
   let patched = user;
   if (Object.keys(updates).length > 0) {
     await db.update("user", { userId: user.userId }, { $set: updates });
-    patched = { ...user, ...updates };
+    // 分離 dot-notation 鍵（嵌套欄位如 stats.xxx）與普通鍵
+    const flatUpdates = {};
+    for (const [key, val] of Object.entries(updates)) {
+      if (key.includes(".")) {
+        const parts = key.split(".");
+        // 只處理兩層嵌套（stats.xxx）
+        if (parts.length === 2) {
+          if (!flatUpdates[parts[0]]) flatUpdates[parts[0]] = { ...(user[parts[0]] || {}) };
+          flatUpdates[parts[0]][parts[1]] = val;
+        }
+      } else {
+        flatUpdates[key] = val;
+      }
+    }
+    patched = { ...user, ...flatUpdates };
   }
 
   // 自動同步到伺服器前線樓層（已清過的樓層不需要重打 Boss）

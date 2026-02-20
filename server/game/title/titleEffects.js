@@ -223,6 +223,44 @@ const TITLE_EFFECTS = {
     soloDeathChance: 0.15,      // 獨自冒險死亡率 +15%
     staminaCost: 0.10,          // 體力消耗 +10%
   },
+
+  // === Season 5 新增稱號 ===
+
+  // 27. 初撃剣士 — 初擊決着達人
+  "初撃剣士": {
+    battleAgi: 0.20,            // 敏捷 +20%
+    pvpColReward: 0.10,         // PvP Col +10%
+    forgeBuffChance: -0.15,     // 強化成功率 -15%
+  },
+
+  // 28. 殺人鬼 — 全損決着勝者
+  "殺人鬼": {
+    battleAtk: 0.25,            // 攻擊力 +25%
+    battleDef: 0.10,            // 防禦力 +10%
+    settlementBill: 0.30,       // 帳單 +30%
+  },
+
+  // 29. プレイヤーキラー — 紅名玩家
+  "プレイヤーキラー": {
+    battleAtk: 0.20,            // 攻擊力 +20%
+    battleAgi: 0.15,            // 敏捷 +15%
+    soloDeathChance: 0.20,      // 獨自冒險死亡率 +20%
+  },
+
+  // 30. 歴戦の剣士 — 戰鬥等級 10
+  "歴戦の剣士": {
+    battleAtk: 0.10,            // 攻擊力 +10%
+    battleDef: 0.10,            // 防禦力 +10%
+    battleAgi: 0.05,            // 敏捷 +5%
+  },
+
+  // 31. 剣の申し子 — 戰鬥等級 30
+  "剣の申し子": {
+    battleAtk: 0.25,            // 攻擊力 +25%
+    battleDef: 0.15,            // 防禦力 +15%
+    battleAgi: 0.15,            // 敏捷 +15%
+    soloDeathChance: -0.15,     // 獨自冒險死亡率 -15%
+  },
 };
 
 module.exports = { TITLE_EFFECTS };

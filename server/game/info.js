@@ -128,5 +128,11 @@ module.exports = function (user) {
     stamina: _.get(user, "stamina", config.STAMINA.MAX),
     maxStamina: _.get(user, "maxStamina", config.STAMINA.MAX),
     lastStaminaRegenAt: _.get(user, "lastStaminaRegenAt", null),
+    // Season 5: 戰鬥等級 & PVP
+    battleLevel: _.get(user, "battleLevel", 1),
+    battleExp: _.get(user, "battleExp", 0),
+    isPK: _.get(user, "isPK", false),
+    pkKills: _.get(user, "pkKills", 0),
+    defenseWeaponIndex: _.get(user, "defenseWeaponIndex", 0),
   };
 };

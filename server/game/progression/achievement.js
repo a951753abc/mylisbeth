@@ -290,6 +290,47 @@ const ACHIEVEMENTS = [
     check: (user) => (user["[Hell]Win"] || 0) >= 10,
     titleReward: "地獄覇者",
   },
+  // Season 5: PVP 決鬥系統
+  {
+    id: "duel_total_loss_1",
+    name: "命を賭けた決闘",
+    nameCn: "以命相搏的決鬥",
+    desc: "在全損決着模式中獲勝 1 次",
+    check: (user) => (user.stats?.totalLossWins || 0) >= 1,
+    titleReward: "殺人鬼",
+  },
+  {
+    id: "red_name",
+    name: "レッドネーム",
+    nameCn: "紅名玩家",
+    desc: "被標記為紅名（殺害非紅名玩家）",
+    check: (user) => user.isPK === true,
+    titleReward: "プレイヤーキラー",
+  },
+  {
+    id: "battle_level_10",
+    name: "戦闘熟練者",
+    nameCn: "戰鬥熟練者",
+    desc: "戰鬥等級達到 10",
+    check: (user) => (user.battleLevel || 1) >= 10,
+    titleReward: "歴戦の剣士",
+  },
+  {
+    id: "battle_level_max",
+    name: "戦闘の頂点",
+    nameCn: "戰鬥巔峰",
+    desc: "戰鬥等級達到 30（最高等級）",
+    check: (user) => (user.battleLevel || 1) >= 30,
+    titleReward: "剣の申し子",
+  },
+  {
+    id: "duel_first_strike_10",
+    name: "初撃の達人",
+    nameCn: "初擊之達人",
+    desc: "在初撃決着模式中獲勝 10 次",
+    check: (user) => (user.stats?.firstStrikeWins || 0) >= 10,
+    titleReward: "初撃剣士",
+  },
 ];
 
 async function checkAndAward(userId) {

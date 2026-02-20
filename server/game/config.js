@@ -100,7 +100,7 @@ module.exports = {
     "[Hell]": 400,
     "[優樹]": 500,
   },
-  COL_PVP_WIN: 150,
+  COL_PVP_WIN: 150, // deprecated: Season 5 改為賭注制
   COL_BOSS_MVP_BONUS: 500,
   COL_BOSS_LA_BONUS: 300,
   COL_DAILY: [50, 100, 150, 200, 300, 400, 500],
@@ -175,6 +175,50 @@ module.exports = {
       },
     },
   },
+
+  // Season 5: PVP 決鬥系統
+  PVP: {
+    MODES: { FIRST_STRIKE: "first_strike", HALF_LOSS: "half_loss", TOTAL_LOSS: "total_loss" },
+    FIRST_STRIKE_HP_THRESHOLD: 0.10,     // 單擊造成 >= 10% maxHP 即勝
+    // Total Loss 死亡機率
+    TOTAL_LOSS_BASE_DEATH_CHANCE: 20,     // 基礎 20%
+    TOTAL_LOSS_POVERTY_DEATH_BONUS: 30,   // 沒錢沒素材 +30%
+    TOTAL_LOSS_DEATH_CAP: 80,
+    // 紅名設定
+    RED_NAME_DURATION_DAYS: -1,           // -1 = 永久
+    // 賭注（First Strike / Half Loss 模式）
+    WAGER_TAX: 0.05,                     // 5% 系統稅
+    WAGER_MIN: 0,                        // 最低賭注（0 = 允許榮譽決鬥）
+    WAGER_MAX: 5000,
+    // Total Loss 模式掠奪
+    TOTAL_LOSS_COL_LOOT_RATE: 0.50,      // 搶走 50% Col
+    TOTAL_LOSS_STEAL_ITEM: true,          // 隨機偷 1 素材
+    // 冷卻與限制
+    DAILY_DUEL_LIMIT: 10,                // 每日決鬥上限
+    SAME_TARGET_COOLDOWN_MS: 10 * 60 * 1000,  // 同一對手冷卻 10 分鐘
+    STAMINA_COST: { min: 5, max: 10 },   // 體力消耗
+  },
+
+  // Season 5: 戰鬥等級
+  BATTLE_LEVEL: {
+    MAX_LEVEL: 30,
+    EXP_PVP_WIN: 80,
+    EXP_SOLO_WIN: 30,
+    EXP_LC_WIN: 50,
+    EXP_BASE: 100,
+    EXP_MULTIPLIER: 1.5,
+    STAT_BONUS: { hp: 3 },              // 每級 +3 HP (flat)
+    STAT_RATE: { atk: 0.04, def: 0.03, agi: 0.02 },  // 每級 % 加成
+  },
+
+  // 死亡原因常數（用於 bankruptcy_log 查詢，list.js / graveyard 共用）
+  DEATH_CAUSES: [
+    "solo_adventure_death",
+    "laughing_coffin_mine",
+    "laughing_coffin_solo",
+    "debt",
+    "pvp_total_loss",
+  ],
 
   // Season 3.5: 回收商店（收破爛商人，無差別低價）
   // 素材、武器一律 d6 Col（1~6），不看星級也不看稀有度

@@ -265,86 +265,122 @@ battleModule.pveBattle = async function (weapon, npc, npcNameList, floorEnemies,
   return battleResult;
 };
 
+/**
+ * Season 5 PVP 決鬥戰鬥
+ * @param {object} attackerData - 攻擊方 user document
+ * @param {object} attackerWeapon - 攻擊方武器
+ * @param {object} defenderData - 防守方 user document
+ * @param {object} defenderWeapon - 防守方武器
+ * @param {object} attackerMods - 攻擊方 { battleAtk, battleDef, battleAgi } 乘數
+ * @param {object} defenderMods - 防守方 { battleAtk, battleDef, battleAgi } 乘數
+ * @param {string} duelMode - "first_strike" | "half_loss" | "total_loss"
+ */
 battleModule.pvpBattle = async function (
   attackerData,
   attackerWeapon,
   defenderData,
   defenderWeapon,
-  titleMods = {},
+  attackerMods = {},
+  defenderMods = {},
+  duelMode = "half_loss",
 ) {
   const roundLimit = 5;
   let round = 1;
   const battleLog = [];
 
+  const { getBattleLevelBonus } = require("./battleLevel.js");
+
+  // 攻擊方數值
+  const atkLvBonus = getBattleLevelBonus(attackerData.battleLevel || 1);
+  const atkMaxHp = 100 + atkLvBonus.hpBonus + (attackerWeapon.hp || 0);
   const attacker = {
     name: attackerData.name,
-    hp: 100 + (attackerWeapon.hp || 0),
+    hp: atkMaxHp,
+    maxHp: atkMaxHp,
     stats: {
-      ...attackerWeapon,
-      atk: titleMods.battleAtk ? Math.max(1, Math.round((attackerWeapon.atk || 0) * titleMods.battleAtk)) : (attackerWeapon.atk || 0),
-      def: titleMods.battleDef ? Math.max(0, Math.round((attackerWeapon.def || 0) * titleMods.battleDef)) : (attackerWeapon.def || 0),
-      agi: titleMods.battleAgi ? Math.max(1, Math.round((attackerWeapon.agi || 0) * titleMods.battleAgi)) : (attackerWeapon.agi || 0),
+      atk: Math.max(1, Math.round((attackerWeapon.atk || 0) * atkLvBonus.atkMult * (attackerMods.battleAtk || 1))),
+      def: Math.max(0, Math.round((attackerWeapon.def || 0) * atkLvBonus.defMult * (attackerMods.battleDef || 1))),
+      agi: Math.max(1, Math.round((attackerWeapon.agi || 0) * atkLvBonus.agiMult * (attackerMods.battleAgi || 1))),
+      cri: attackerWeapon.cri || 10,
     },
   };
+
+  // 防守方數值（對稱）
+  const defLvBonus = getBattleLevelBonus(defenderData.battleLevel || 1);
+  const defMaxHp = 100 + defLvBonus.hpBonus + (defenderWeapon.hp || 0);
   const defender = {
     name: defenderData.name,
-    hp: 100 + (defenderWeapon.hp || 0),
-    stats: { ...defenderWeapon },
+    hp: defMaxHp,
+    maxHp: defMaxHp,
+    stats: {
+      atk: Math.max(1, Math.round((defenderWeapon.atk || 0) * defLvBonus.atkMult * (defenderMods.battleAtk || 1))),
+      def: Math.max(0, Math.round((defenderWeapon.def || 0) * defLvBonus.defMult * (defenderMods.battleDef || 1))),
+      agi: Math.max(1, Math.round((defenderWeapon.agi || 0) * defLvBonus.agiMult * (defenderMods.battleAgi || 1))),
+      cri: defenderWeapon.cri || 10,
+    },
   };
+
+  let winnerSide = null; // "attacker" | "defender"
 
   while (attacker.hp > 0 && defender.hp > 0 && round <= roundLimit) {
     battleLog.push(`\n**第 ${round} 回合**`);
     const atkAct = roll.d66() + attacker.stats.agi;
     const defAct = roll.d66() + defender.stats.agi;
 
-    if (atkAct >= defAct) {
-      const dmg1 = damCheck(
-        attacker.stats.atk,
-        attacker.stats.cri,
-        defender.stats.def,
-      ).damage;
-      defender.hp -= dmg1;
-      battleLog.push(
-        `${attacker.name} 對 ${defender.name} 造成了 ${dmg1} 點傷害。`,
-      );
-      if (defender.hp <= 0) break;
+    const firstSide = atkAct >= defAct ? "attacker" : "defender";
+    const order = firstSide === "attacker"
+      ? [{ src: attacker, dst: defender, srcKey: "attacker", dstKey: "defender" },
+         { src: defender, dst: attacker, srcKey: "defender", dstKey: "attacker" }]
+      : [{ src: defender, dst: attacker, srcKey: "defender", dstKey: "attacker" },
+         { src: attacker, dst: defender, srcKey: "attacker", dstKey: "defender" }];
 
-      const dmg2 = damCheck(
-        defender.stats.atk,
-        defender.stats.cri,
-        attacker.stats.def,
-      ).damage;
-      attacker.hp -= dmg2;
-      battleLog.push(
-        `${defender.name} 對 ${attacker.name} 造成了 ${dmg2} 點傷害。`,
-      );
-    } else {
-      const dmg1 = damCheck(
-        defender.stats.atk,
-        defender.stats.cri,
-        attacker.stats.def,
-      ).damage;
-      attacker.hp -= dmg1;
-      battleLog.push(
-        `${defender.name} 對 ${attacker.name} 造成了 ${dmg1} 點傷害。`,
-      );
-      if (attacker.hp <= 0) break;
+    for (const { src, dst, srcKey, dstKey } of order) {
+      if (dst.hp <= 0) break;
+      const dmgResult = damCheck(src.stats.atk, src.stats.cri, dst.stats.def);
+      dst.hp -= dmgResult.damage;
+      battleLog.push(`${src.name} 對 ${dst.name} 造成了 ${dmgResult.damage} 點傷害。`);
 
-      const dmg2 = damCheck(
-        attacker.stats.atk,
-        attacker.stats.cri,
-        defender.stats.def,
-      ).damage;
-      defender.hp -= dmg2;
-      battleLog.push(
-        `${attacker.name} 對 ${defender.name} 造成了 ${dmg2} 點傷害。`,
-      );
+      // First Strike 模式：單擊造成 >= 10% maxHP 即勝
+      if (duelMode === "first_strike" && dmgResult.damage >= dst.maxHp * 0.10) {
+        winnerSide = srcKey;
+        break;
+      }
+      // Half Loss 模式：對方 HP ≤ 50% maxHP
+      if (duelMode === "half_loss" && dst.hp <= dst.maxHp * 0.50) {
+        winnerSide = srcKey;
+        break;
+      }
+      // Total Loss：HP ≤ 0
+      if (dst.hp <= 0) {
+        winnerSide = srcKey;
+        break;
+      }
     }
+
+    if (winnerSide) break;
     round++;
   }
 
-  const winner = attacker.hp > defender.hp ? attackerData : defenderData;
-  return { log: battleLog, winner };
+  // 超過回合上限：HP 較高者勝
+  if (!winnerSide) {
+    winnerSide = attacker.hp >= defender.hp ? "attacker" : "defender";
+  }
+
+  const winner = winnerSide === "attacker" ? attackerData : defenderData;
+  const loser = winnerSide === "attacker" ? defenderData : attackerData;
+
+  return {
+    log: battleLog,
+    winner,
+    loser,
+    duelMode,
+    winnerHpRemaining: winnerSide === "attacker" ? attacker.hp : defender.hp,
+    loserHpRemaining: winnerSide === "attacker" ? defender.hp : attacker.hp,
+    attackerHp: attacker.hp,
+    defenderHp: defender.hp,
+    attackerMaxHp: attacker.maxHp,
+    defenderMaxHp: defender.maxHp,
+  };
 };
 
 /**

@@ -14,6 +14,7 @@ const { getFloor } = require("../floor/floorData.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { getModifier } = require("../title/titleModifier.js");
 const { mineBattle } = require("../loot/battleLoot.js");
+const { getBattleLevelBonus, awardBattleExp } = require("../battleLevel.js");
 
 const SOLO = config.SOLO_ADV;
 
@@ -34,12 +35,8 @@ module.exports = async function (cmd, rawUser) {
     const thisWeapon = user.weaponStock[weaponIndex];
     const currentFloor = user.currentFloor || 1;
 
-    // 組裝鍛造師戰鬥數值
-    // HP  = 30 + weapon.hp
-    // ATK = weapon.atk
-    // DEF = weapon.def
-    // AGI = max(weapon.agi, 1)
-    // CRI = weapon.cri || 10
+    // 組裝鍛造師戰鬥數值（含 battleLevel 加成）
+    const lvBonus = getBattleLevelBonus(user.battleLevel || 1);
     const soloWeapon = {
       ...thisWeapon,
       agi: Math.max(thisWeapon.agi || 0, SOLO.BASE_AGI),
@@ -47,7 +44,7 @@ module.exports = async function (cmd, rawUser) {
 
     const smithNpc = {
       name: user.name,
-      hp: SOLO.BASE_HP,      // battle.js: playerHp = npc.hp + weapon.hp
+      hp: SOLO.BASE_HP + lvBonus.hpBonus,
       isHiredNpc: false,     // 不走 NPC effectiveStats 路徑
     };
 
@@ -166,6 +163,9 @@ module.exports = async function (cmd, rawUser) {
 
     await increment(user.userId, "totalAdventures");
     await increment(user.userId, "totalSoloAdventures");
+    if (outcomeKey === "WIN") {
+      await awardBattleExp(user.userId, config.BATTLE_LEVEL.EXP_SOLO_WIN);
+    }
     await checkAndAward(user.userId);
 
     return {

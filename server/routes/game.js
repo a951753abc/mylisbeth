@@ -14,6 +14,7 @@ const { takeLoan, getLoanInfo } = require("../game/economy/loan.js");
 const { sellItem, sellWeapon } = require("../game/economy/shop.js");
 const { TITLE_EFFECTS } = require("../game/title/titleEffects.js");
 const { validateName } = require("../utils/sanitize.js");
+const config = require("../game/config.js");
 
 // Create character
 router.post("/create", ensureAuth, async (req, res) => {
@@ -141,34 +142,65 @@ router.post("/adventure", ensureAuth, async (req, res) => {
   }
 });
 
-// PVP
+// PVP (Season 5: 決鬥系統)
 router.post("/pvp", ensureAuth, async (req, res) => {
   try {
-    const { targetName, weaponId } = req.body;
-    const cmd = [null, "pvp", targetName, weaponId];
+    const { targetUserId, weaponId, mode, wagerCol } = req.body;
+    const cmd = [null, "pvp", targetUserId, weaponId, mode, wagerCol];
     const result = await move(cmd, req.user.discordId);
     if (result.error) {
       return res.status(400).json(result);
     }
     const io = req.app.get("io");
     if (io) {
-      io.emit("battle:result", {
-        type: "pvp",
-        attacker: result.attackerName,
-        defender: result.defenderName,
-        winner: result.winner,
-      });
+      // 廣播 + 私人通知
+      if (result.socketEvents) {
+        for (const evt of result.socketEvents) {
+          io.emit(evt.event, evt.data);
+        }
+      }
       if (result.defenderId) {
         io.to("user:" + result.defenderId).emit("pvp:attacked", {
           attacker: result.attackerName,
+          defender: result.defenderName,
           winner: result.winner,
+          loser: result.loser,
           reward: result.reward,
+          duelMode: result.duelMode,
+          battleLog: result.battleLog,
+          loserDied: result.loserDied,
         });
       }
     }
-    res.json(result);
+    const { socketEvents, ...clientResult } = result;
+    res.json(clientResult);
   } catch (err) {
     console.error("PVP 失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// PVP: 設定防禦武器
+router.post("/pvp/set-defense-weapon", ensureAuth, async (req, res) => {
+  try {
+    const { weaponIndex } = req.body;
+    const idx = parseInt(weaponIndex, 10);
+    if (Number.isNaN(idx) || idx < 0) {
+      return res.status(400).json({ error: "無效的武器索引" });
+    }
+    const user = await db.findOne("user", { userId: req.user.discordId });
+    if (!user) return res.status(404).json({ error: "角色不存在" });
+    if (!user.weaponStock?.[idx]) {
+      return res.status(400).json({ error: `武器 #${idx} 不存在` });
+    }
+    await db.update(
+      "user",
+      { userId: req.user.discordId },
+      { $set: { defenseWeaponIndex: idx } },
+    );
+    res.json({ success: true, defenseWeaponIndex: idx });
+  } catch (err) {
+    console.error("設定防禦武器失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
   }
 });
@@ -469,7 +501,7 @@ router.post("/solo-adventure", ensureAuth, async (req, res) => {
 });
 
 // Player list
-router.get("/players", async (req, res) => {
+router.get("/players", ensureAuth, async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const result = await list(page);
@@ -486,12 +518,7 @@ router.get("/players", async (req, res) => {
 // Graveyard (墓碑紀錄)
 router.get("/graveyard", async (req, res) => {
   try {
-    const DEATH_CAUSES = [
-      "solo_adventure_death",
-      "laughing_coffin_mine",
-      "laughing_coffin_solo",
-      "debt",
-    ];
+    const DEATH_CAUSES = config.DEATH_CAUSES;
     const logs = await db.find("bankruptcy_log", {
       cause: { $in: DEATH_CAUSES },
     });
@@ -502,6 +529,7 @@ router.get("/graveyard", async (req, res) => {
       laughing_coffin_mine: "微笑棺木襲擊",
       laughing_coffin_solo: "微笑棺木襲擊",
       debt: "負債破產",
+      pvp_total_loss: "決鬥陣亡",
     };
     const graves = logs.map((log) => ({
       name: log.name,

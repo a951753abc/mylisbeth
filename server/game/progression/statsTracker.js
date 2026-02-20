@@ -19,6 +19,12 @@ const VALID_STATS = [
   // Season 4
   "totalSoloAdventures",
   "totalLoans",
+  // Season 5: PVP 決鬥
+  "totalDuelsPlayed",
+  "duelKills",
+  "firstStrikeWins",
+  "halfLossWins",
+  "totalLossWins",
 ];
 
 async function increment(userId, statName, amount = 1) {

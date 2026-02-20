@@ -1,5 +1,6 @@
 const db = require("../db.js");
 const _ = require("lodash");
+const config = require("./config.js");
 
 const PLAYERS_PER_PAGE = 10;
 
@@ -10,7 +11,7 @@ module.exports = async function (page) {
 
   const allUsers = await db.find("user", {});
   const deadCount = await db.count("bankruptcy_log", {
-    cause: { $in: ["solo_adventure_death", "laughing_coffin_mine", "laughing_coffin_solo", "debt"] },
+    cause: { $in: config.DEATH_CAUSES },
   });
 
   const totalAdventurers = allUsers.length + deadCount;
@@ -30,11 +31,14 @@ module.exports = async function (page) {
 
   const players = usersOnPage.map((user, index) => ({
     rank: startIndex + index + 1,
+    userId: user.userId,
     name: user.name,
     forgeLevel: _.get(user, "forgeLevel", 1),
     mineLevel: _.get(user, "mineLevel", 1),
     currentFloor: _.get(user, "currentFloor", 1),
     title: _.get(user, "title", null),
+    isPK: _.get(user, "isPK", false),
+    battleLevel: _.get(user, "battleLevel", 1),
   }));
 
   return {

@@ -8,6 +8,7 @@ const { destroyWeapon } = require("../../weapon/weapon.js");
 const { killNpc } = require("../../npc/npcManager.js");
 const { increment } = require("../../progression/statsTracker.js");
 const { getEffectiveStats } = require("../../npc/npcStats.js");
+const { getBattleLevelBonus, awardBattleExp } = require("../../battleLevel.js");
 
 const LC = config.RANDOM_EVENTS.LAUGHING_COFFIN;
 const SOLO = config.SOLO_ADV;
@@ -106,17 +107,18 @@ function buildCombatInfo(user, actionType, actionResult) {
     };
   }
 
-  // soloAdv / mine：鍛造師親自戰鬥
+  // soloAdv / mine：鍛造師親自戰鬥（含 battleLevel 加成）
   const bestIdx = findBestWeaponIndex(weapons);
   if (bestIdx === null) return { canFight: false };
 
   const weapon = weapons[bestIdx];
+  const lvBonus = getBattleLevelBonus(user.battleLevel || 1);
   return {
     canFight: true,
     isNpc: false,
     playerSide: {
       name: user.name,
-      hp: SOLO.BASE_HP,
+      hp: SOLO.BASE_HP + lvBonus.hpBonus,
       isHiredNpc: false,
     },
     weapon: {
@@ -154,6 +156,7 @@ async function processWin(user, battleResult, enemy) {
     Math.floor(Math.random() * (LC.WIN_COL_MAX - LC.WIN_COL_MIN + 1));
   await awardCol(user.userId, colReward);
   await increment(user.userId, "laughingCoffinDefeats");
+  await awardBattleExp(user.userId, config.BATTLE_LEVEL.EXP_LC_WIN);
 
   return {
     eventId: "laughing_coffin",

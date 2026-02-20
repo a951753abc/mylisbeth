@@ -26,6 +26,7 @@ async function sellItem(userId, itemIndex, quantity) {
 
   const user = await db.findOne("user", { userId });
   if (!user) return { error: "角色不存在" };
+  if (user.isPK) return { error: "你是紅名玩家，城鎮商店拒絕為你服務。" };
 
   const item = (user.itemStock || [])[itemIndex];
   if (!item) return { error: "找不到該素材" };
@@ -81,6 +82,7 @@ async function sellWeapon(userId, weaponIndex) {
 
   const user = await db.findOne("user", { userId });
   if (!user) return { error: "角色不存在" };
+  if (user.isPK) return { error: "你是紅名玩家，城鎮商店拒絕為你服務。" };
 
   const weapon = (user.weaponStock || [])[weaponIndex];
   if (!weapon) return { error: "找不到該武器" };

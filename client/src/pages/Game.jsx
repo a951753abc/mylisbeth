@@ -295,7 +295,7 @@ export default function Game({ user, onLogout }) {
         )}
         {tab === "inventory" && <InventoryPanel user={gameUser} />}
         {tab === "log" && <BattleLog logs={battleLogs} />}
-        {tab === "players" && <PlayerList />}
+        {tab === "players" && <PlayerList user={gameUser} onAction={handleAction} />}
         {tab === "tavern" && (
           <TavernPanel user={gameUser} onRefresh={fetchUser} />
         )}

@@ -33,9 +33,9 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
   const [soloWeapon, setSoloWeapon] = useState("");
   const [soloConfirm, setSoloConfirm] = useState(false);
 
-  // PVP state
-  const [pvpTarget, setPvpTarget] = useState("");
-  const [pvpWeapon, setPvpWeapon] = useState("");
+  // Defense weapon state
+  const [defenseWeapon, setDefenseWeapon] = useState(user.defenseWeaponIndex ?? 0);
+  const [defenseMsg, setDefenseMsg] = useState("");
 
   // Forge: items available for mat1 (exclude mat2 selection if quantity insufficient)
   const availableForMat1 = useMemo(() => {
@@ -127,11 +127,11 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
         <div className="stat-grid">
           <div className="stat-item">
             <div className="label">挖礦等級</div>
-            <div className="value">{user.mineLevel}</div>
+            <div className="value">Lv.{user.mineLevel}{user.mineLevel < 3 ? ` (${user.mineExp || 0}/${user.mineLevel === 1 ? 150 : 200})` : " MAX"}</div>
           </div>
           <div className="stat-item">
             <div className="label">鍛造等級</div>
-            <div className="value">{user.forgeLevel}</div>
+            <div className="value">Lv.{user.forgeLevel}{user.forgeLevel < 3 ? ` (${user.forgeExp || 0}/500)` : " MAX"}</div>
           </div>
           <div className="stat-item">
             <div className="label">死亡次數</div>
@@ -524,46 +524,61 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
         </div>
       </div>
 
-      {/* PVP */}
+      {/* 防禦武器設定 & 戰鬥資訊 */}
       <div className="card">
-        <h2>PVP 挑戰</h2>
-        {user.isInDebt && (
-          <div className="error-msg" style={{ marginBottom: "0.4rem" }}>
-            ⚠️ 負債中，PVP 功能已鎖定！請先至「帳單」tab 還清負債。
-          </div>
-        )}
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          <input
-            type="text"
-            placeholder="對手角色名稱"
-            value={pvpTarget}
-            onChange={(e) => setPvpTarget(e.target.value)}
-            style={{ width: "130px" }}
-          />
+        <h2>決鬥設定</h2>
+        <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.4rem" }}>
+          戰鬥等級 <strong style={{ color: "var(--warning)" }}>Lv.{user.battleLevel || 1}</strong>
+          {user.isPK && <span style={{ color: "#ef4444", marginLeft: "0.5rem", fontWeight: "bold" }}>[紅名]</span>}
+        </div>
+        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.4rem" }}>
+          被其他玩家挑戰時自動使用的武器：
+        </div>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
           <select
-            value={pvpWeapon}
-            onChange={(e) => setPvpWeapon(e.target.value)}
+            value={defenseWeapon}
+            onChange={(e) => setDefenseWeapon(Number(e.target.value))}
           >
-            <option value="">— 選擇武器 —</option>
             {(user.weapons || []).map((weapon) => (
-              <option key={weapon.index} value={String(weapon.index)}>
-                #{weapon.index} {weapon.rarityLabel ? `【${weapon.rarityLabel}】` : ""}{weapon.weaponName} [{weapon.name}] ATK:
-                {weapon.atk} 耐久:{weapon.durability}
+              <option key={weapon.index} value={weapon.index}>
+                #{weapon.index} {weapon.rarityLabel ? `【${weapon.rarityLabel}】` : ""}{weapon.weaponName} ATK:{weapon.atk}
               </option>
             ))}
           </select>
           <button
-            className="btn-danger"
-            disabled={busy || !pvpTarget || !pvpWeapon}
-            onClick={() =>
-              doAction("pvp", {
-                targetName: pvpTarget,
-                weaponId: pvpWeapon,
-              })
-            }
+            className="btn-primary"
+            disabled={busy}
+            onClick={async () => {
+              setDefenseMsg("");
+              try {
+                const res = await fetch("/api/game/pvp/set-defense-weapon", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include",
+                  body: JSON.stringify({ weaponIndex: defenseWeapon }),
+                });
+                const data = await res.json();
+                if (data.error) {
+                  setDefenseMsg(data.error);
+                } else {
+                  setDefenseMsg("防禦武器已更新！");
+                }
+              } catch {
+                setDefenseMsg("設定失敗");
+              }
+            }}
+            style={{ padding: "0.3rem 0.6rem", fontSize: "0.8rem" }}
           >
-            挑戰
+            設定
           </button>
+        </div>
+        {defenseMsg && (
+          <div style={{ fontSize: "0.75rem", color: defenseMsg.includes("失敗") || defenseMsg.includes("error") ? "#f87171" : "#4ade80", marginTop: "0.3rem" }}>
+            {defenseMsg}
+          </div>
+        )}
+        <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", marginTop: "0.3rem" }}>
+          前往「名冊」tab 可向其他玩家發起決鬥
         </div>
       </div>
 

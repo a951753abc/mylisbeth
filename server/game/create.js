@@ -50,6 +50,12 @@ module.exports = async function (name, userId) {
       laughingCoffinDefeats: 0,
       totalSoloAdventures: 0,
       totalLoans: 0,
+      // Season 5
+      totalDuelsPlayed: 0,
+      duelKills: 0,
+      firstStrikeWins: 0,
+      halfLossWins: 0,
+      totalLossWins: 0,
     },
     // Season 3
     gameCreatedAt: now,
@@ -66,6 +72,17 @@ module.exports = async function (name, userId) {
     stamina: 100,
     maxStamina: 100,
     lastStaminaRegenAt: now,
+    // 挖礦 & 鍛造等級
+    mineLevel: 1,
+    mine: 0,
+    forgeLevel: 1,
+    forge: 0,
+    // Season 5: 戰鬥等級 & PVP
+    battleLevel: 1,
+    battleExp: 0,
+    isPK: false,
+    pkKills: 0,
+    defenseWeaponIndex: 0,
   });
   return { success: true, message: "角色" + name + "建立完成" };
 };

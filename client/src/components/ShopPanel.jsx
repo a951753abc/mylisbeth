@@ -67,10 +67,17 @@ export default function ShopPanel({ user, onRefresh }) {
     }
   };
 
+  const isPK = user.isPK === true;
+
   return (
     <div>
       <div className="card">
         <h2>收破爛商人</h2>
+        {isPK && (
+          <div className="error-msg" style={{ marginBottom: "0.5rem" }}>
+            你是紅名玩家，城鎮商店拒絕為你服務。
+          </div>
+        )}
         <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
           以隨機低價回收素材和武器。不公平，但能換 Col。
         </p>
@@ -130,7 +137,7 @@ export default function ShopPanel({ user, onRefresh }) {
                     <td style={{ padding: "0.4rem 0.5rem" }}>
                       <button
                         className="btn-warning"
-                        disabled={busy || item.num < 1}
+                        disabled={busy || item.num < 1 || isPK}
                         onClick={() => handleSellItem(item.index)}
                         style={{ padding: "0.2rem 0.6rem", fontSize: "0.78rem" }}
                       >
@@ -179,7 +186,7 @@ export default function ShopPanel({ user, onRefresh }) {
                     <td style={{ padding: "0.4rem 0.5rem" }}>
                       <button
                         className="btn-danger"
-                        disabled={busy}
+                        disabled={busy || isPK}
                         onClick={() => handleSellWeapon(w.index)}
                         style={{ padding: "0.2rem 0.6rem", fontSize: "0.78rem" }}
                       >
