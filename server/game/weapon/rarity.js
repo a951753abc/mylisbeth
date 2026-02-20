@@ -8,13 +8,17 @@ const RARITY_TIERS = [
 ];
 
 function calculateRarity(weapon) {
+  // cri 越低越好（暴擊門檻），反轉為正向貢獻：14 - cri
+  // 使用 maxDurability（不隨戰鬥損耗變動）
+  const criContribution = Math.max(0, 14 - (weapon.cri || 10));
+  const durContribution = weapon.maxDurability || weapon.durability || 0;
   const totalScore =
     (weapon.atk || 0) +
     (weapon.def || 0) +
     (weapon.agi || 0) +
-    (weapon.cri || 0) +
+    criContribution +
     (weapon.hp  || 0) +
-    (weapon.durability || 0);
+    durContribution;
 
   for (const tier of RARITY_TIERS) {
     if (totalScore >= tier.minScore) {

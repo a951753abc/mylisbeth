@@ -55,9 +55,9 @@ module.exports = function (user) {
           (value.atk || 0) +
             (value.def || 0) +
             (value.agi || 0) +
-            (value.cri || 0) +
+            Math.max(0, 14 - (value.cri || 10)) +
             (value.hp || 0) +
-            (value.durability || 0),
+            (value.maxDurability || value.durability || 0),
       });
     });
   }

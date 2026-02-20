@@ -32,6 +32,31 @@ function getStatName(itemId) {
   );
 }
 
+// cri 是暴擊門檻（2d6 >= cri 觸發暴擊），越低越容易暴擊
+// 下限 5 防止無限暴擊迴圈（P(2d6>=5)≈83%，期望暴擊次數≈5）
+const MIN_CRI = 5;
+
+function applyStatBoost(weapon, perName, boost) {
+  if (perName === "cri") {
+    weapon.cri = Math.max(MIN_CRI, (weapon.cri || 10) - boost);
+    return;
+  }
+  if (perName === "durability") {
+    const oldMax = weapon.maxDurability || weapon.durability || 0;
+    weapon.durability = (weapon.durability || 0) + boost;
+    weapon.maxDurability = oldMax + boost;
+    return;
+  }
+  weapon[perName] = (weapon[perName] || 0) + boost;
+}
+
+function getStatBoostText(perName, boost) {
+  if (perName === "cri") {
+    return "暴擊門檻 降低" + boost + "點。（暴擊更容易觸發！）\n";
+  }
+  return perName + " 提升" + boost + "點。 \n";
+}
+
 module.exports.buffWeapon = function (cmd, user) {
   const thisWeapon = user.weaponStock[cmd[2]];
   const forgeLevel = _.get(user, "forgeLevel", 1);
@@ -48,9 +73,8 @@ module.exports.buffWeapon = function (cmd, user) {
       statBoost = hpUp[hpIndex];
     }
     thisWeapon.text += "強化成功！\n";
-    thisWeapon.text += perName;
-    thisWeapon.text += " 提升" + statBoost + "點。 \n";
-    thisWeapon[perName] += statBoost;
+    thisWeapon.text += getStatBoostText(perName, statBoost);
+    applyStatBoost(thisWeapon, perName, statBoost);
     thisWeapon.buff = _.get(thisWeapon, "buff", 0) + 1;
     isBuff = true;
   } else {
@@ -108,26 +132,23 @@ module.exports.createWeapon = async function (cmd, user) {
     if (roll.d100Check(per)) {
       const perName = getStatName(user.itemStock[cmd[2]].itemId);
       weapon.text += "強化成功！\n";
-      weapon.text += perName;
-      weapon.text += " 提升" + forgeLevel + "點。 \n";
-      weapon[perName] += forgeLevel;
+      weapon.text += getStatBoostText(perName, forgeLevel);
+      applyStatBoost(weapon, perName, forgeLevel);
     }
   } else {
     let per = 20 + user.itemStock[cmd[2]].itemLevel * 5;
     if (roll.d100Check(per)) {
       const perName = getStatName(user.itemStock[cmd[2]].itemId);
       weapon.text += "強化成功！\n";
-      weapon.text += perName;
-      weapon.text += " 提升" + forgeLevel + "點。 \n";
-      weapon[perName] += forgeLevel;
+      weapon.text += getStatBoostText(perName, forgeLevel);
+      applyStatBoost(weapon, perName, forgeLevel);
     }
     per = 20 + user.itemStock[cmd[3]].itemLevel * 5;
     if (roll.d100Check(per)) {
       const perName = getStatName(user.itemStock[cmd[3]].itemId);
       weapon.text += "強化成功！\n";
-      weapon.text += perName;
-      weapon.text += " 提升" + forgeLevel + "點。 \n";
-      weapon[perName] += forgeLevel;
+      weapon.text += getStatBoostText(perName, forgeLevel);
+      applyStatBoost(weapon, perName, forgeLevel);
     }
   }
 
@@ -160,6 +181,9 @@ function changeWeapon(weapon, type) {
       changeValue +
       "\n";
     weapon[per] += changeValue;
+    if (per === "durability") {
+      weapon.maxDurability = (weapon.maxDurability || 0) + changeValue;
+    }
   } else if (type === "fail") {
     text =
       weapon.name +
@@ -171,6 +195,9 @@ function changeWeapon(weapon, type) {
     weapon[per] -= changeValue;
     if (weapon[per] < 0) {
       weapon[per] = 0;
+    }
+    if (per === "durability") {
+      weapon.maxDurability = Math.max(0, (weapon.maxDurability || 0) - changeValue);
     }
   }
   if (weapon.text === "武器製作完成") {
