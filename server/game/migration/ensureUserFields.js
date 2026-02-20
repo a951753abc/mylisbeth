@@ -44,6 +44,8 @@ const DEFAULT_FIELDS = {
     totalEscortMissions: 0,
     totalMarketSold: 0,
     totalMarketEarned: 0,
+    // Season 7: 暫停營業
+    totalPauses: 0,
   },
   // Season 3 fields
   gameCreatedAt: null,
@@ -67,6 +69,9 @@ const DEFAULT_FIELDS = {
   mine: 0,
   forgeLevel: 1,
   forge: 0,
+  // Season 7: 暫停營業
+  businessPaused: false,
+  businessPausedAt: null,
   // Season 5: 戰鬥等級 & PVP
   battleLevel: 1,
   battleExp: 0,

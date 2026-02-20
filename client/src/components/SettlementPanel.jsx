@@ -150,6 +150,19 @@ export default function SettlementPanel({ user, onRefresh, onBankruptcy }) {
     <div className="card">
       <h2>帳單與負債</h2>
 
+      {user.businessPaused && (
+        <div style={{
+          background: "#92400e33",
+          border: "1px solid #f59e0b",
+          borderRadius: "6px",
+          padding: "0.6rem 0.8rem",
+          marginBottom: "0.8rem",
+          color: "#fbbf24",
+        }}>
+          <strong>店鋪已暫停營業</strong>：帳單暫停計算中，不會產生新的帳單或負債。
+        </div>
+      )}
+
       {data.isInDebt && (
         <div
           style={{

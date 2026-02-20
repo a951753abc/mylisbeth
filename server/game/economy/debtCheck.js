@@ -1,5 +1,5 @@
 const db = require("../../db.js");
-const { isSettlementDue } = require("../time/gameTime.js");
+const { isSettlementDue, getNextSettlementTime } = require("../time/gameTime.js");
 const { processSettlement } = require("./settlement.js");
 
 /**
@@ -13,6 +13,19 @@ async function checkSettlement(userId) {
   if (!user) return { checked: false };
 
   const now = Date.now();
+
+  // 暫停營業：跳過所有結算，推延下次結算時間
+  // 注意：目前 move.js 會在呼叫 checkSettlement 前攔截暫停玩家，
+  // 此守衛為防禦性設計，確保未來若有其他路徑呼叫 checkSettlement 也能正確跳過
+  if (user.businessPaused) {
+    if (isSettlementDue(user.nextSettlementAt, now)) {
+      await db.update("user", { userId }, {
+        $set: { nextSettlementAt: getNextSettlementTime(now) },
+      });
+    }
+    return { checked: true, settled: false, paused: true };
+  }
+
   if (!isSettlementDue(user.nextSettlementAt, now)) {
     return { checked: true, settled: false };
   }

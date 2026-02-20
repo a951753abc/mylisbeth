@@ -44,9 +44,21 @@ module.exports = async function (cmd, userOrId) {
   if (!user) {
     const existing = await db.findOne("user", { userId });
     if (!existing) return { error: "請先建立角色" };
+    // 暫停營業：在冷卻錯誤前優先返回暫停提示
+    if (existing.businessPaused) {
+      return { error: "你的店已暫停營業，請先恢復營業才能進行操作。" };
+    }
     const moveTime = _.get(existing, "move_time", 0);
     const remaining = Math.ceil((moveTime + coolTime - now) / 1000);
     return { error: "CD時間還有" + remaining + "秒", cooldown: remaining };
+  }
+
+  // 暫停營業：封鎖所有遊戲行動，並回退冷卻時間
+  if (user.businessPaused) {
+    await db.update("user", { userId }, {
+      $set: { move_time: user.move_time || 0, lastActionAt: user.lastActionAt || 0 },
+    });
+    return { error: "你的店已暫停營業，請先恢復營業才能進行操作。" };
   }
 
   // 懶結算：CD 通過後 dispatch 前執行

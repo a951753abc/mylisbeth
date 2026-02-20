@@ -373,6 +373,15 @@ const ACHIEVEMENTS = [
     check: (user) => (user.stats?.totalColEarned || 0) >= 50000,
     titleReward: "財閥",
   },
+  // Season 7: 暫停營業
+  {
+    id: "first_pause",
+    name: "初めての休暇",
+    nameCn: "第一次休假",
+    desc: "首次使用暫停營業功能",
+    check: (user) => (user.stats?.totalPauses || 0) >= 1,
+    titleReward: "休暇中",
+  },
   // Season 6: 挖礦 & 鍛造等級里程碑
   {
     id: "mine_expert",

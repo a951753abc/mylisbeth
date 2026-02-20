@@ -328,6 +328,15 @@ const TITLE_EFFECTS = {
     battleAtk: -0.25,           // 攻擊力 -25%
     battleDef: -0.20,           // 防禦力 -20%
   },
+
+  // === Season 7 新增稱號 ===
+
+  // 40. 休暇中 — 暫停營業休假者
+  "休暇中": {
+    settlementBill: -0.15,      // 帳單 -15%
+    staminaCost: -0.20,         // 體力消耗 -20%
+    battleAtk: -0.10,           // 攻擊力 -10%（悠閒風格的代價）
+  },
 };
 
 module.exports = { TITLE_EFFECTS };

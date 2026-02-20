@@ -31,6 +31,8 @@ const VALID_STATS = [
   "totalEscortMissions",
   "totalMarketSold",
   "totalMarketEarned",
+  // Season 7: 暫停營業
+  "totalPauses",
 ];
 
 async function increment(userId, statName, amount = 1) {

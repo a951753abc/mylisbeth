@@ -24,6 +24,7 @@ export default function Game({ user, onLogout }) {
   const [cooldown, setCooldown] = useState(0);
   const [bossUpdate, setBossUpdate] = useState(null);
   const [bankruptcy, setBankruptcy] = useState(null);
+  const [isPauseLoading, setIsPauseLoading] = useState(false);
   const { events } = useSocket(gameUser?.userId);
 
   const fetchUser = useCallback(async () => {
@@ -139,6 +140,34 @@ export default function Game({ user, onLogout }) {
     setGameUser((prev) => prev ? { ...prev, title: newTitle } : prev);
   };
 
+  const handleTogglePause = async () => {
+    if (isPauseLoading) return;
+    const nextPaused = !gameUser.businessPaused;
+    const msg = nextPaused
+      ? "確定要暫停營業嗎？暫停期間所有遊戲行動將被封鎖，但帳單也會暫停計算。"
+      : "確定要恢復營業嗎？結算計時器將重新開始。";
+    if (!window.confirm(msg)) return;
+    setIsPauseLoading(true);
+    try {
+      const res = await fetch("/api/game/pause-business", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ paused: nextPaused }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+      await fetchUser();
+    } catch {
+      alert("操作失敗，請稍後再試");
+    } finally {
+      setIsPauseLoading(false);
+    }
+  };
+
   if (loading) {
     return <div className="loading">載入遊戲資料中...</div>;
   }
@@ -187,6 +216,14 @@ export default function Game({ user, onLogout }) {
             {user.username}
           </span>
           <button
+            className={gameUser.businessPaused ? "btn-primary" : "btn-warning"}
+            onClick={handleTogglePause}
+            disabled={isPauseLoading}
+            style={{ padding: "0.4rem 0.8rem", fontSize: "0.8rem" }}
+          >
+            {isPauseLoading ? "處理中..." : gameUser.businessPaused ? "恢復營業" : "暫停營業"}
+          </button>
+          <button
             className="btn-danger"
             onClick={onLogout}
             style={{ padding: "0.4rem 0.8rem", fontSize: "0.8rem" }}
@@ -197,6 +234,20 @@ export default function Game({ user, onLogout }) {
       </div>
 
       <div className="container">
+        {gameUser.businessPaused && (
+          <div style={{
+            background: "#92400e33",
+            border: "1px solid #f59e0b",
+            borderRadius: "6px",
+            padding: "0.5rem 0.8rem",
+            marginBottom: "0.5rem",
+            color: "#fbbf24",
+            textAlign: "center",
+            fontSize: "0.85rem",
+          }}>
+            店鋪已暫停營業 — 所有行動已凍結，帳單暫停計算。點擊「恢復營業」繼續遊戲。
+          </div>
+        )}
         <CooldownTimer cooldown={cooldown} onExpire={() => setCooldown(0)} />
 
         <div className="nav-tabs-grouped">

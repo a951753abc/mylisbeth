@@ -7,7 +7,7 @@ const help = require("../game/help.js");
 const list = require("../game/list.js");
 const db = require("../db.js");
 const { getFloor } = require("../game/floor/floorData.js");
-const { getAllDefinitions } = require("../game/progression/achievement.js");
+const { getAllDefinitions, checkAndAward } = require("../game/progression/achievement.js");
 const claimDaily = require("../game/progression/daily.js");
 const { calculateBill, payDebt } = require("../game/economy/settlement.js");
 const { takeLoan, getLoanInfo } = require("../game/economy/loan.js");
@@ -15,6 +15,8 @@ const { sellItem, sellWeapon } = require("../game/economy/shop.js");
 const { TITLE_EFFECTS } = require("../game/title/titleEffects.js");
 const { validateName } = require("../utils/sanitize.js");
 const config = require("../game/config.js");
+const { getNextSettlementTime } = require("../game/time/gameTime.js");
+const { increment } = require("../game/progression/statsTracker.js");
 
 // Create character
 router.post("/create", ensureAuth, async (req, res) => {
@@ -559,6 +561,48 @@ router.get("/title-effects", ensureAuth, async (req, res) => {
     res.json({ title, effects, allEffects: TITLE_EFFECTS });
   } catch (err) {
     console.error("取得稱號效果失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// 暫停/恢復營業
+router.post("/pause-business", ensureAuth, async (req, res) => {
+  try {
+    const userId = req.user.discordId;
+    const user = await db.findOne("user", { userId });
+    if (!user) return res.status(404).json({ error: "角色不存在" });
+
+    const { paused } = req.body;
+    if (typeof paused !== "boolean") {
+      return res.status(400).json({ error: "參數錯誤" });
+    }
+
+    if (paused === (user.businessPaused || false)) {
+      return res.status(400).json({
+        error: paused ? "已經處於暫停狀態" : "目前沒有暫停營業",
+      });
+    }
+
+    const now = Date.now();
+    const updates = paused
+      ? { businessPaused: true, businessPausedAt: now }
+      : {
+          businessPaused: false,
+          businessPausedAt: null,
+          nextSettlementAt: getNextSettlementTime(now),
+        };
+
+    await db.update("user", { userId }, { $set: updates });
+
+    // 暫停時記錄統計並檢查成就
+    if (paused) {
+      await increment(userId, "totalPauses");
+      await checkAndAward(userId);
+    }
+
+    res.json({ success: true, businessPaused: paused });
+  } catch (err) {
+    console.error("暫停營業失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
   }
 });

@@ -143,5 +143,8 @@ module.exports = function (user) {
     isPK: _.get(user, "isPK", false),
     pkKills: _.get(user, "pkKills", 0),
     defenseWeaponIndex: _.get(user, "defenseWeaponIndex", 0),
+    // Season 7: 暫停營業
+    businessPaused: _.get(user, "businessPaused", false),
+    businessPausedAt: _.get(user, "businessPausedAt", null),
   };
 };
