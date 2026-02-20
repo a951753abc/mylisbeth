@@ -4,7 +4,7 @@ import NarrativeDisplay from "./NarrativeDisplay.jsx";
 import RandomEventDisplay from "./RandomEventDisplay.jsx";
 import { useStaminaTimer, formatCountdown } from "../hooks/useStaminaTimer.js";
 
-export default function GamePanel({ user, onAction, setCooldown, onUserUpdate }) {
+export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, cooldownActive }) {
   const [result, setResult] = useState(null);
   const [forgeResult, setForgeResult] = useState(null);
   const [error, setError] = useState("");
@@ -95,6 +95,8 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
 
   const staminaRatio = displayStamina / maxStamina;
 
+  const isDisabled = busy || cooldownActive;
+
   const doAction = async (action, body = {}) => {
     setBusy(true);
     setError("");
@@ -134,6 +136,112 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
       )}
 
       {error && <div className="error-msg">{error}</div>}
+
+      {/* Result display — 置頂方便閱讀 */}
+      {result && (
+        <div className="card result-card-highlight">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2>結果</h2>
+            <button
+              className="btn-secondary"
+              onClick={() => setResult(null)}
+              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
+            >
+              關閉
+            </button>
+          </div>
+          <div className="battle-log">
+            {result.text && <div>{result.text}</div>}
+            {result.narrative && (
+              <NarrativeDisplay text={result.narrative} done={true} />
+            )}
+            {result.durabilityText && <div>{result.durabilityText}</div>}
+            {result.reward && <div>{result.reward}</div>}
+            {result.battleLog && <div>{result.battleLog}</div>}
+            {result.colEarned > 0 && (
+              <div style={{ color: "var(--gold)" }}>
+                +{result.colEarned} Col
+              </div>
+            )}
+            {result.colSpent > 0 && (
+              <div style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>
+                委託費：-{result.colSpent} Col
+              </div>
+            )}
+            {result.floor && (
+              <div style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>
+                📍 第 {result.floor} 層 {result.floorName}
+              </div>
+            )}
+            {result.weapon && (
+              <div
+                style={{
+                  marginTop: "0.5rem",
+                  border: result.weapon.rarityColor
+                    ? `1px solid ${result.weapon.rarityColor}`
+                    : undefined,
+                  borderRadius: "6px",
+                  padding: "0.5rem",
+                  boxShadow: result.weapon.rarityColor
+                    ? `0 0 10px ${result.weapon.rarityColor}55`
+                    : undefined,
+                }}
+              >
+                {result.weapon.rarityLabel && (
+                  <div
+                    className="rarity-badge"
+                    style={{
+                      color: result.weapon.rarityColor,
+                      borderColor: result.weapon.rarityColor,
+                      marginBottom: "0.4rem",
+                    }}
+                  >
+                    {result.weapon.rarityLabel}
+                    {result.weapon.totalScore != null && (
+                      <span className="rarity-score">
+                        {result.weapon.totalScore}
+                      </span>
+                    )}
+                  </div>
+                )}
+                <strong>{result.weapon.weaponName}</strong> [
+                {result.weapon.name}]
+                <div className="stat-grid" style={{ marginTop: "0.25rem" }}>
+                  <div className="stat-item">
+                    <span className="label">ATK</span>{" "}
+                    <span className="value">{result.weapon.atk}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="label">DEF</span>{" "}
+                    <span className="value">{result.weapon.def}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="label">AGI</span>{" "}
+                    <span className="value">{result.weapon.agi}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="label">CRI</span>{" "}
+                    <span className="value">{result.weapon.cri}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="label">HP</span>{" "}
+                    <span className="value">{result.weapon.hp}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="label">耐久</span>{" "}
+                    <span className="value">{result.weapon.durability}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 隨機事件 */}
+            {result.randomEvent && (
+              <RandomEventDisplay event={result.randomEvent} />
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="card">
@@ -216,10 +324,10 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
         <h2>挖礦</h2>
         <button
           className="btn-primary"
-          disabled={busy || displayStamina < 1}
+          disabled={isDisabled || displayStamina < 1}
           onClick={() => doAction("mine")}
         >
-          {busy ? "挖礦中..." : "開始挖礦"}
+          {busy ? "挖礦中..." : cooldownActive ? "冷卻中..." : "開始挖礦"}
         </button>
         <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", marginTop: "0.3rem" }}>
           消耗體力：1～6 點
@@ -275,7 +383,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
           </select>
           <button
             className="btn-warning"
-            disabled={busy || !forgeMat1 || !forgeMat2 || displayStamina < 3}
+            disabled={isDisabled || !forgeMat1 || !forgeMat2 || displayStamina < 3}
             onClick={() =>
               doAction("forge", {
                 material1: forgeMat1,
@@ -327,7 +435,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
           </select>
           <button
             className="btn-success"
-            disabled={busy || !upWeapon || !upMat}
+            disabled={isDisabled || !upWeapon || !upMat}
             onClick={() =>
               doAction("upgrade", {
                 weaponId: upWeapon,
@@ -379,7 +487,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
           </select>
           <button
             className="btn-warning"
-            disabled={busy || !repairWeapon || !repairMat || displayStamina < 1}
+            disabled={isDisabled || !repairWeapon || !repairMat || displayStamina < 1}
             onClick={() =>
               doAction("repair", {
                 weaponId: repairWeapon,
@@ -450,7 +558,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
           </select>
           <button
             className="btn-primary"
-            disabled={busy || !advNpc}
+            disabled={isDisabled || !advNpc}
             onClick={() =>
               doAction("adventure", {
                 weaponId: advWeapon || undefined,
@@ -458,7 +566,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
               })
             }
           >
-            {busy ? "冒險中..." : "出發冒險"}
+            {busy ? "冒險中..." : cooldownActive ? "冷卻中..." : "出發冒險"}
           </button>
         </div>
         {(user.hiredNpcs || []).length === 0 && (
@@ -499,7 +607,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
         {!soloConfirm ? (
           <button
             className="btn-danger"
-            disabled={busy || !soloWeapon || displayStamina < 15}
+            disabled={isDisabled || !soloWeapon || displayStamina < 15}
             onClick={() => setSoloConfirm(true)}
             style={{ marginBottom: "0.3rem" }}
           >
@@ -510,17 +618,16 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
             <span style={{ fontSize: "0.8rem", color: "#f87171" }}>確定出擊？死亡不可復原！</span>
             <button
               className="btn-danger"
-              disabled={busy}
+              disabled={isDisabled}
               onClick={async () => {
                 setSoloConfirm(false);
                 await doAction("solo-adventure", { weaponId: soloWeapon || undefined });
               }}
             >
-              {busy ? "出擊中..." : "確定"}
+              {busy ? "出擊中..." : cooldownActive ? "冷卻中..." : "確定"}
             </button>
             <button
               className="btn-secondary"
-              disabled={busy}
               onClick={() => setSoloConfirm(false)}
             >
               取消
@@ -552,7 +659,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
           </select>
           <button
             className="btn-primary"
-            disabled={busy}
+            disabled={isDisabled}
             onClick={async () => {
               setDefenseMsg("");
               try {
@@ -587,104 +694,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate })
         </div>
       </div>
 
-      {/* Result display */}
-      {result && (
-        <div className="card">
-          <h2>結果</h2>
-          <div className="battle-log">
-            {result.text && <div>{result.text}</div>}
-            {result.narrative && (
-              <NarrativeDisplay text={result.narrative} done={true} />
-            )}
-            {result.durabilityText && <div>{result.durabilityText}</div>}
-            {result.reward && <div>{result.reward}</div>}
-            {result.battleLog && <div>{result.battleLog}</div>}
-            {result.colEarned > 0 && (
-              <div style={{ color: "var(--gold)" }}>
-                +{result.colEarned} Col
-              </div>
-            )}
-            {result.colSpent > 0 && (
-              <div style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>
-                委託費：-{result.colSpent} Col
-              </div>
-            )}
-            {result.floor && (
-              <div
-                style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}
-              >
-                📍 第 {result.floor} 層 {result.floorName}
-              </div>
-            )}
-            {result.weapon && (
-              <div
-                style={{
-                  marginTop: "0.5rem",
-                  border: result.weapon.rarityColor
-                    ? `1px solid ${result.weapon.rarityColor}`
-                    : undefined,
-                  borderRadius: "6px",
-                  padding: "0.5rem",
-                  boxShadow: result.weapon.rarityColor
-                    ? `0 0 10px ${result.weapon.rarityColor}55`
-                    : undefined,
-                }}
-              >
-                {result.weapon.rarityLabel && (
-                  <div
-                    className="rarity-badge"
-                    style={{
-                      color: result.weapon.rarityColor,
-                      borderColor: result.weapon.rarityColor,
-                      marginBottom: "0.4rem",
-                    }}
-                  >
-                    {result.weapon.rarityLabel}
-                    {result.weapon.totalScore != null && (
-                      <span className="rarity-score">
-                        {result.weapon.totalScore}
-                      </span>
-                    )}
-                  </div>
-                )}
-                <strong>{result.weapon.weaponName}</strong> [
-                {result.weapon.name}]
-                <div className="stat-grid" style={{ marginTop: "0.25rem" }}>
-                  <div className="stat-item">
-                    <span className="label">ATK</span>{" "}
-                    <span className="value">{result.weapon.atk}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="label">DEF</span>{" "}
-                    <span className="value">{result.weapon.def}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="label">AGI</span>{" "}
-                    <span className="value">{result.weapon.agi}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="label">CRI</span>{" "}
-                    <span className="value">{result.weapon.cri}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="label">HP</span>{" "}
-                    <span className="value">{result.weapon.hp}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="label">耐久</span>{" "}
-                    <span className="value">{result.weapon.durability}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 隨機事件 */}
-            {result.randomEvent && (
-              <RandomEventDisplay event={result.randomEvent} />
-            )}
-          </div>
-        </div>
-      )}
+      {/* (結果顯示已移至頂部) */}
     </div>
   );
 }

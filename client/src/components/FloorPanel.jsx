@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import BossHealthBar from './BossHealthBar';
 
-export default function FloorPanel({ user, onAction, bossUpdate }) {
+export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive }) {
   const [floorInfo, setFloorInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -212,10 +212,10 @@ export default function FloorPanel({ user, onAction, bossUpdate }) {
               </select>
               <button
                 className="btn-danger"
-                disabled={busy || !bossNpcId}
+                disabled={busy || cooldownActive || !bossNpcId}
                 onClick={handleBossAttack}
               >
-                {busy ? '攻擊中...' : `攻擊 ${floor.boss.name}`}
+                {busy ? '攻擊中...' : cooldownActive ? '冷卻中...' : `攻擊 ${floor.boss.name}`}
               </button>
             </div>
             {(user.hiredNpcs || []).length === 0 && (
@@ -225,7 +225,15 @@ export default function FloorPanel({ user, onAction, bossUpdate }) {
             )}
             {error && <div className="error-msg" style={{ marginTop: '0.5rem' }}>{error}</div>}
             {result && (
-              <div style={{ marginTop: '0.5rem', color: 'var(--gold)', fontWeight: 'bold', whiteSpace: 'pre-line' }}>
+              <div className="result-card-highlight" style={{
+                marginTop: '0.5rem',
+                color: 'var(--gold)',
+                fontWeight: 'bold',
+                whiteSpace: 'pre-line',
+                padding: '0.75rem',
+                borderRadius: '6px',
+                background: 'var(--bg-secondary)',
+              }}>
                 {result}
               </div>
             )}

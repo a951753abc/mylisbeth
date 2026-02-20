@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function CooldownTimer({ cooldown, onExpire }) {
   const [remaining, setRemaining] = useState(cooldown);
+  const totalRef = useRef(cooldown);
 
   useEffect(() => {
     setRemaining(cooldown);
+    totalRef.current = cooldown;
   }, [cooldown]);
 
   useEffect(() => {
@@ -24,9 +26,20 @@ export default function CooldownTimer({ cooldown, onExpire }) {
 
   if (remaining <= 0) return null;
 
+  const total = totalRef.current;
+  const progress = total > 0 ? (remaining / total) * 100 : 0;
+
   return (
-    <div className="cooldown-bar">
-      CD 冷卻中... {remaining} 秒
+    <div className="cooldown-container">
+      <div className="cooldown-text">
+        冷卻中 <span className="cooldown-seconds">{remaining}s</span>
+      </div>
+      <div className="cooldown-track">
+        <div
+          className="cooldown-fill"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
     </div>
   );
 }

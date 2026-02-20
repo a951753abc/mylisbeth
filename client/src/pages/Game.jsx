@@ -27,6 +27,10 @@ export default function Game({ user, onLogout }) {
   const [isPauseLoading, setIsPauseLoading] = useState(false);
   const { events } = useSocket(gameUser?.userId);
 
+  const MOVE_COOLDOWN_SECONDS = 5;
+  const handleCooldownExpire = useCallback(() => setCooldown(0), []);
+  const isCooldownActive = cooldown > 0;
+
   const fetchUser = useCallback(async () => {
     try {
       const res = await fetch("/api/user/me", { credentials: "include" });
@@ -132,6 +136,8 @@ export default function Game({ user, onLogout }) {
       return { error: data.error };
     }
     setBattleLogs((prev) => [...prev, { action, ...data, time: Date.now() }]);
+    // 成功操作後啟動本地 CD（與伺服器 MOVE_COOLDOWN 同步）
+    setCooldown(MOVE_COOLDOWN_SECONDS);
     await fetchUser();
     return data;
   };
@@ -248,7 +254,7 @@ export default function Game({ user, onLogout }) {
             店鋪已暫停營業 — 所有行動已凍結，帳單暫停計算。點擊「恢復營業」繼續遊戲。
           </div>
         )}
-        <CooldownTimer cooldown={cooldown} onExpire={() => setCooldown(0)} />
+        <CooldownTimer cooldown={cooldown} onExpire={handleCooldownExpire} />
 
         <div className="nav-tabs-grouped">
           <div className="nav-group">
@@ -297,6 +303,7 @@ export default function Game({ user, onLogout }) {
             onAction={handleAction}
             setCooldown={setCooldown}
             onUserUpdate={fetchUser}
+            cooldownActive={isCooldownActive}
           />
         )}
         {tab === "floor" && (
@@ -304,6 +311,7 @@ export default function Game({ user, onLogout }) {
             user={gameUser}
             onAction={handleAction}
             bossUpdate={bossUpdate}
+            cooldownActive={isCooldownActive}
           />
         )}
         {tab === "daily" && (
@@ -320,7 +328,7 @@ export default function Game({ user, onLogout }) {
         )}
         {tab === "inventory" && <InventoryPanel user={gameUser} onUserUpdate={fetchUser} />}
         {tab === "log" && <BattleLog logs={battleLogs} />}
-        {tab === "players" && <LeaderboardPanel user={gameUser} onAction={handleAction} />}
+        {tab === "players" && <LeaderboardPanel user={gameUser} onAction={handleAction} cooldownActive={isCooldownActive} />}
         {tab === "tavern" && (
           <TavernPanel user={gameUser} onRefresh={fetchUser} />
         )}

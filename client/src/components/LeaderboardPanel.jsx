@@ -115,7 +115,7 @@ function getSecondaryInfo(player, category, sub) {
 
 // ── Component ──────────────────────────────────────────────────────
 
-export default function LeaderboardPanel({ user, onAction }) {
+export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
   const [view, setView] = useState('leaderboard'); // 'leaderboard' | 'graveyard'
   const [category, setCategory] = useState('power');
   const [sub, setSub] = useState(null);
@@ -440,11 +440,11 @@ export default function LeaderboardPanel({ user, onAction }) {
                         )}
                         <button
                           className="btn-danger"
-                          disabled={duelBusy}
+                          disabled={duelBusy || cooldownActive}
                           onClick={handleDuel}
                           style={{ padding: '0.25rem 0.6rem', fontSize: '0.8rem' }}
                         >
-                          {duelBusy ? '決鬥中...' : '確認決鬥'}
+                          {duelBusy ? '決鬥中...' : cooldownActive ? '冷卻中...' : '確認決鬥'}
                         </button>
                       </div>
 
