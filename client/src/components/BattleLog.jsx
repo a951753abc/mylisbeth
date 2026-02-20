@@ -9,6 +9,7 @@ function getActionLabel(action) {
   if (action === 'pvp') return 'PVP 戰鬥';
   if (action === 'boss-attack') return '⚔️ Boss 攻擊';
   if (action === 'boss:damage') return '🗡️ Boss 受到傷害';
+  if (action === 'boss:phase') return '⚡ Boss 進入新階段';
   if (action === 'boss:defeated') return '🏆 Boss 被擊敗！';
   if (action === 'floor:unlocked') return '🎉 新樓層解鎖';
   if (action === 'pvp:attacked') return 'PVP 被攻擊';
@@ -85,11 +86,49 @@ export default function BattleLog({ logs }) {
               </div>
             )}
 
+            {/* Boss phase socket event */}
+            {log.action === 'boss:phase' && (
+              <div style={{ color: 'var(--warning)' }}>
+                {log.weapon && (
+                  <div>🗡️ Boss 切換武器為「{log.weapon}」！</div>
+                )}
+                <div>
+                  ⚡ {log.bossName} 發動了「{log.specialMove}」！
+                  {log.defBoost > 0 && ` 防禦力 +${log.defBoost}`}
+                  {log.defBoost < 0 && ` 防禦力 ${log.defBoost}`}
+                  {log.atkBoost > 0 && ` 攻擊力 +${log.atkBoost}`}
+                </div>
+              </div>
+            )}
+
             {/* Boss defeated socket event */}
             {log.action === 'boss:defeated' && (
               <div style={{ color: 'var(--gold)' }}>
-                第 {log.floorNumber} 層 Boss 「{log.bossName}」已被擊敗！
-                MVP: {log.mvp?.name} ({log.mvp?.damage?.toLocaleString()} 傷害)
+                <div>
+                  第 {log.floorNumber} 層 Boss 「{log.bossName}」已被擊敗！
+                  MVP: {log.mvp?.name} ({log.mvp?.damage?.toLocaleString()} 傷害)
+                </div>
+                {log.lastAttacker && (
+                  <div style={{ marginTop: '0.3rem', fontSize: '0.9rem' }}>
+                    🗡️ Last Attack: {log.lastAttacker.name}
+                  </div>
+                )}
+                {log.lastAttackDrop && (
+                  <div style={{ marginTop: '0.3rem', fontSize: '0.9rem', color: '#ffd700', fontWeight: 'bold' }}>
+                    🏆 聖遺物「{log.lastAttackDrop.nameCn}（{log.lastAttackDrop.name}）」！
+                  </div>
+                )}
+                {log.drops && log.drops.length > 0 && (
+                  <div style={{ marginTop: '0.3rem', fontSize: '0.85rem' }}>
+                    🎁 掉落物：
+                    {log.drops.map((d, di) => (
+                      <div key={di} style={{ marginLeft: '1rem' }}>
+                        {d.playerName}: {'★'.repeat(d.itemLevel)}{d.itemName}
+                        {d.isMvp ? ' (MVP保證掉落)' : ''}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

@@ -136,7 +136,7 @@ async function healNpc(userId, npcId, healType) {
  * @param {number} expGain
  * @returns {{ survived: boolean, levelUp: boolean, died?: boolean }}
  */
-async function resolveNpcBattle(userId, npcId, outcome, expGain, userTitle = null) {
+async function resolveNpcBattle(userId, npcId, outcome, expGain, userTitle = null, bossAtkBoost = 0) {
   const user = await db.findOne("user", { userId });
   if (!user) return { survived: false };
 
@@ -148,7 +148,8 @@ async function resolveNpcBattle(userId, npcId, outcome, expGain, userTitle = nul
   // 套用 npcCondLoss 稱號修正
   const condLossMod = getModifier(userTitle, "npcCondLoss");
   const baseCondLoss = NPC_CFG.CONDITION_LOSS[outcome] || 15;
-  const condLoss = Math.max(1, Math.round(baseCondLoss * condLossMod));
+  // Boss phase atkBoost 額外增加體力損耗（每點 +3）
+  const condLoss = Math.max(1, Math.round((baseCondLoss + bossAtkBoost * 3) * condLossMod));
   const newCond = Math.max(0, (npc.condition ?? 100) - condLoss);
 
   // 判斷死亡：敗北 + 體力 ≤ 閾值 → 套用 npcDeathChance 修正

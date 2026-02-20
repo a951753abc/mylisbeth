@@ -221,6 +221,12 @@ router.get("/floor", ensureAuth, async (req, res) => {
       }
     }
 
+    // 精簡 phases 資料（只給前端需要的顯示資訊）
+    const phases = (floorData.boss.phases || []).map((p) => ({
+      hpThreshold: p.hpThreshold,
+      weapon: p.weapon || null,
+    }));
+
     res.json({
       floor: {
         floorNumber: floorData.floorNumber,
@@ -229,6 +235,8 @@ router.get("/floor", ensureAuth, async (req, res) => {
         boss: {
           name: floorData.boss.name,
           totalHp: floorData.boss.hp,
+          initialWeapon: floorData.boss.initialWeapon || null,
+          phases,
         },
         maxExplore: floorData.maxExplore,
       },
@@ -243,6 +251,7 @@ router.get("/floor", ensureAuth, async (req, res) => {
           attacks: p.attacks,
         })),
         expiresAt: bossStatus.expiresAt,
+        currentWeapon: bossStatus.currentWeapon || floorData.boss.initialWeapon || null,
       },
       canAttackBoss: floorProgress.explored >= floorProgress.maxExplore,
     });

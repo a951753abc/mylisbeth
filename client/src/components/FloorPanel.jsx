@@ -47,6 +47,16 @@ export default function FloorPanel({ user, onAction, bossUpdate }) {
         setError(data.error);
       } else if (data.bossDefeated) {
         let msg = `⚔️ ${data.npcName || '冒險者'} 對 ${data.bossName} 造成了 ${data.damage} 點傷害！\n💥 Boss 被擊敗了！ 第 ${data.floorNumber} 層攻略完成！MVP: ${data.mvp?.name || '—'}`;
+        if (data.lastAttackDrop) {
+          msg += `\n🗡️ Last Attack! 獲得聖遺物「${data.lastAttackDrop.nameCn}（${data.lastAttackDrop.name}）」！`;
+          if (data.laColBonus > 0) msg += ` +${data.laColBonus} Col`;
+        }
+        if (data.drops && data.drops.length > 0) {
+          msg += '\n🎁 掉落物：';
+          for (const d of data.drops) {
+            msg += `\n  ${d.playerName}: ${'★'.repeat(d.itemLevel)}${d.itemName}${d.isMvp ? ' (MVP保證掉落)' : ''}`;
+          }
+        }
         if (data.npcEventText) msg += `\n${data.npcEventText}`;
         setResult(msg);
         await fetchFloor();
@@ -124,6 +134,8 @@ export default function FloorPanel({ user, onAction, bossUpdate }) {
           currentHp={bossStatus.active ? bossStatus.currentHp : bossStatus.totalHp}
           totalHp={bossStatus.totalHp}
           participants={bossStatus.participants}
+          currentWeapon={bossStatus.active ? bossStatus.currentWeapon : null}
+          phases={floor.boss.phases}
         />
 
         {bossStatus.active && bossStatus.expiresAt && (

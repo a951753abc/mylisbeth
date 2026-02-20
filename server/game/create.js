@@ -10,14 +10,19 @@ module.exports = async function (name, userId) {
   if (user !== null) {
     return { error: "已有角色，無法重建" };
   }
+
+  // 取得伺服器前線樓層，新玩家直接從前線開始
+  const serverState = await db.findOne("server_state", { _id: "aincrad" });
+  const frontierFloor = serverState ? serverState.currentFloor : 1;
+
   const now = Date.now();
   await db.insertOne("user", {
     userId,
     name,
     col: 0,
-    currentFloor: 1,
+    currentFloor: frontierFloor,
     floorProgress: {
-      "1": { explored: 0, maxExplore: config.FLOOR_MAX_EXPLORE },
+      [String(frontierFloor)]: { explored: 0, maxExplore: config.FLOOR_MAX_EXPLORE },
     },
     bossContribution: { totalDamage: 0, bossesDefeated: 0, mvpCount: 0 },
     adventureLevel: 1,

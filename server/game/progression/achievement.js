@@ -154,6 +154,15 @@ const ACHIEVEMENTS = [
     check: (user) => (user.hiredNpcs || []).some((n) => n.quality === "傳說"),
     titleReward: "伝説使い",
   },
+  // Season 4: LA 成就
+  {
+    id: "last_attack",
+    name: "ラストアタック",
+    nameCn: "最後一擊",
+    desc: "在 Boss 戰中取得 Last Attack",
+    check: (user) => (user.bossContribution?.lastAttackCount || 0) >= 1,
+    titleReward: "ラストアタッカー",
+  },
   // Season 3.5 achievements
   {
     id: "first_sell",

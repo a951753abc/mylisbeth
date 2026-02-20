@@ -70,6 +70,7 @@ module.exports = {
     // 升級經驗需求基數
     EXP_BASE: 100,
     EXP_MULTIPLIER: 1.5,
+    LEVEL_STAT_GROWTH: 0.08,
   },
 
   ENEMY_PROBABILITY: {
@@ -101,6 +102,7 @@ module.exports = {
   },
   COL_PVP_WIN: 150,
   COL_BOSS_MVP_BONUS: 500,
+  COL_BOSS_LA_BONUS: 300,
   COL_DAILY: [50, 100, 150, 200, 300, 400, 500],
 
   // Season 2: Boss 系統

@@ -69,6 +69,13 @@ export default function Game({ user, onLogout }) {
         ]);
         setBossUpdate(Date.now());
       }
+      if (latest.type === "boss:phase") {
+        setBattleLogs((prev) => [
+          ...prev,
+          { action: "boss:phase", ...latest.data, time: Date.now() },
+        ]);
+        setBossUpdate(Date.now());
+      }
       if (latest.type === "boss:defeated") {
         setBattleLogs((prev) => [
           ...prev,

@@ -20,11 +20,14 @@ function getEffectiveStats(npc) {
   }
 
   const s = npc.baseStats;
+  const level = npc.level || 1;
+  const levelMult = 1 + (level - 1) * config.NPC.LEVEL_STAT_GROWTH;
+
   return {
-    hp: Math.floor(s.hp * mult),
-    atk: Math.max(1, Math.floor(s.atk * mult)),
-    def: Math.floor(s.def * mult),
-    agi: Math.max(1, Math.floor(s.agi * mult)),
+    hp:  Math.floor(s.hp  * mult * levelMult),
+    atk: Math.max(1, Math.floor(s.atk * mult * levelMult)),
+    def: Math.floor(s.def * mult * levelMult),
+    agi: Math.max(1, Math.floor(s.agi * mult * levelMult)),
   };
 }
 

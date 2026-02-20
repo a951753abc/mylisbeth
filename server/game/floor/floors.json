@@ -13,8 +13,23 @@
     "boss": {
       "name": "イルファング・ザ・コボルドロード",
       "hp": 3000, "atk": 8, "def": 4, "agi": 3, "cri": 9,
-      "phases": [{ "hpThreshold": 0.5, "atkBoost": 2, "specialMove": "タルワール乱舞" }],
-      "drops": [{ "type": "material", "name": "コボルドの毛皮", "rarity": 3 }]
+      "initialWeapon": "タルワール",
+      "phases": [
+        { "hpThreshold": 0.75, "weapon": "タルワール", "specialMove": "タルワール連斬", "defBoost": 0, "atkBoost": 0 },
+        { "hpThreshold": 0.50, "weapon": "タルワール＋ボーンシールド", "specialMove": "シールドバッシュ", "defBoost": 2, "atkBoost": 0 },
+        { "hpThreshold": 0.25, "weapon": "野太刀", "specialMove": "野太刀・三連斬", "defBoost": -1, "atkBoost": 3 }
+      ],
+      "drops": [
+        { "type": "material", "name": "コボルドの毛皮", "rarity": 3 },
+        { "type": "material", "name": "コボルドの角", "rarity": 2 }
+      ],
+      "lastAttackDrop": {
+        "id": "illfang_coat",
+        "name": "コートオブミッドナイト",
+        "nameCn": "午夜之衣",
+        "bossFloor": 1,
+        "effects": { "battleDef": 0.10, "bossDamage": 0.05 }
+      }
     },
     "materials": ["mat_floor1_ore", "mat_floor1_crystal"],
     "places": ["迷宮入口", "回廊", "中層通路", "塔頂前廳", "BOSS房"],
@@ -33,8 +48,22 @@
     "boss": {
       "name": "ニューウォーター・ロード",
       "hp": 3500, "atk": 9, "def": 4, "agi": 4, "cri": 9,
-      "phases": [{ "hpThreshold": 0.4, "atkBoost": 2, "specialMove": "矢雨" }],
-      "drops": [{ "type": "material", "name": "エルフの羽根", "rarity": 3 }]
+      "initialWeapon": "水弓",
+      "phases": [
+        { "hpThreshold": 0.50, "weapon": "水弓", "specialMove": "矢雨", "defBoost": 1, "atkBoost": 0 },
+        { "hpThreshold": 0.25, "weapon": "水鞭", "specialMove": "激流の鞭", "defBoost": 0, "atkBoost": 2 }
+      ],
+      "drops": [
+        { "type": "material", "name": "エルフの羽根", "rarity": 3 },
+        { "type": "material", "name": "清水の珠", "rarity": 2 }
+      ],
+      "lastAttackDrop": {
+        "id": "elf_tear",
+        "name": "エルフの涙",
+        "nameCn": "精靈之淚",
+        "bossFloor": 2,
+        "effects": { "battleAgi": 0.10, "mineStarChance": 0.05 }
+      }
     },
     "materials": ["mat_floor1_ore", "mat_floor1_crystal"],
     "places": ["森の入口", "深い木立", "苔むした回廊", "樹上都市", "BOSS房"],
@@ -53,8 +82,22 @@
     "boss": {
       "name": "ライジング・ドラゴン",
       "hp": 4200, "atk": 10, "def": 5, "agi": 3, "cri": 9,
-      "phases": [{ "hpThreshold": 0.5, "atkBoost": 2, "specialMove": "ドラゴンブレス" }],
-      "drops": [{ "type": "material", "name": "竜の鱗片", "rarity": 3 }]
+      "initialWeapon": "竜爪",
+      "phases": [
+        { "hpThreshold": 0.50, "weapon": "竜爪", "specialMove": "ドラゴンブレス", "defBoost": 1, "atkBoost": 1 },
+        { "hpThreshold": 0.25, "weapon": "翼（飛行形態）", "specialMove": "急降下ブレス", "defBoost": -1, "atkBoost": 3 }
+      ],
+      "drops": [
+        { "type": "material", "name": "竜の鱗片", "rarity": 3 },
+        { "type": "material", "name": "竜の牙", "rarity": 2 }
+      ],
+      "lastAttackDrop": {
+        "id": "dragon_charm",
+        "name": "竜のお守り",
+        "nameCn": "龍之護符",
+        "bossFloor": 3,
+        "effects": { "battleAtk": 0.08, "advColReward": 0.05 }
+      }
     },
     "materials": ["mat_floor3_ore", "mat_floor3_crystal"],
     "places": ["山麓の村", "岩場の道", "洞窟内", "山頂付近", "BOSS房"],
@@ -73,8 +116,22 @@
     "boss": {
       "name": "グレート・リザード・キング",
       "hp": 4800, "atk": 11, "def": 5, "agi": 4, "cri": 8,
-      "phases": [{ "hpThreshold": 0.4, "atkBoost": 2, "specialMove": "毒霧" }],
-      "drops": [{ "type": "material", "name": "古代の牙", "rarity": 3 }]
+      "initialWeapon": "王者の爪",
+      "phases": [
+        { "hpThreshold": 0.50, "weapon": "王者の爪", "specialMove": "毒霧", "defBoost": 1, "atkBoost": 1 },
+        { "hpThreshold": 0.25, "weapon": "毒爪", "specialMove": "猛毒乱爪", "defBoost": 0, "atkBoost": 3 }
+      ],
+      "drops": [
+        { "type": "material", "name": "古代の牙", "rarity": 3 },
+        { "type": "material", "name": "沼王の鱗", "rarity": 2 }
+      ],
+      "lastAttackDrop": {
+        "id": "swamp_ring",
+        "name": "沼王の指輪",
+        "nameCn": "沼王之戒",
+        "bossFloor": 4,
+        "effects": { "npcCondLoss": -0.10, "repairSuccess": 0.08 }
+      }
     },
     "materials": ["mat_floor3_ore", "mat_floor3_crystal"],
     "places": ["沼地の入口", "泥道", "霧の中", "砦の外壁", "BOSS房"],
@@ -93,8 +150,23 @@
     "boss": {
       "name": "アンケイ・ザ・ファラオ",
       "hp": 5800, "atk": 12, "def": 6, "agi": 3, "cri": 8,
-      "phases": [{ "hpThreshold": 0.5, "atkBoost": 3, "specialMove": "砂嵐の鎌" }],
-      "drops": [{ "type": "material", "name": "黄金の欠片", "rarity": 3 }]
+      "initialWeapon": "ファラオの杖",
+      "phases": [
+        { "hpThreshold": 0.65, "weapon": "ファラオの杖", "specialMove": "砂嵐召喚", "defBoost": 1, "atkBoost": 0 },
+        { "hpThreshold": 0.40, "weapon": "死神の鎌", "specialMove": "砂嵐の鎌", "defBoost": 0, "atkBoost": 2 },
+        { "hpThreshold": 0.20, "weapon": "双鎌", "specialMove": "死神の舞", "defBoost": -1, "atkBoost": 4 }
+      ],
+      "drops": [
+        { "type": "material", "name": "黄金の欠片", "rarity": 3 },
+        { "type": "material", "name": "砂漠の宝石", "rarity": 2 }
+      ],
+      "lastAttackDrop": {
+        "id": "pharaoh_necklace",
+        "name": "ファラオの首飾り",
+        "nameCn": "法老王項鍊",
+        "bossFloor": 5,
+        "effects": { "advColReward": 0.10, "bossDamage": 0.08 }
+      }
     },
     "materials": ["mat_floor5_ore", "mat_floor5_crystal"],
     "places": ["砂丘の麓", "神殿前廊", "罠の回廊", "王の間への階段", "BOSS房"],
@@ -113,8 +185,22 @@
     "boss": {
       "name": "炎帝グラガン",
       "hp": 6600, "atk": 13, "def": 7, "agi": 3, "cri": 8,
-      "phases": [{ "hpThreshold": 0.4, "atkBoost": 3, "specialMove": "溶岩噴射" }],
-      "drops": [{ "type": "material", "name": "炎の核", "rarity": 3 }]
+      "initialWeapon": "炎の拳",
+      "phases": [
+        { "hpThreshold": 0.50, "weapon": "炎の拳", "specialMove": "溶岩噴射", "defBoost": 1, "atkBoost": 1 },
+        { "hpThreshold": 0.25, "weapon": "溶岩の鎧（全身溶岩化）", "specialMove": "炎帝爆砕", "defBoost": 2, "atkBoost": 3 }
+      ],
+      "drops": [
+        { "type": "material", "name": "炎の核", "rarity": 3 },
+        { "type": "material", "name": "溶岩の結晶", "rarity": 2 }
+      ],
+      "lastAttackDrop": {
+        "id": "flame_bracelet",
+        "name": "炎帝の腕輪",
+        "nameCn": "炎帝腕輪",
+        "bossFloor": 6,
+        "effects": { "battleAtk": 0.10, "forgeDurability": 0.10 }
+      }
     },
     "materials": ["mat_floor5_ore", "mat_floor5_crystal"],
     "places": ["火口の縁", "溶岩流の橋", "灼熱の廊下", "巨人の住処", "BOSS房"],
@@ -133,8 +219,22 @@
     "boss": {
       "name": "フロスト・クイーン",
       "hp": 7600, "atk": 14, "def": 7, "agi": 5, "cri": 7,
-      "phases": [{ "hpThreshold": 0.5, "atkBoost": 3, "specialMove": "吹雪の剣" }],
-      "drops": [{ "type": "material", "name": "女王の氷晶", "rarity": 3 }]
+      "initialWeapon": "氷杖",
+      "phases": [
+        { "hpThreshold": 0.50, "weapon": "氷杖", "specialMove": "絶対零度", "defBoost": 2, "atkBoost": 0 },
+        { "hpThreshold": 0.25, "weapon": "吹雪の剣", "specialMove": "吹雪の剣・氷嵐斬", "defBoost": 0, "atkBoost": 3 }
+      ],
+      "drops": [
+        { "type": "material", "name": "女王の氷晶", "rarity": 3 },
+        { "type": "material", "name": "永久凍土の欠片", "rarity": 2 }
+      ],
+      "lastAttackDrop": {
+        "id": "frost_tiara",
+        "name": "氷晶のティアラ",
+        "nameCn": "冰晶皇冠",
+        "bossFloor": 7,
+        "effects": { "battleDef": 0.12, "npcDeathChance": -0.10 }
+      }
     },
     "materials": ["mat_floor7_ore", "mat_floor7_crystal"],
     "places": ["城門前広場", "氷の廊下", "冷気の地下室", "王座の間", "BOSS房"],
@@ -153,8 +253,22 @@
     "boss": {
       "name": "ジャイアント・キング・オルガー",
       "hp": 8800, "atk": 15, "def": 8, "agi": 3, "cri": 7,
-      "phases": [{ "hpThreshold": 0.4, "atkBoost": 3, "specialMove": "地砕き" }],
-      "drops": [{ "type": "material", "name": "巨人の心臓", "rarity": 3 }]
+      "initialWeapon": "大斧",
+      "phases": [
+        { "hpThreshold": 0.50, "weapon": "大斧", "specialMove": "地砕き", "defBoost": 1, "atkBoost": 1 },
+        { "hpThreshold": 0.25, "weapon": "二刀流（大斧＋大剣）", "specialMove": "巨人の怒り・二刀乱舞", "defBoost": -1, "atkBoost": 4 }
+      ],
+      "drops": [
+        { "type": "material", "name": "巨人の心臓", "rarity": 3 },
+        { "type": "material", "name": "巨人の骨", "rarity": 2 }
+      ],
+      "lastAttackDrop": {
+        "id": "giant_heart_stone",
+        "name": "巨人の心臓石",
+        "nameCn": "巨人心臟石",
+        "bossFloor": 8,
+        "effects": { "bossDamage": 0.12, "staminaCost": -0.08 }
+      }
     },
     "materials": ["mat_floor7_ore", "mat_floor7_crystal"],
     "places": ["巨人の村入口", "広大な平原", "巨人の神殿", "王の宴会場", "BOSS房"],
@@ -173,8 +287,23 @@
     "boss": {
       "name": "ダーク・ロード・レクサー",
       "hp": 10000, "atk": 16, "def": 9, "agi": 5, "cri": 7,
-      "phases": [{ "hpThreshold": 0.5, "atkBoost": 4, "specialMove": "闇の爪" }],
-      "drops": [{ "type": "material", "name": "暗黒の核", "rarity": 3 }]
+      "initialWeapon": "闇の剣",
+      "phases": [
+        { "hpThreshold": 0.65, "weapon": "闇の剣", "specialMove": "闇の爪", "defBoost": 1, "atkBoost": 1 },
+        { "hpThreshold": 0.40, "weapon": "闇盾＋闇の剣", "specialMove": "暗黒結界", "defBoost": 3, "atkBoost": 0 },
+        { "hpThreshold": 0.20, "weapon": "暗黒の力（素手）", "specialMove": "暗黒崩壊", "defBoost": -2, "atkBoost": 5 }
+      ],
+      "drops": [
+        { "type": "material", "name": "暗黒の核", "rarity": 3 },
+        { "type": "material", "name": "闇の結晶", "rarity": 2 }
+      ],
+      "lastAttackDrop": {
+        "id": "dark_amulet",
+        "name": "暗黒の護符",
+        "nameCn": "暗黑護符",
+        "bossFloor": 9,
+        "effects": { "battleAtk": 0.12, "battleDef": 0.08 }
+      }
     },
     "materials": ["mat_floor9_ore", "mat_floor9_crystal"],
     "places": ["闇の入口", "無限の回廊", "錯覚の間", "絶望の広間", "BOSS房"],
@@ -193,11 +322,23 @@
     "boss": {
       "name": "アインクラッド守護神",
       "hp": 12000, "atk": 18, "def": 10, "agi": 6, "cri": 6,
+      "initialWeapon": "聖剣",
       "phases": [
-        { "hpThreshold": 0.6, "atkBoost": 3, "specialMove": "聖剣の一閃" },
-        { "hpThreshold": 0.3, "atkBoost": 5, "specialMove": "天地崩壊" }
+        { "hpThreshold": 0.65, "weapon": "聖剣", "specialMove": "聖剣の一閃", "defBoost": 1, "atkBoost": 1 },
+        { "hpThreshold": 0.40, "weapon": "光盾＋聖剣", "specialMove": "聖光結界", "defBoost": 3, "atkBoost": 1 },
+        { "hpThreshold": 0.20, "weapon": "天剣", "specialMove": "天地崩壊", "defBoost": -2, "atkBoost": 6 }
       ],
-      "drops": [{ "type": "material", "name": "守護神の結晶", "rarity": 3 }]
+      "drops": [
+        { "type": "material", "name": "守護神の結晶", "rarity": 3 },
+        { "type": "material", "name": "神聖の欠片", "rarity": 2 }
+      ],
+      "lastAttackDrop": {
+        "id": "guardian_crest",
+        "name": "守護神の紋章",
+        "nameCn": "守護神紋章",
+        "bossFloor": 10,
+        "effects": { "bossDamage": 0.15, "battleAtk": 0.10, "battleDef": 0.05 }
+      }
     },
     "materials": ["mat_floor9_ore", "mat_floor9_crystal"],
     "places": ["頂点への階段", "雲上の広場", "神殿の前廊", "守護の間", "BOSS房"],

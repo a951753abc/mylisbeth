@@ -64,4 +64,32 @@ function applyChanceModifier(baseChance, title, key) {
   return Math.min(100, Math.max(0, baseChance + adj));
 }
 
-module.exports = { getModifier, getRawModifier, applyModifier, applyChanceModifier };
+/**
+ * 計算所有聖遺物的累計修正乘數
+ * @param {Array} relics - user.bossRelics
+ * @param {string} key - 效果 key（如 "bossDamage"）
+ * @returns {number} 乘數（1.0 = 無修正）
+ */
+function getRelicModifier(relics, key) {
+  if (!relics || relics.length === 0) return 1.0;
+  let sum = 0;
+  for (const r of relics) {
+    if (r.effects && r.effects[key] !== undefined) {
+      sum += r.effects[key];
+    }
+  }
+  return 1 + sum;
+}
+
+/**
+ * 取得稱號 + 聖遺物的組合修正乘數（乘法疊加）
+ * @param {string|null} title
+ * @param {Array} relics - user.bossRelics
+ * @param {string} key
+ * @returns {number}
+ */
+function getCombinedModifier(title, relics, key) {
+  return getModifier(title, key) * getRelicModifier(relics, key);
+}
+
+module.exports = { getModifier, getRawModifier, applyModifier, applyChanceModifier, getRelicModifier, getCombinedModifier };

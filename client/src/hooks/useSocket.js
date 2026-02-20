@@ -47,6 +47,13 @@ export function useSocket(userId) {
       ]);
     });
 
+    socket.on("boss:phase", (data) => {
+      setEvents((prev) => [
+        ...prev.slice(-49),
+        { type: "boss:phase", data, time: Date.now() },
+      ]);
+    });
+
     socket.on("floor:unlocked", (data) => {
       setEvents((prev) => [
         ...prev.slice(-49),

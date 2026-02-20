@@ -6,7 +6,7 @@ const DEFAULT_FIELDS = {
   col: 0,
   currentFloor: 1,
   floorProgress: { "1": { explored: 0, maxExplore: config.FLOOR_MAX_EXPLORE } },
-  bossContribution: { totalDamage: 0, bossesDefeated: 0, mvpCount: 0 },
+  bossContribution: { totalDamage: 0, bossesDefeated: 0, mvpCount: 0, lastAttackCount: 0 },
   adventureLevel: 1,
   adventureExp: 0,
   lastLoginAt: null,
@@ -37,6 +37,8 @@ const DEFAULT_FIELDS = {
   isInDebt: false,
   lastActionAt: null,
   lastLoanAt: null,
+  // Season 4: Boss 聖遺物
+  bossRelics: [],
   // Season 3: 玩家體力值
   stamina: 100,
   maxStamina: 100,
@@ -81,10 +83,28 @@ module.exports = async function ensureUserFields(user) {
     updates.hiredNpcs = patchedNpcs;
   }
 
-  if (Object.keys(updates).length === 0) {
-    return user;
+  let patched = user;
+  if (Object.keys(updates).length > 0) {
+    await db.update("user", { userId: user.userId }, { $set: updates });
+    patched = { ...user, ...updates };
   }
 
-  await db.update("user", { userId: user.userId }, { $set: updates });
-  return { ...user, ...updates };
+  // 自動同步到伺服器前線樓層（已清過的樓層不需要重打 Boss）
+  const serverState = await db.findOne("server_state", { _id: "aincrad" });
+  if (serverState) {
+    const frontierFloor = serverState.currentFloor || 1;
+    const playerFloor = patched.currentFloor || 1;
+    if (playerFloor < frontierFloor) {
+      const floorSync = {
+        currentFloor: frontierFloor,
+        [`floorProgress.${frontierFloor}`]: { explored: 0, maxExplore: config.FLOOR_MAX_EXPLORE },
+      };
+      await db.update("user", { userId: user.userId }, { $set: floorSync });
+      patched = { ...patched, currentFloor: frontierFloor };
+      patched.floorProgress = { ...(patched.floorProgress || {}) };
+      patched.floorProgress[String(frontierFloor)] = { explored: 0, maxExplore: config.FLOOR_MAX_EXPLORE };
+    }
+  }
+
+  return patched;
 };

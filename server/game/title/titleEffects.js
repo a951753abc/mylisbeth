@@ -136,6 +136,13 @@ const TITLE_EFFECTS = {
     forgeCritSuccessAdj: 2,     // 大成功門檻 +2（更難）
     forgeDurability: -0.15,     // 初始耐久 -15%
   },
+
+  // 16. ラストアタッカー — LA 類
+  "ラストアタッカー": {
+    bossDamage: 0.15,           // Boss 傷害 +15%
+    battleAtk: 0.05,            // 攻擊力 +5%
+    forgeDurability: -0.10,     // 初始耐久 -10%
+  },
 };
 
 module.exports = { TITLE_EFFECTS };

@@ -9,7 +9,7 @@ const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { getEffectiveStats, getCombinedBattleStats } = require("../npc/npcStats.js");
 const { resolveNpcBattle } = require("../npc/npcManager.js");
-const { getModifier } = require("../title/titleModifier.js");
+const { getCombinedModifier } = require("../title/titleModifier.js");
 
 function calcDamage(atk, cri, def) {
   let atkDam = 0;
@@ -41,6 +41,7 @@ async function getOrInitServerState(floorNumber, bossData) {
         participants: [],
         startedAt: null,
         expiresAt: null,
+        currentWeapon: null,
       },
       floorHistory: [],
     };
@@ -50,7 +51,6 @@ async function getOrInitServerState(floorNumber, bossData) {
 }
 
 async function resetBoss(floorNumber, bossData) {
-  const now = new Date();
   await db.update(
     "server_state",
     { _id: "aincrad" },
@@ -62,6 +62,8 @@ async function resetBoss(floorNumber, bossData) {
         "bossStatus.participants": [],
         "bossStatus.startedAt": null,
         "bossStatus.expiresAt": null,
+        "bossStatus.activatedPhases": [],
+        "bossStatus.currentWeapon": null,
       },
     },
   );
@@ -69,6 +71,84 @@ async function resetBoss(floorNumber, bossData) {
 
 // Boss 戰 NPC 經驗值（比冒險略高，因為 Boss 戰更危險）
 const BOSS_NPC_EXP_GAIN = 40;
+
+function getEffectiveBossDef(bossData, activatedPhases) {
+  let def = bossData.def;
+  for (const idx of activatedPhases) {
+    const phase = bossData.phases?.[idx];
+    if (phase) {
+      // 向後兼容：新版用 defBoost，舊版用 atkBoost
+      def += phase.defBoost ?? phase.atkBoost ?? 0;
+    }
+  }
+  return def;
+}
+
+function getEffectiveBossAtk(bossData, activatedPhases) {
+  let totalAtkBoost = 0;
+  for (const idx of activatedPhases) {
+    const phase = bossData.phases?.[idx];
+    if (phase) {
+      totalAtkBoost += phase.atkBoost ?? 0;
+    }
+  }
+  return totalAtkBoost;
+}
+
+function checkPhaseActivation(bossData, currentHp, totalHp, activatedPhases) {
+  const phases = bossData.phases || [];
+  const hpRatio = currentHp / totalHp;
+  const newPhases = [];
+  const phaseEvents = [];
+  for (let i = 0; i < phases.length; i++) {
+    if (activatedPhases.includes(i)) continue;
+    if (hpRatio <= phases[i].hpThreshold) {
+      newPhases.push(i);
+      phaseEvents.push({
+        event: "boss:phase",
+        data: {
+          bossName: bossData.name,
+          phaseIndex: i,
+          specialMove: phases[i].specialMove,
+          defBoost: phases[i].defBoost ?? phases[i].atkBoost ?? 0,
+          atkBoost: phases[i].atkBoost ?? 0,
+          weapon: phases[i].weapon || null,
+          hpThreshold: phases[i].hpThreshold,
+        },
+      });
+    }
+  }
+  return { newPhases, phaseEvents };
+}
+
+/** 取得最新啟動 phase 的武器（用於 currentWeapon 追蹤） */
+function getLatestWeapon(bossData, activatedPhases, newPhases) {
+  const allPhases = [...activatedPhases, ...newPhases].sort((a, b) => a - b);
+  for (let i = allPhases.length - 1; i >= 0; i--) {
+    const phase = bossData.phases?.[allPhases[i]];
+    if (phase?.weapon) return phase.weapon;
+  }
+  return bossData.initialWeapon || null;
+}
+
+async function distributeBossDrops(drops, participants, mvpUserId, totalDamage) {
+  if (!drops?.length) return [];
+  const results = [];
+  for (const p of participants) {
+    const isMvp = p.userId === mvpUserId;
+    const ratio = totalDamage > 0 ? p.damage / totalDamage : 0;
+    const chance = isMvp ? 100 : Math.min(90, Math.round(ratio * 200));
+    if (roll.d100Check(chance)) {
+      const drop = drops[Math.floor(Math.random() * drops.length)];
+      const itemId = `boss_drop_${drop.name}`;
+      const itemLevel = drop.rarity || 1;
+      await db.atomicIncItem(p.userId, itemId, itemLevel, drop.name, 1);
+      results.push({ userId: p.userId, playerName: p.name,
+                     itemName: drop.name, itemLevel, isMvp });
+    }
+  }
+  return results;
+}
 
 module.exports = async function bossAttack(cmd, rawUser) {
   try {
@@ -97,9 +177,28 @@ module.exports = async function bossAttack(cmd, rawUser) {
       return { error: `${hiredNpc.name} 體力過低（< 10%），無法出戰！請先治療。` };
     }
 
-    const currentFloor = user.currentFloor || 1;
+    // Boss 是全伺服器共享的，使用伺服器前線樓層
+    let state = await getOrInitServerState(1, getFloorBoss(1));
+    const currentFloor = state.currentFloor || 1;
     const floorData = getFloor(currentFloor);
     const bossData = getFloorBoss(currentFloor);
+
+    // 玩家樓層落後前線 → 自動同步到前線
+    const userFloor = user.currentFloor || 1;
+    if (userFloor < currentFloor) {
+      await db.update(
+        "user",
+        { userId: user.userId },
+        {
+          $set: {
+            currentFloor,
+            [`floorProgress.${currentFloor}`]: { explored: 0, maxExplore: config.FLOOR_MAX_EXPLORE },
+          },
+        },
+      );
+      user.currentFloor = currentFloor;
+      _.set(user, `floorProgress.${currentFloor}`, { explored: 0, maxExplore: config.FLOOR_MAX_EXPLORE });
+    }
 
     const floorProgress = _.get(user, `floorProgress.${currentFloor}`, { explored: 0, maxExplore: config.FLOOR_MAX_EXPLORE });
     if (floorProgress.explored < floorProgress.maxExplore) {
@@ -107,14 +206,6 @@ module.exports = async function bossAttack(cmd, rawUser) {
       return {
         error: `尚未完成迷宮探索！還需要探索 ${remaining} 次才能挑戰 Boss。`,
       };
-    }
-
-    let state = await getOrInitServerState(currentFloor, bossData);
-
-    // 如果當前 Boss 不在本層，重置到本層
-    if (state.bossStatus.floorNumber !== currentFloor) {
-      await resetBoss(currentFloor, bossData);
-      state = await db.findOne("server_state", { _id: "aincrad" });
     }
 
     const now = new Date();
@@ -146,6 +237,8 @@ module.exports = async function bossAttack(cmd, rawUser) {
             "bossStatus.totalHp": bossData.hp,
             "bossStatus.startedAt": now,
             "bossStatus.expiresAt": expiresAt,
+            "bossStatus.activatedPhases": [],
+            "bossStatus.currentWeapon": bossData.initialWeapon || null,
           },
         },
       );
@@ -153,10 +246,12 @@ module.exports = async function bossAttack(cmd, rawUser) {
 
     const weapon = user.weaponStock[weaponIdx];
 
-    // 使用 NPC + 武器合成數值計算傷害（套用 bossDamage 稱號修正）
+    // 使用 NPC + 武器合成數值計算傷害（套用 bossDamage 稱號+聖遺物修正 + Phase 防禦加成）
     const combined = getCombinedBattleStats(effectiveStats, weapon);
-    const bossDamageMod = getModifier(user.title || null, "bossDamage");
-    const damage = Math.max(1, Math.round(calcDamage(combined.atk, combined.cri, bossData.def) * bossDamageMod));
+    const bossDamageMod = getCombinedModifier(user.title || null, user.bossRelics || [], "bossDamage");
+    const activatedPhases = state.bossStatus.activatedPhases || [];
+    const effectiveBossDef = getEffectiveBossDef(bossData, activatedPhases);
+    const damage = Math.max(1, Math.round(calcDamage(combined.atk, combined.cri, effectiveBossDef) * bossDamageMod));
 
     // 原子減少 Boss HP
     const updatedState = await db.findOneAndUpdate(
@@ -205,10 +300,26 @@ module.exports = async function bossAttack(cmd, rawUser) {
       );
     }
 
+    // Phase 檢查：HP% 降到閾值以下時啟動新 phase
+    const phaseCheck = checkPhaseActivation(bossData, remainingHp, totalHp, activatedPhases);
+    if (phaseCheck.newPhases.length > 0) {
+      const latestWeapon = getLatestWeapon(bossData, activatedPhases, phaseCheck.newPhases);
+      await db.update(
+        "server_state",
+        { _id: "aincrad" },
+        {
+          $addToSet: { "bossStatus.activatedPhases": { $each: phaseCheck.newPhases } },
+          $set: { "bossStatus.currentWeapon": latestWeapon },
+        },
+      );
+    }
+
     await increment(user.userId, "totalBossAttacks");
 
     // NPC 戰鬥結算（Boss 戰為單次攻擊，視為 WIN — 成功造成傷害，體力仍會損耗）
-    const npcResult = await resolveNpcBattle(user.userId, npcId, "WIN", BOSS_NPC_EXP_GAIN, user.title || null);
+    // NPC 體力損耗受 Boss phase atkBoost 影響
+    const bossAtkBoost = getEffectiveBossAtk(bossData, [...activatedPhases, ...phaseCheck.newPhases]);
+    const npcResult = await resolveNpcBattle(user.userId, npcId, "WIN", BOSS_NPC_EXP_GAIN, user.title || null, bossAtkBoost);
 
     let npcEventText = "";
     if (npcResult.levelUp) {
@@ -228,6 +339,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
           bossName: bossData.name,
         },
       },
+      ...phaseCheck.phaseEvents,
     ];
 
     // Boss 被打倒
@@ -240,8 +352,8 @@ module.exports = async function bossAttack(cmd, rawUser) {
       );
 
       if (clearResult && clearResult.bossStatus.active) {
-        const finalState = await db.findOne("server_state", { _id: "aincrad" });
-        const participants = finalState.bossStatus.participants || [];
+        // 使用 clearResult（returnDocument: "before"）的 participants，避免額外查詢和資料過時
+        const participants = clearResult.bossStatus.participants || [];
 
         // 計算 MVP
         let mvp = null;
@@ -250,6 +362,44 @@ module.exports = async function bossAttack(cmd, rawUser) {
           if (p.damage > maxDamage) {
             maxDamage = p.damage;
             mvp = p;
+          }
+        }
+
+        // Last Attacker = 當前攻擊者（打出致命一擊的玩家）
+        const lastAttacker = { userId: user.userId, name: user.name };
+
+        // LA 聖遺物獎勵
+        let lastAttackDrop = null;
+        if (bossData.lastAttackDrop) {
+          const relicDef = bossData.lastAttackDrop;
+          const existingRelics = user.bossRelics || [];
+          const alreadyHas = existingRelics.some((r) => r.id === relicDef.id);
+
+          if (!alreadyHas) {
+            const relicObj = {
+              id: relicDef.id,
+              name: relicDef.name,
+              nameCn: relicDef.nameCn,
+              bossFloor: relicDef.bossFloor,
+              effects: { ...relicDef.effects },
+              obtainedAt: new Date(),
+            };
+            await db.update(
+              "user",
+              { userId: user.userId },
+              { $push: { bossRelics: relicObj } },
+            );
+            lastAttackDrop = relicObj;
+
+            // LA Col 獎勵（僅首次獲得聖遺物時給予）
+            await awardCol(user.userId, config.COL_BOSS_LA_BONUS);
+
+            // 追蹤 LA 次數
+            await db.update(
+              "user",
+              { userId: user.userId },
+              { $inc: { "bossContribution.lastAttackCount": 1 } },
+            );
           }
         }
 
@@ -276,6 +426,10 @@ module.exports = async function bossAttack(cmd, rawUser) {
           await checkAndAward(p.userId);
         }
 
+        const dropResults = await distributeBossDrops(
+          bossData.drops || [], participants, mvp?.userId, totalDamage,
+        );
+
         const nextFloor = currentFloor + 1;
         const clearedAt = new Date();
 
@@ -291,12 +445,16 @@ module.exports = async function bossAttack(cmd, rawUser) {
               "bossStatus.participants": [],
               "bossStatus.startedAt": null,
               "bossStatus.expiresAt": null,
+              "bossStatus.activatedPhases": [],
+              "bossStatus.currentWeapon": null,
             },
             $push: {
               floorHistory: {
                 floorNumber: currentFloor,
                 clearedAt,
                 mvp: mvp ? { userId: mvp.userId, name: mvp.name, damage: mvp.damage } : null,
+                lastAttacker: { userId: lastAttacker.userId, name: lastAttacker.name },
+                lastAttackDrop: lastAttackDrop ? { id: lastAttackDrop.id, name: lastAttackDrop.name, nameCn: lastAttackDrop.nameCn } : null,
               },
             },
           },
@@ -326,6 +484,12 @@ module.exports = async function bossAttack(cmd, rawUser) {
               bossName: bossData.name,
               mvp: mvp ? { name: mvp.name, damage: mvp.damage } : null,
               participants: participants.map((p) => ({ name: p.name, damage: p.damage })),
+              drops: dropResults,
+              lastAttacker: { name: lastAttacker.name },
+              lastAttackDrop: lastAttackDrop ? {
+                name: lastAttackDrop.name,
+                nameCn: lastAttackDrop.nameCn,
+              } : null,
             },
           });
 
@@ -346,6 +510,14 @@ module.exports = async function bossAttack(cmd, rawUser) {
           floorNumber: currentFloor,
           bossName: bossData.name,
           mvp: mvp ? { name: mvp.name, damage: mvp.damage } : null,
+          drops: dropResults,
+          lastAttacker: { name: lastAttacker.name },
+          lastAttackDrop: lastAttackDrop ? {
+            name: lastAttackDrop.name,
+            nameCn: lastAttackDrop.nameCn,
+            effects: lastAttackDrop.effects,
+          } : null,
+          laColBonus: bossData.lastAttackDrop ? config.COL_BOSS_LA_BONUS : 0,
           npcName: hiredNpc.name,
           npcEventText,
           npcResult: {
