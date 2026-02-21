@@ -200,21 +200,9 @@ module.exports = async function (cmd, rawUser) {
     // 更新探索進度
     await incrementFloorExploration(user.userId, user, currentFloor);
 
-    // 發放武器熟練度（玩家 + NPC）
+    // NPC 熟練度（NPC 冒險只增加 NPC 的熟練度，不增加玩家的）
     const profGainKey = getProfGainKey(outcomeKey, "adv");
-    const profResult = await awardProficiency(user.userId, thisWeapon, profGainKey);
     let skillText = "";
-    if (profResult && profResult.profGained > 0) {
-      skillText += `\n你的 ${profResult.weaponType} 熟練度 +${profResult.profGained}`;
-    }
-    if (profResult && profResult.newSkills.length > 0) {
-      const { getSkill } = require("../skill/skillRegistry.js");
-      for (const sid of profResult.newSkills) {
-        const sk = getSkill(sid);
-        skillText += `\n🗡️ 你習得了新劍技：【${sk ? sk.nameCn : sid}】！`;
-      }
-    }
-    // NPC 熟練度
     const npcIdx = hired.findIndex((n) => n.npcId === npcId);
     if (npcIdx >= 0) {
       await awardNpcProficiency(user.userId, npcIdx, thisWeapon, profGainKey);
@@ -224,17 +212,6 @@ module.exports = async function (cmd, rawUser) {
     const npcLearnResult = await tryNpcLearnSkill(user.userId, npcIdx, hiredNpc, thisWeapon);
     if (npcLearnResult && npcLearnResult.learned) {
       skillText += `\n🗡️ ${hiredNpc.name} 學會了新劍技：【${npcLearnResult.skillName}】！`;
-    }
-
-    // Extra Skill 解鎖檢查
-    const freshUser = await db.findOne("user", { userId: user.userId });
-    const extraUnlocked = await checkExtraSkills(user.userId, freshUser || user);
-    if (extraUnlocked.length > 0) {
-      const { getSkill } = require("../skill/skillRegistry.js");
-      for (const sid of extraUnlocked) {
-        const sk = getSkill(sid);
-        skillText += `\n✨ 你解鎖了隱藏技能：【${sk ? sk.nameCn : sid}】！`;
-      }
     }
 
     await increment(user.userId, "totalAdventures");
