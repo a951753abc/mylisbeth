@@ -592,6 +592,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
                   setDefenseMsg(data.error);
                 } else {
                   setDefenseMsg("防禦武器已更新！");
+                  if (onUserUpdate) onUserUpdate();
                 }
               } catch {
                 setDefenseMsg("設定失敗");
