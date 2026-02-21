@@ -2,6 +2,7 @@ const db = require("../../db.js");
 const config = require("../config.js");
 const { awardCol, deductCol } = require("../economy/col.js");
 const { getCombinedModifier } = require("../title/titleModifier.js");
+const { formatText, getText } = require("../textManager.js");
 
 const PVP = config.PVP;
 
@@ -20,7 +21,7 @@ async function deductPvpStamina(userId) {
   );
   if (!staminaUpdated) {
     const freshAtk = await db.findOne("user", { userId });
-    return { ok: false, error: `體力不足！決鬥需要 ${staminaCost} 點，目前剩餘 ${freshAtk?.stamina ?? 0} 點。` };
+    return { ok: false, error: formatText("PVP.STAMINA_INSUFFICIENT", { cost: staminaCost, current: freshAtk?.stamina ?? 0 }) };
   }
   return { ok: true, staminaCost, stamina: staminaUpdated.stamina };
 }
@@ -42,13 +43,13 @@ async function deductWagers(attackerId, defenderId, defenderName, wagerCol, stam
   const atkDeducted = await deductCol(attackerId, wagerCol);
   if (!atkDeducted) {
     await db.update("user", { userId: attackerId }, { $inc: { stamina: staminaCost } });
-    return { ok: false, error: `你的 Col 不足以支付 ${wagerCol} 的賭注。` };
+    return { ok: false, error: formatText("PVP.WAGER_INSUFFICIENT", { amount: wagerCol }) };
   }
   const defDeducted = await deductCol(defenderId, wagerCol);
   if (!defDeducted) {
     await awardCol(attackerId, wagerCol);
     await db.update("user", { userId: attackerId }, { $inc: { stamina: staminaCost } });
-    return { ok: false, error: `${defenderName} 的 Col 不足以支付 ${wagerCol} 的賭注，決鬥取消。` };
+    return { ok: false, error: formatText("PVP.DEFENDER_INSUFFICIENT", { name: defenderName, amount: wagerCol }) };
   }
   return { ok: true };
 }
@@ -80,28 +81,28 @@ function validateDuelRequest(attacker, weaponId, mode, wagerCol) {
   const VALID_MODES = new Set(Object.values(MODES));
 
   if (attacker.isInDebt) {
-    return { error: "你目前有未清還的負債，無法發起決鬥！請先至帳單頁面還清負債。" };
+    return { error: getText("PVP.DEBT_BLOCKED") };
   }
   if (!VALID_MODES.has(mode)) {
-    return { error: "無效的決鬥模式。" };
+    return { error: getText("PVP.INVALID_MODE") };
   }
   if (weaponId === undefined || weaponId === null) {
-    return { error: "請選擇要使用的武器。" };
+    return { error: getText("PVP.WEAPON_REQUIRED") };
   }
   const atkWeaponIndex = Number(weaponId);
   if (Number.isNaN(atkWeaponIndex) || !attacker.weaponStock?.[atkWeaponIndex]) {
-    return { error: `錯誤！你沒有編號為 ${weaponId} 的武器。` };
+    return { error: formatText("PVP.WEAPON_NOT_FOUND", { weaponId }) };
   }
 
   if (mode !== MODES.TOTAL_LOSS) {
     if (!Number.isFinite(wagerCol) || wagerCol < PVP.WAGER_MIN) {
-      return { error: `賭注不能低於 ${PVP.WAGER_MIN} Col。` };
+      return { error: formatText("PVP.WAGER_TOO_LOW", { min: PVP.WAGER_MIN }) };
     }
     if (wagerCol > PVP.WAGER_MAX) {
-      return { error: `賭注不能超過 ${PVP.WAGER_MAX} Col。` };
+      return { error: formatText("PVP.WAGER_TOO_HIGH", { max: PVP.WAGER_MAX }) };
     }
     if (wagerCol > 0 && (attacker.col || 0) < wagerCol) {
-      return { error: `你的 Col 不足以支付 ${wagerCol} 的賭注。` };
+      return { error: formatText("PVP.WAGER_INSUFFICIENT", { amount: wagerCol }) };
     }
   }
 

@@ -20,6 +20,7 @@ const { resolveWeaponType } = require("../weapon/weaponType.js");
 const { checkExtraSkills } = require("../skill/extraSkillChecker.js");
 const roll = require("../roll.js");
 const { getActiveFloor, getProficiencyMultiplier } = require("../floor/activeFloor.js");
+const { formatText, getText } = require("../textManager.js");
 
 const SOLO = config.SOLO_ADV;
 
@@ -28,13 +29,13 @@ module.exports = async function (cmd, rawUser) {
     const user = await ensureUserFields(rawUser);
 
     if (!user.weaponStock || user.weaponStock.length === 0) {
-      return { error: "你沒有任何武器，無法獨自出擊！" };
+      return { error: getText("SOLO_ADV.NO_WEAPON") };
     }
 
     // cmd[2] = weaponIndex（可選，預設 0）
     const weaponIndex = cmd[2] !== undefined ? Number(cmd[2]) : 0;
     if (Number.isNaN(weaponIndex) || !user.weaponStock[weaponIndex]) {
-      return { error: `武器 #${weaponIndex} 不存在` };
+      return { error: formatText("SOLO_ADV.WEAPON_NOT_FOUND", { index: weaponIndex }) };
     }
 
     const thisWeapon = user.weaponStock[weaponIndex];
@@ -103,7 +104,7 @@ module.exports = async function (cmd, rawUser) {
       });
       return {
         bankruptcy: true,
-        message: `${user.name} 在第 ${currentFloor} 層的冒險中壯烈犧牲，英魂已逝。角色已被刪除。`,
+        message: formatText("SOLO_ADV.DEATH", { name: user.name, floor: currentFloor }),
         bankruptcyInfo,
         narrative,
         battleResult: {
@@ -129,7 +130,7 @@ module.exports = async function (cmd, rawUser) {
       const colReward = Math.round((config.COL_ADVENTURE_REWARD[battleResult.category] || 50) * advColMod);
       colEarned = colReward;
       await awardCol(user.userId, colReward);
-      rewardText += `獲得 ${colReward} Col\n`;
+      rewardText += formatText("SOLO_ADV.COL_REWARD", { amount: colReward }) + "\n";
     } else if (outcomeKey === "LOSE") {
       await db.update("user", { userId: user.userId }, { $inc: { lost: 1 } });
     }
@@ -143,13 +144,13 @@ module.exports = async function (cmd, rawUser) {
     const profResult = await awardProficiency(user.userId, thisWeapon, profGainKey, profMult);
     let skillText = "";
     if (profResult && profResult.profGained > 0) {
-      skillText += `\n你的 ${profResult.weaponType} 熟練度 +${profResult.profGained}`;
+      skillText += "\n" + formatText("SOLO_ADV.PROF_GAIN", { type: profResult.weaponType, amount: profResult.profGained });
     }
     if (profResult && profResult.newSkills.length > 0) {
       const { getSkill } = require("../skill/skillRegistry.js");
       for (const sid of profResult.newSkills) {
         const sk = getSkill(sid);
-        skillText += `\n🗡️ 你習得了新劍技：【${sk ? sk.nameCn : sid}】！`;
+        skillText += "\n" + formatText("SOLO_ADV.LEARN_SKILL", { skillName: sk ? sk.nameCn : sid });
       }
     }
 
@@ -160,7 +161,7 @@ module.exports = async function (cmd, rawUser) {
       const { getSkill } = require("../skill/skillRegistry.js");
       for (const sid of extraUnlocked) {
         const sk = getSkill(sid);
-        skillText += `\n✨ 你解鎖了隱藏技能：【${sk ? sk.nameCn : sid}】！`;
+        skillText += "\n" + formatText("SOLO_ADV.EXTRA_SKILL", { skillName: sk ? sk.nameCn : sid });
       }
     }
 
@@ -191,7 +192,7 @@ module.exports = async function (cmd, rawUser) {
     };
   } catch (error) {
     console.error("在執行 move soloAdv 時發生嚴重錯誤:", error);
-    return { error: "獨自出擊的過程中發生了未知的錯誤，請稍後再試。" };
+    return { error: getText("SOLO_ADV.UNKNOWN_ERROR") };
   }
 };
 

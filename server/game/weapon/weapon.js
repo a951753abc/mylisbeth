@@ -7,6 +7,7 @@ const { rollInnateEffects } = require("./innateEffect.js");
 const { resolveWeaponType } = require("./weaponType.js");
 const { calcWeaponTypeWeights, selectWeaponType } = require("./weaponTypeAffinity.js");
 const { checkForgeBonuses } = require("./forgeBonuses.js");
+const { formatText, getText } = require("../textManager.js");
 
 const weaponPer = ["hp", "atk", "def", "agi", "durability"];
 
@@ -66,9 +67,9 @@ function applyStatBoost(weapon, perName, boost) {
 
 function getStatBoostText(perName, boost) {
   if (perName === "cri") {
-    return "暴擊門檻 降低" + boost + "點。（暴擊更容易觸發！）\n";
+    return formatText("FORGE.STAT_BOOST_CRI", { value: boost }) + "\n";
   }
-  return perName + " 提升" + boost + "點。 \n";
+  return formatText("FORGE.STAT_BOOST", { stat: perName, value: boost }) + "\n";
 }
 
 module.exports.buffWeapon = function (cmd, user) {
@@ -80,7 +81,7 @@ module.exports.buffWeapon = function (cmd, user) {
 
   // 強化上限檢查
   if (buffCount >= config.BUFF_MAX) {
-    thisWeapon.text += "這把武器已達強化上限（+" + config.BUFF_MAX + "），無法繼續強化。\n";
+    thisWeapon.text += formatText("FORGE.BUFF_MAX", { max: config.BUFF_MAX }) + "\n";
     return thisWeapon;
   }
 
@@ -99,13 +100,13 @@ module.exports.buffWeapon = function (cmd, user) {
       // HP 特殊處理：statBoost * 5
       statBoost = statBoost * config.BUFF_HP_MULTIPLIER;
     }
-    thisWeapon.text += "強化成功！\n";
+    thisWeapon.text += getText("FORGE.BUFF_SUCCESS") + "\n";
     thisWeapon.text += getStatBoostText(perName, statBoost);
     applyStatBoost(thisWeapon, perName, statBoost);
     thisWeapon.buff = buffCount + 1;
     isBuff = true;
   } else {
-    thisWeapon.text += "武器強化失敗！\n";
+    thisWeapon.text += getText("FORGE.BUFF_FAIL") + "\n";
   }
   if (isBuff) {
     return thisWeapon;
@@ -120,7 +121,7 @@ module.exports.buffWeapon = function (cmd, user) {
       changeValue = 1;
     }
     thisWeapon.durability -= changeValue;
-    thisWeapon.text += "武器的耐久值下降:" + changeValue + "點\n";
+    thisWeapon.text += formatText("FORGE.DURABILITY_DOWN", { value: changeValue }) + "\n";
   }
   return thisWeapon;
 };
@@ -154,7 +155,7 @@ module.exports.createWeapon = async function (materials, weaponName, user, optio
   weapon.maxDurability = weapon.durability;
   weapon.text = "";
   const matNames = materials.map((m) => m.itemName).join("、");
-  weapon.text += "使用" + matNames + "製作完成\n";
+  weapon.text += formatText("FORGE.CREATION_COMPLETE", { materials: matNames }) + "\n";
 
   // 每個素材獨立判定 stat boost
   const processed = new Set();
@@ -179,7 +180,7 @@ module.exports.createWeapon = async function (materials, weaponName, user, optio
       const per = 20 + totalLevel * 5;
       if (roll.d100Check(per)) {
         const perName = getStatName(materials[i].itemId);
-        weapon.text += "強化成功！\n";
+        weapon.text += getText("FORGE.BUFF_SUCCESS") + "\n";
         weapon.text += getStatBoostText(perName, forgeLevel);
         applyStatBoost(weapon, perName, forgeLevel);
       }
@@ -187,7 +188,7 @@ module.exports.createWeapon = async function (materials, weaponName, user, optio
       const per = 20 + materials[i].itemLevel * 5;
       if (roll.d100Check(per)) {
         const perName = getStatName(materials[i].itemId);
-        weapon.text += "強化成功！\n";
+        weapon.text += getText("FORGE.BUFF_SUCCESS") + "\n";
         weapon.text += getStatBoostText(perName, forgeLevel);
         applyStatBoost(weapon, perName, forgeLevel);
       }
@@ -201,7 +202,7 @@ module.exports.createWeapon = async function (materials, weaponName, user, optio
     for (let e = 0; e < extraCount; e++) {
       const randomStat = weaponPer[Math.floor(Math.random() * weaponPer.length)];
       applyStatBoost(weapon, randomStat, bonusPerExtra);
-      weapon.text += `追加素材加成：${randomStat} +${bonusPerExtra}\n`;
+      weapon.text += formatText("FORGE.EXTRA_MATERIAL_BONUS", { stat: randomStat, value: bonusPerExtra }) + "\n";
     }
   }
 
@@ -211,7 +212,7 @@ module.exports.createWeapon = async function (materials, weaponName, user, optio
     for (const b of comboResult.bonuses) {
       applyStatBoost(weapon, b.stat, b.value);
     }
-    weapon.text += `✨ 組合加成：${comboResult.text}\n`;
+    weapon.text += formatText("FORGE.COMBO_BONUS", { text: comboResult.text }) + "\n";
   }
 
   let rollResult = roll.d66();
@@ -225,7 +226,7 @@ module.exports.createWeapon = async function (materials, weaponName, user, optio
   // 鍛造靈感：保證 1 次大成功（流浪鍛冶師事件 buff），且免除大失敗
   if (options.forgeInspiration) {
     changeWeapon(weapon, "success");
-    weapon.text += "鍛造靈感湧現！額外強化成功！\n";
+    weapon.text += getText("FORGE.INSPIRATION") + "\n";
   }
 
   // 大成功門檻：基礎 10，正值代表更難觸發
@@ -242,11 +243,11 @@ module.exports.createWeapon = async function (materials, weaponName, user, optio
     if (matType === "fabric" || matType === "leather") {
       // 布料/皮革：耐久 +2
       applyStatBoost(weapon, "durability", 2);
-      weapon.text += `${mat.itemName}（${matType === "fabric" ? "布料" : "皮革"}）：耐久 +2\n`;
+      weapon.text += formatText("FORGE.FABRIC_DURABILITY", { name: mat.itemName, type: matType === "fabric" ? "布料" : "皮革" }) + "\n";
     } else if (matType === "gem") {
       // 寶石：固有效果觸發機率 +5%
       innateChanceBonus += 5;
-      weapon.text += `${mat.itemName}（寶石）：固有效果機率 +5%\n`;
+      weapon.text += formatText("FORGE.GEM_INNATE", { name: mat.itemName }) + "\n";
     }
   }
 
@@ -258,7 +259,7 @@ module.exports.createWeapon = async function (materials, weaponName, user, optio
   const innateResults = rollInnateEffects(weapon, weaponType, forgeLevel, { innateChanceBonus });
   if (innateResults.length > 0) {
     const innateNames = innateResults.map((e) => e.name).join("、");
-    weapon.text += `武器獲得固有效果：${innateNames}\n`;
+    weapon.text += formatText("FORGE.INNATE_EFFECT", { names: innateNames }) + "\n";
   }
 
   return weapon;
@@ -269,25 +270,13 @@ function changeWeapon(weapon, type) {
   const changeValue = roll.d6();
   let text = "";
   if (type === "success") {
-    text =
-      weapon.name +
-      "強化大成功！\n武器數值" +
-      per +
-      "提高" +
-      changeValue +
-      "\n";
+    text = formatText("FORGE.CRIT_SUCCESS", { name: weapon.name, stat: per, value: changeValue }) + "\n";
     weapon[per] += changeValue;
     if (per === "durability") {
       weapon.maxDurability = (weapon.maxDurability || 0) + changeValue;
     }
   } else if (type === "fail") {
-    text =
-      weapon.name +
-      "強化大失敗！\n武器數值" +
-      per +
-      "降低了" +
-      changeValue +
-      "\n";
+    text = formatText("FORGE.CRIT_FAIL", { name: weapon.name, stat: per, value: changeValue }) + "\n";
     weapon[per] -= changeValue;
     if (weapon[per] < 0) {
       weapon[per] = 0;

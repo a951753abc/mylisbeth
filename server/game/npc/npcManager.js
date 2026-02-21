@@ -5,6 +5,7 @@ const { generateNpc } = require("./generator.js");
 const { getExpToNextLevel } = require("./npcStats.js");
 const { getGameDaysSince } = require("../time/gameTime.js");
 const { getModifier } = require("../title/titleModifier.js");
+const { formatText, getText } = require("../textManager.js");
 
 const NPC_CFG = config.NPC;
 
@@ -27,18 +28,18 @@ function getHireLimit(adventureLevel) {
  */
 async function hireNpc(userId, npcId) {
   const user = await db.findOne("user", { userId });
-  if (!user) return { error: "角色不存在" };
+  if (!user) return { error: getText("NPC.CHAR_NOT_FOUND") };
 
   const hired = user.hiredNpcs || [];
 
   // 雇用上限檢查
   const limit = getHireLimit(user.adventureLevel);
   if (hired.length >= limit) {
-    return { error: `已達雇用上限（${limit} 人）。提升冒險等級可增加上限。` };
+    return { error: formatText("NPC.HIRE_LIMIT", { limit }) };
   }
 
   if (hired.some((n) => n.npcId === npcId)) {
-    return { error: "該 NPC 已在你的隊伍中" };
+    return { error: getText("NPC.ALREADY_HIRED") };
   }
 
   // 從 DB 取得或生成 NPC 資料
@@ -47,15 +48,15 @@ async function hireNpc(userId, npcId) {
     // 按需生成並寫入 DB
     const index = parseInt(npcId.replace("npc_", ""), 10);
     if (isNaN(index) || index < 0 || index >= NPC_CFG.POOL_SIZE) {
-      return { error: "無效的 NPC ID" };
+      return { error: getText("NPC.INVALID_NPC_ID") };
     }
     const generated = generateNpc(index);
     npcDoc = { ...generated, status: "available", hiredBy: null, diedAt: null, causeOfDeath: null };
     await db.upsert("npc", { npcId }, { $set: npcDoc });
   }
 
-  if (npcDoc.status === "dead") return { error: "這位冒險者已不在人世" };
-  if (npcDoc.status === "hired") return { error: "這位冒險者已被其他人雇用" };
+  if (npcDoc.status === "dead") return { error: getText("NPC.NPC_DEAD") };
+  if (npcDoc.status === "hired") return { error: getText("NPC.NPC_TAKEN") };
 
   // 嘗試原子性搶雇（防競爭）
   const updated = await db.findOneAndUpdate(
@@ -64,7 +65,7 @@ async function hireNpc(userId, npcId) {
     { $set: { status: "hired", hiredBy: userId } },
     { returnDocument: "after" },
   );
-  if (!updated) return { error: "這位冒險者剛才被其他人雇走了" };
+  if (!updated) return { error: getText("NPC.NPC_RACE") };
 
   // 扣除雇用費
   const cost = npcDoc.hireCost || NPC_CFG.HIRE_COST[npcDoc.quality];
@@ -72,7 +73,7 @@ async function hireNpc(userId, npcId) {
   if (!paid) {
     // 回滾雇用狀態
     await db.update("npc", { npcId }, { $set: { status: "available", hiredBy: null } });
-    return { error: `Col 不足，雇用需要 ${cost} Col` };
+    return { error: formatText("NPC.HIRE_COL_INSUFFICIENT", { cost }) };
   }
 
   // 加入 hiredNpcs（原子性保證不超過上限）
@@ -104,7 +105,7 @@ async function hireNpc(userId, npcId) {
     // 競爭條件：雇用上限已在其他併發請求中達到，回滾 NPC 狀態 + 退款
     await db.update("npc", { npcId }, { $set: { status: "available", hiredBy: null } });
     await awardCol(userId, cost);
-    return { error: `已達雇用上限（${limit} 人）。提升冒險等級可增加上限。` };
+    return { error: formatText("NPC.HIRE_LIMIT", { limit }) };
   }
 
   return { success: true, npc: npcEntry, cost };
@@ -118,11 +119,11 @@ async function hireNpc(userId, npcId) {
  */
 async function fireNpc(userId, npcId) {
   const user = await db.findOne("user", { userId });
-  if (!user) return { error: "角色不存在" };
+  if (!user) return { error: getText("NPC.CHAR_NOT_FOUND") };
 
   const hired = user.hiredNpcs || [];
   const npcEntry = hired.find((n) => n.npcId === npcId);
-  if (!npcEntry) return { error: "找不到該 NPC" };
+  if (!npcEntry) return { error: getText("NPC.NPC_NOT_FOUND") };
 
   await db.update("user", { userId }, { $pull: { hiredNpcs: { npcId } } });
   await db.update("npc", { npcId }, { $set: { status: "available", hiredBy: null } });
@@ -139,19 +140,19 @@ async function fireNpc(userId, npcId) {
  */
 async function healNpc(userId, npcId, healType) {
   const user = await db.findOne("user", { userId });
-  if (!user) return { error: "角色不存在" };
+  if (!user) return { error: getText("NPC.CHAR_NOT_FOUND") };
 
   const hired = user.hiredNpcs || [];
   const npcIdx = hired.findIndex((n) => n.npcId === npcId);
-  if (npcIdx === -1) return { error: "找不到該 NPC" };
+  if (npcIdx === -1) return { error: getText("NPC.NPC_NOT_FOUND") };
 
   const npc = hired[npcIdx];
   const currentCond = npc.condition ?? 100;
-  if (currentCond >= 100) return { error: "該 NPC 體力已滿" };
+  if (currentCond >= 100) return { error: getText("NPC.FULL_CONDITION") };
 
   const cost = healType === "full" ? NPC_CFG.HEAL_FULL_COST : NPC_CFG.HEAL_QUICK_COST;
   const paid = await deductCol(userId, cost);
-  if (!paid) return { error: `Col 不足，治療需要 ${cost} Col` };
+  if (!paid) return { error: formatText("NPC.HEAL_COL_INSUFFICIENT", { cost }) };
 
   const newCond = healType === "full" ? 100 : Math.min(100, currentCond + 30);
   await db.update(
@@ -258,14 +259,14 @@ async function killNpc(userId, npcId, cause = "未知原因") {
  */
 async function equipWeapon(userId, npcId, weaponIndex) {
   const user = await db.findOne("user", { userId });
-  if (!user) return { error: "角色不存在" };
+  if (!user) return { error: getText("NPC.CHAR_NOT_FOUND") };
 
   const hired = user.hiredNpcs || [];
   const npcIdx = hired.findIndex((n) => n.npcId === npcId);
-  if (npcIdx === -1) return { error: "找不到該 NPC" };
+  if (npcIdx === -1) return { error: getText("NPC.NPC_NOT_FOUND") };
 
   if (weaponIndex !== null && !user.weaponStock?.[weaponIndex]) {
-    return { error: `武器編號 ${weaponIndex} 不存在` };
+    return { error: formatText("NPC.WEAPON_NOT_FOUND", { index: weaponIndex }) };
   }
 
   await db.update(

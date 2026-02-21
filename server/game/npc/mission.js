@@ -8,6 +8,7 @@ const { getModifier } = require("../title/titleModifier.js");
 const roll = require("../roll.js");
 const { awardAdvExp } = require("../progression/adventureLevel.js");
 const { getActiveFloor } = require("../floor/activeFloor.js");
+const { formatText, getText } = require("../textManager.js");
 
 const MISSIONS = config.NPC_MISSIONS;
 
@@ -55,32 +56,32 @@ function getMissionPreviews(npc, floor, title = null) {
  */
 async function startMission(userId, npcId, missionType) {
   const user = await db.findOne("user", { userId });
-  if (!user) return { error: "角色不存在" };
+  if (!user) return { error: getText("NPC.CHAR_NOT_FOUND") };
 
   const hired = user.hiredNpcs || [];
   const npcIdx = hired.findIndex((n) => n.npcId === npcId);
-  if (npcIdx === -1) return { error: "找不到該 NPC" };
+  if (npcIdx === -1) return { error: getText("NPC.NPC_NOT_FOUND") };
 
   const npc = hired[npcIdx];
 
   // 檢查是否已在任務中
-  if (npc.mission) return { error: `${npc.name} 正在執行任務中` };
+  if (npc.mission) return { error: formatText("NPC.ON_MISSION", { npcName: npc.name }) };
 
   // 同時派遣任務上限（快速前檢）
   const activeMissions = hired.filter((n) => n.mission).length;
   const concurrentLimit = MISSIONS.CONCURRENT_LIMIT ?? 2;
   if (activeMissions >= concurrentLimit) {
-    return { error: `同時派遣任務已達上限（${concurrentLimit} 個）。請等待現有任務完成。` };
+    return { error: formatText("NPC.MISSION_LIMIT", { limit: concurrentLimit }) };
   }
 
   // 體力檢查（>= 10%）
   if ((npc.condition ?? 100) < 10) {
-    return { error: `${npc.name} 體力過低，無法執行任務` };
+    return { error: formatText("NPC.LOW_CONDITION", { npcName: npc.name }) };
   }
 
   // 驗證任務類型
   const missionDef = MISSIONS.TYPES.find((t) => t.id === missionType);
-  if (!missionDef) return { error: "無效的任務類型" };
+  if (!missionDef) return { error: getText("NPC.INVALID_MISSION") };
 
   const now = Date.now();
   const endsAt = now + missionDef.duration * config.TIME_SCALE;
@@ -110,7 +111,7 @@ async function startMission(userId, npcId, missionType) {
     { returnDocument: "after" },
   );
   if (!updateResult) {
-    return { error: `同時派遣任務已達上限（${concurrentLimit} 個），或 NPC 狀態已變更。` };
+    return { error: formatText("NPC.MISSION_LIMIT_OR_CHANGED", { limit: concurrentLimit }) };
   }
 
   return {

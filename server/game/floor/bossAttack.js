@@ -15,6 +15,7 @@ const { isAtFrontier } = require("./activeFloor.js");
 const { distributeBossDrops, processLastAttackRelic, distributeBossColRewards } = require("./bossRewards.js");
 const { advanceFloor } = require("./floorAdvancement.js");
 const { buildInnateContext } = require("../battle/innateEffectCombat.js");
+const { formatText, getText } = require("../textManager.js");
 
 function calcDamage(atk, cri, def) {
   let atkDam = 0;
@@ -153,30 +154,30 @@ module.exports = async function bossAttack(cmd, rawUser) {
     const weaponIdx = cmd[2] !== undefined ? parseInt(cmd[2], 10) : 0;
 
     if (!user.weaponStock || !user.weaponStock[weaponIdx]) {
-      return { error: `錯誤！武器 ${weaponIdx} 不存在` };
+      return { error: formatText("BOSS.WEAPON_NOT_FOUND", { index: weaponIdx }) };
     }
 
     // 必須提供 NPC
     const npcId = cmd[3];
     if (!npcId) {
-      return { error: "Boss 戰必須選擇一位已雇用的 NPC 冒險者！" };
+      return { error: getText("BOSS.NPC_REQUIRED") };
     }
 
     const hired = user.hiredNpcs || [];
     const hiredNpc = hired.find((n) => n.npcId === npcId);
     if (!hiredNpc) {
-      return { error: "找不到該 NPC，請確認已雇用該冒險者。" };
+      return { error: getText("BOSS.NPC_NOT_FOUND") };
     }
 
     // NPC 體力檢查
     const effectiveStats = getEffectiveStats(hiredNpc);
     if (!effectiveStats) {
-      return { error: `${hiredNpc.name} 體力過低（< 10%），無法出戰！請先治療。` };
+      return { error: formatText("BOSS.NPC_LOW_CONDITION", { npcName: hiredNpc.name }) };
     }
 
     // 必須在前線樓層才能挑戰 Boss
     if (!isAtFrontier(user)) {
-      return { error: "必須先回到前線才能挑戰 Boss！" };
+      return { error: getText("BOSS.NOT_AT_FRONTIER") };
     }
 
     // Boss 是全伺服器共享的，使用伺服器前線樓層
@@ -188,7 +189,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
     if (floorProgress.explored < floorProgress.maxExplore) {
       const remaining = floorProgress.maxExplore - floorProgress.explored;
       return {
-        error: `尚未完成迷宮探索！還需要探索 ${remaining} 次才能挑戰 Boss。`,
+        error: formatText("BOSS.EXPLORE_REMAINING", { remaining }),
       };
     }
 
@@ -201,7 +202,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
         await resetBoss(currentFloor, bossData);
         state = await db.findOne("server_state", { _id: "aincrad" });
         return {
-          error: "Boss 挑戰時間已超過 72 小時，Boss 已重置！請重新挑戰。",
+          error: getText("BOSS.TIMEOUT_RESET"),
           bossReset: true,
         };
       }
@@ -266,7 +267,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
     );
 
     if (!updatedState) {
-      return { error: "Boss 狀態異常，請重試。" };
+      return { error: getText("BOSS.STATE_ERROR") };
     }
 
     const remainingHp = Math.max(0, updatedState.bossStatus.currentHp);
@@ -370,10 +371,10 @@ module.exports = async function bossAttack(cmd, rawUser) {
     // npcEventText 只放次要事件（升級），反擊結果由 counterAttack 結構化物件傳遞
     let npcEventText = "";
     if (npcResult.levelUp) {
-      npcEventText = `${hiredNpc.name} 升級了！LV ${npcResult.newLevel}`;
+      npcEventText = formatText("BOSS.NPC_LEVEL_UP", { npcName: hiredNpc.name, level: npcResult.newLevel });
     }
     if (advExpResult.levelUp) {
-      npcEventText += `${npcEventText ? "\n" : ""}冒險等級提升至 LV ${advExpResult.newLevel}！`;
+      npcEventText += `${npcEventText ? "\n" : ""}${formatText("BOSS.ADV_LEVEL_UP", { level: advExpResult.newLevel })}`;
     }
 
     const counterAttackData = {
@@ -519,6 +520,6 @@ module.exports = async function bossAttack(cmd, rawUser) {
     };
   } catch (err) {
     console.error("Boss 攻擊發生錯誤:", err);
-    return { error: "Boss 攻擊過程中發生未知錯誤，請稍後再試。" };
+    return { error: getText("BOSS.UNKNOWN_ERROR") };
   }
 };

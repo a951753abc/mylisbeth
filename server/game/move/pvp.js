@@ -15,6 +15,7 @@ const { getEffectiveSkills } = require("../skill/skillSlot.js");
 const { buildSkillContext } = require("../skill/skillCombat.js");
 const { awardProficiency, getProfGainKey } = require("../skill/skillProficiency.js");
 const { resolveWeaponType } = require("../weapon/weaponType.js");
+const { formatText, getText } = require("../textManager.js");
 
 const PVP = config.PVP;
 const MODES = PVP.MODES;
@@ -35,10 +36,10 @@ module.exports = async function (cmd, rawAttacker) {
 
   // === PvP 專屬驗證 ===
   if (!targetUserId) {
-    return { error: "請選擇要挑戰的玩家。" };
+    return { error: getText("PVP.NO_TARGET") };
   }
   if (attacker.userId === targetUserId) {
-    return { error: "你不能挑戰自己！" };
+    return { error: getText("PVP.SELF_DUEL") };
   }
 
   // === 每日上限 & 同一對手冷卻 ===
@@ -52,7 +53,7 @@ module.exports = async function (cmd, rawAttacker) {
       timestamp: { $gte: todayStart.getTime() },
     });
     if (todayDuels >= PVP.DAILY_DUEL_LIMIT) {
-      return { error: `今日決鬥次數已達上限（${PVP.DAILY_DUEL_LIMIT} 次）。` };
+      return { error: formatText("PVP.DAILY_LIMIT", { limit: PVP.DAILY_DUEL_LIMIT }) };
     }
   }
 
@@ -65,24 +66,24 @@ module.exports = async function (cmd, rawAttacker) {
   });
   if (lastDuel) {
     const remainSec = Math.ceil((lastDuel.timestamp + PVP.SAME_TARGET_COOLDOWN_MS - now) / 1000);
-    return { error: `與該對手的冷卻尚未結束，請等待 ${remainSec} 秒。` };
+    return { error: formatText("PVP.COOLDOWN", { seconds: remainSec }) };
   }
 
   // === 載入防守方（在體力扣除之前驗證）===
   const rawDefender = await db.findOne("user", { userId: targetUserId });
   if (!rawDefender) {
-    return { error: "找不到該玩家，可能已陣亡或不存在。" };
+    return { error: getText("PVP.TARGET_NOT_FOUND") };
   }
   const defender = await ensureUserFields(rawDefender);
 
   // 新手保護
   if (isNewbie(defender.gameCreatedAt)) {
-    return { error: `${defender.name} 還在新手保護期內，無法被挑戰。` };
+    return { error: formatText("PVP.NEWBIE_PROTECTION", { name: defender.name }) };
   }
 
   // 預檢防守方 Col（賭注模式）
   if (mode !== MODES.TOTAL_LOSS && wagerCol > 0 && (defender.col || 0) < wagerCol) {
-    return { error: `${defender.name} 的 Col 不足以支付 ${wagerCol} 的賭注，決鬥取消。` };
+    return { error: formatText("PVP.DEFENDER_INSUFFICIENT", { name: defender.name, amount: wagerCol }) };
   }
 
   // === 所有驗證通過，扣除體力 ===
@@ -114,7 +115,7 @@ module.exports = async function (cmd, rawAttacker) {
     return {
       battleLog: [],
       winner: attacker.name,
-      reward: `${defender.name} 手無寸鐵，無法應戰！\n**${attacker.name} 不戰而勝！**`,
+      reward: formatText("PVP.UNARMED", { defender: defender.name, attacker: attacker.name }),
       attackerName: attacker.name,
       defenderName: defender.name,
       defenderId: defender.userId,
@@ -163,7 +164,7 @@ module.exports = async function (cmd, rawAttacker) {
   const winnerName = battleResult.winner.name;
   const loserName = battleResult.loser.name;
 
-  resultText += `\n\n**${winnerName} 獲得了勝利！**`;
+  resultText += "\n\n" + formatText("PVP.VICTORY", { winner: winnerName });
 
   // === 經濟處理 ===
   if (mode === MODES.TOTAL_LOSS) {
@@ -175,7 +176,7 @@ module.exports = async function (cmd, rawAttacker) {
         const looted = await deductCol(loserId, colToLoot);
         if (looted) {
           await awardCol(winnerId, colToLoot);
-          rewardText += `\n${winnerName} 搶走了 ${loserName} 的 ${colToLoot} Col！`;
+          rewardText += "\n" + formatText("PVP.LOOT_COL", { winner: winnerName, loser: loserName, amount: colToLoot });
         }
       }
 
@@ -187,7 +188,7 @@ module.exports = async function (cmd, rawAttacker) {
           const success = await db.atomicIncItem(loserId, stolen.itemId, stolen.itemLevel, stolen.itemName, -1);
           if (success) {
             await db.atomicIncItem(winnerId, stolen.itemId, stolen.itemLevel, stolen.itemName, 1);
-            rewardText += `\n${winnerName} 從 ${loserName} 身上奪走了 1 個 [${stolen.itemName}]！`;
+            rewardText += "\n" + formatText("PVP.LOOT_ITEM", { winner: winnerName, loser: loserName, item: stolen.itemName });
           }
         }
       }
@@ -195,9 +196,9 @@ module.exports = async function (cmd, rawAttacker) {
   } else if (wagerCol > 0) {
     const { payout, tax } = calcWagerPayout(wagerCol);
     await awardCol(winnerId, payout);
-    rewardText += `\n${winnerName} 贏得賭注 ${payout} Col（系統稅 ${tax} Col）`;
+    rewardText += "\n" + formatText("PVP.WAGER_WIN", { winner: winnerName, payout, tax });
   } else {
-    rewardText += `\n榮譽決鬥——無 Col 交易。`;
+    rewardText += "\n" + getText("PVP.HONOR_DUEL");
   }
 
   // === 死亡 & 紅名（Total Loss 專屬）===
@@ -216,7 +217,7 @@ module.exports = async function (cmd, rawAttacker) {
 
     if (roll.d100Check(deathChance)) {
       loserDied = true;
-      rewardText += `\n\n**${loserName} 在決鬥中被殺害了...角色已被刪除。**`;
+      rewardText += "\n\n" + formatText("PVP.DEATH", { loser: loserName });
       await executeBankruptcy(loserId, 0, 0, { cause: "pvp_total_loss" });
       await increment(winnerId, "duelKills");
 
@@ -226,7 +227,7 @@ module.exports = async function (cmd, rawAttacker) {
           $set: { isPK: true },
           $inc: { pkKills: 1 },
         });
-        rewardText += `\n**${winnerName} 殺害了無罪玩家，被標記為紅名（プレイヤーキラー）！**`;
+        rewardText += "\n" + formatText("PVP.RED_NAME", { winner: winnerName });
       }
     }
   }
@@ -247,7 +248,7 @@ module.exports = async function (cmd, rawAttacker) {
 
   const expResult = await awardBattleExp(winnerId, config.BATTLE_LEVEL.EXP_PVP_WIN);
   if (expResult.leveled) {
-    rewardText += `\n${winnerName} 的戰鬥等級提升至 Lv.${expResult.newLevel}！`;
+    rewardText += "\n" + formatText("PVP.BATTLE_LEVEL_UP", { winner: winnerName, level: expResult.newLevel });
   }
 
   await checkAndAward(winnerId);

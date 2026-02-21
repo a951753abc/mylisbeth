@@ -26,6 +26,7 @@ const { resolveWeaponType } = require("../weapon/weaponType.js");
 const { tryNpcLearnSkill } = require("../skill/npcSkillLearning.js");
 const { checkExtraSkills } = require("../skill/extraSkillChecker.js");
 const { getActiveFloor, getProficiencyMultiplier } = require("../floor/activeFloor.js");
+const { formatText, getText } = require("../textManager.js");
 
 // 冒險結果對應 NPC 經驗值
 const NPC_EXP_GAIN = {
@@ -39,7 +40,7 @@ module.exports = async function (cmd, rawUser) {
     const user = await ensureUserFields(rawUser);
 
     if (!user.weaponStock || user.weaponStock.length === 0) {
-      return { error: "你沒有任何武器，無法冒險！" };
+      return { error: getText("ADVENTURE.NO_WEAPON") };
     }
 
     // cmd[2] = weaponId, cmd[3] = npcId
@@ -48,30 +49,30 @@ module.exports = async function (cmd, rawUser) {
     }
 
     if (!user.weaponStock[cmd[2]]) {
-      return { error: "錯誤！武器" + cmd[2] + " 不存在" };
+      return { error: formatText("ADVENTURE.WEAPON_NOT_FOUND", { index: cmd[2] }) };
     }
 
     // 必須提供 NPC
     const npcId = cmd[3];
     if (!npcId) {
-      return { error: "冒險必須選擇一位已雇用的 NPC 冒險者！" };
+      return { error: getText("ADVENTURE.NPC_REQUIRED") };
     }
 
     const hired = user.hiredNpcs || [];
     const hiredNpc = hired.find((n) => n.npcId === npcId);
     if (!hiredNpc) {
-      return { error: "找不到該 NPC，請確認已雇用該冒險者。" };
+      return { error: getText("ADVENTURE.NPC_NOT_FOUND") };
     }
 
     // 體力檢查
     const effectiveStats = getEffectiveStats(hiredNpc);
     if (!effectiveStats) {
-      return { error: `${hiredNpc.name} 體力過低（< 10%），無法出戰！請先治療。` };
+      return { error: formatText("ADVENTURE.NPC_LOW_CONDITION", { npcName: hiredNpc.name }) };
     }
 
     // Season 6: 任務互斥鎖
     if (hiredNpc.mission) {
-      return { error: `${hiredNpc.name} 正在執行任務中，無法出戰。` };
+      return { error: formatText("ADVENTURE.NPC_ON_MISSION", { npcName: hiredNpc.name }) };
     }
 
     const thisWeapon = user.weaponStock[cmd[2]];
@@ -132,7 +133,7 @@ module.exports = async function (cmd, rawUser) {
     let npcEventText = "";
     let npcDeathEvent = null;
     if (npcResult.died) {
-      npcEventText = `\n\n**${hiredNpc.name} 在戰鬥中壯烈犧牲了...**`;
+      npcEventText = "\n\n" + formatText("ADVENTURE.NPC_DEATH", { npcName: hiredNpc.name });
       npcDeathEvent = {
         npcName: hiredNpc.name,
         npcQuality: hiredNpc.quality,
@@ -141,16 +142,16 @@ module.exports = async function (cmd, rawUser) {
       };
       await increment(user.userId, "npcDeaths");
     } else if (npcResult.levelUp) {
-      npcEventText = `\n\n✨ ${hiredNpc.name} 升級了！LV ${npcResult.newLevel}`;
+      npcEventText = "\n\n" + formatText("ADVENTURE.NPC_LEVEL_UP", { npcName: hiredNpc.name, level: npcResult.newLevel });
     } else if (npcResult.newCondition !== undefined) {
-      npcEventText = `\n（${hiredNpc.name} 體力: ${npcResult.newCondition}%）`;
+      npcEventText = "\n" + formatText("ADVENTURE.NPC_CONDITION", { npcName: hiredNpc.name, condition: npcResult.newCondition });
     }
 
     // 冒險等級經驗
     const advExpMap = { WIN: config.ADV_LEVEL.EXP_ADV_WIN, DRAW: config.ADV_LEVEL.EXP_ADV_DRAW, LOSE: config.ADV_LEVEL.EXP_ADV_LOSE };
     const advExpResult = await awardAdvExp(user.userId, advExpMap[outcomeKey] || 3);
     if (advExpResult.levelUp) {
-      npcEventText += `\n\n🎖️ 冒險等級提升至 LV ${advExpResult.newLevel}！`;
+      npcEventText += "\n\n" + formatText("ADVENTURE.ADV_LEVEL_UP", { level: advExpResult.newLevel });
     }
 
     // 獎勵
@@ -160,7 +161,7 @@ module.exports = async function (cmd, rawUser) {
     if (battleResult.win === 1) {
       const winString = `${battleResult.category}Win`;
       const mineResultText = await mineBattle(user, battleResult.category, currentFloor);
-      rewardText = `\n\n**戰利品:**\n${mineResultText}`;
+      rewardText = "\n\n" + getText("ADVENTURE.LOOT_HEADER") + "\n" + mineResultText;
       await db.update("user", { userId: user.userId }, { $inc: { [winString]: 1 } });
 
       const advColMod = getModifier(title, "advColReward");
@@ -175,9 +176,9 @@ module.exports = async function (cmd, rawUser) {
       colSpentFee = fee;
       colEarned = netReward;
       await awardCol(user.userId, netReward);
-      rewardText += `獲得 ${colReward} Col（委託費 ${fee} Col）→ 實收 ${netReward} Col`;
+      rewardText += formatText("ADVENTURE.COL_REWARD", { total: colReward, fee, net: netReward });
       if (penalties.advRewardMult < 1) {
-        rewardText += `（負債懲罰：獎勵減半）`;
+        rewardText += getText("ADVENTURE.DEBT_PENALTY");
       }
       rewardText += "\n";
 
@@ -214,7 +215,7 @@ module.exports = async function (cmd, rawUser) {
 
       const npcLearnResult = await tryNpcLearnSkill(user.userId, npcIdx, hiredNpc, thisWeapon);
       if (npcLearnResult && npcLearnResult.learned) {
-        skillText += `\n🗡️ ${hiredNpc.name} 學會了新劍技：【${npcLearnResult.skillName}】！`;
+        skillText += "\n" + formatText("ADVENTURE.NPC_LEARN_SKILL", { npcName: hiredNpc.name, skillName: npcLearnResult.skillName });
       }
     }
 
@@ -252,7 +253,7 @@ module.exports = async function (cmd, rawUser) {
     };
   } catch (error) {
     console.error("在執行 move adv 時發生嚴重錯誤:", error);
-    return { error: "冒險的過程中發生了未知的錯誤，請稍後再試。" };
+    return { error: getText("ADVENTURE.UNKNOWN_ERROR") };
   }
 };
 

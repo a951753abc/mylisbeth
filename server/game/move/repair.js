@@ -5,6 +5,7 @@ const { deductCol } = require("../economy/col.js");
 const { calculateRarity } = require("../weapon/rarity.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { getModifier } = require("../title/titleModifier.js");
+const { formatText, getText } = require("../textManager.js");
 
 module.exports = async function (cmd, rawUser) {
   try {
@@ -19,7 +20,7 @@ module.exports = async function (cmd, rawUser) {
       !user.weaponStock ||
       !user.weaponStock[weaponIndex]
     ) {
-      return { error: "武器不存在！" };
+      return { error: getText("REPAIR.WEAPON_NOT_FOUND") };
     }
     if (
       isNaN(matIndex) ||
@@ -27,7 +28,7 @@ module.exports = async function (cmd, rawUser) {
       !user.itemStock[matIndex] ||
       user.itemStock[matIndex].itemNum <= 0
     ) {
-      return { error: "素材不存在或數量不足！" };
+      return { error: getText("REPAIR.MATERIAL_NOT_FOUND") };
     }
 
     const thisWeapon = user.weaponStock[weaponIndex];
@@ -37,7 +38,7 @@ module.exports = async function (cmd, rawUser) {
     const maxDurability = thisWeapon.maxDurability || 12;
     if (thisWeapon.durability >= maxDurability) {
       return {
-        error: `${thisWeapon.weaponName} 的耐久度已滿（${thisWeapon.durability}/${maxDurability}），無需修復！`,
+        error: formatText("REPAIR.FULL_DURABILITY", { weaponName: thisWeapon.weaponName, current: thisWeapon.durability, max: maxDurability }),
       };
     }
 
@@ -52,7 +53,7 @@ module.exports = async function (cmd, rawUser) {
     const colSuccess = await deductCol(user.userId, cost);
     if (!colSuccess) {
       return {
-        error: `Col 不足！修復 ${thisWeapon.weaponName}（${rarity.label}）需要 ${cost} Col。`,
+        error: formatText("REPAIR.COL_INSUFFICIENT", { weaponName: thisWeapon.weaponName, rarity: rarity.label, cost }),
       };
     }
 
@@ -86,9 +87,9 @@ module.exports = async function (cmd, rawUser) {
         { $inc: { [durPath]: repairAmount } },
         { returnDocument: "after" },
       );
-      resultText = `修復成功！${thisWeapon.weaponName} 的耐久度恢復了 ${repairAmount} 點。（消耗 ${cost} Col）`;
+      resultText = formatText("REPAIR.SUCCESS", { weaponName: thisWeapon.weaponName, amount: repairAmount, cost });
     } else {
-      resultText = `修復失敗！${thisWeapon.weaponName} 的耐久度沒有恢復。（消耗 ${cost} Col 及素材）`;
+      resultText = formatText("REPAIR.FAILURE", { weaponName: thisWeapon.weaponName, cost });
     }
 
     return {
@@ -100,6 +101,6 @@ module.exports = async function (cmd, rawUser) {
     };
   } catch (error) {
     console.error("修復武器時發生錯誤:", error);
-    return { error: "修復過程中發生了未知錯誤，請稍後再試。" };
+    return { error: getText("REPAIR.UNKNOWN_ERROR") };
   }
 };
