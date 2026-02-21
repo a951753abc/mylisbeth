@@ -1,6 +1,19 @@
 import React from 'react';
 import RandomEventDisplay from './RandomEventDisplay.jsx';
 
+function extractInnateEvents(battleLog) {
+  if (!Array.isArray(battleLog)) return [];
+  const events = [];
+  for (const entry of battleLog) {
+    if (entry.innateEvents && entry.innateEvents.length > 0) {
+      for (const evt of entry.innateEvents) {
+        events.push({ ...evt, attacker: entry.attacker, defender: entry.defender });
+      }
+    }
+  }
+  return events;
+}
+
 function getActionLabel(action) {
   if (action === 'mine') return '挖礦結果';
   if (action === 'forge') return '鍛造結果';
@@ -83,6 +96,44 @@ export default function BattleLog({ logs }) {
                 ))}
               </div>
             )}
+
+            {/* 固有效果事件 */}
+            {(() => {
+              const innateEvts = extractInnateEvents(log.battleResult?.log);
+              if (innateEvts.length === 0) return null;
+              return (
+                <div style={{ marginTop: '0.3rem' }}>
+                  {innateEvts.map((evt, ii) => (
+                    <div
+                      key={ii}
+                      style={{
+                        fontSize: '0.85rem',
+                        padding: '0.2rem 0.4rem',
+                        marginBottom: '0.2rem',
+                        borderLeft: '2px solid #f59e0b',
+                        background: 'rgba(245, 158, 11, 0.05)',
+                      }}
+                    >
+                      {evt.type === 'lifesteal' && (
+                        <span style={{ color: '#22c55e' }}>
+                          🩸 {evt.attacker} 吸取了 {evt.value} 點生命
+                        </span>
+                      )}
+                      {evt.type === 'stun' && (
+                        <span style={{ color: '#eab308' }}>
+                          💫 {evt.defender} 被暈眩了！
+                        </span>
+                      )}
+                      {evt.type === 'counter' && (
+                        <span style={{ color: '#ef4444' }}>
+                          🔄 {evt.defender} 反擊！造成 {evt.value} 點傷害
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Floor info for adventure */}
             {log.floor && log.floorName && (

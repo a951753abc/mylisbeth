@@ -14,6 +14,7 @@ const { awardProficiency, awardNpcProficiency } = require("../skill/skillProfici
 const { isAtFrontier } = require("./activeFloor.js");
 const { distributeBossDrops, processLastAttackRelic, distributeBossColRewards } = require("./bossRewards.js");
 const { advanceFloor } = require("./floorAdvancement.js");
+const { buildInnateContext } = require("../battle/innateEffectCombat.js");
 
 function calcDamage(atk, cri, def) {
   let atkDam = 0;
@@ -233,8 +234,28 @@ module.exports = async function bossAttack(cmd, rawUser) {
     const combined = getCombinedBattleStats(effectiveStats, weapon);
     const bossDamageMod = getCombinedModifier(user.title || null, user.bossRelics || [], "bossDamage");
     const activatedPhases = state.bossStatus.activatedPhases || [];
-    const effectiveBossDef = getEffectiveBossDef(bossData, activatedPhases);
-    const damage = Math.max(1, Math.round(calcDamage(combined.atk, combined.cri, effectiveBossDef) * bossDamageMod));
+
+    // 固有效果：套用被動 stat boost + 攻擊效果
+    const innateCtx = buildInnateContext(combined.innateEffects);
+    combined.atk += innateCtx.atkBoost;
+    combined.def += innateCtx.defBoost;
+    combined.agi += innateCtx.agiBoost;
+    if (innateCtx.criBoost > 0) {
+      combined.cri = Math.max(5, combined.cri - innateCtx.criBoost);
+    }
+
+    // 固有效果：破甲 — 降低 Boss 有效防禦
+    let effectiveBossDef = getEffectiveBossDef(bossData, activatedPhases);
+    if (innateCtx.ignoreDef > 0) {
+      effectiveBossDef = Math.max(0, Math.floor(effectiveBossDef * (1 - innateCtx.ignoreDef)));
+    }
+
+    let damage = Math.max(1, Math.round(calcDamage(combined.atk, combined.cri, effectiveBossDef) * bossDamageMod));
+
+    // 固有效果：傷害倍率
+    if (innateCtx.damageMult !== 1.0) {
+      damage = Math.max(1, Math.floor(damage * innateCtx.damageMult));
+    }
 
     // 原子減少 Boss HP
     const updatedState = await db.findOneAndUpdate(

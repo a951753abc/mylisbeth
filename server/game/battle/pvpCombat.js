@@ -1,6 +1,7 @@
 const config = require("../config.js");
 const roll = require("../roll");
-const { damCheck } = require("./combatCalc.js");
+const { processAttack, damCheck } = require("./combatCalc.js");
+const { buildInnateContext, applyInnatePassives } = require("./innateEffectCombat.js");
 const {
   applyPassiveSkills,
   checkConditionalSkills,
@@ -12,6 +13,12 @@ const {
 const { ROUND_LIMIT } = config.BATTLE;
 
 function runPvpCombatLoop(attacker, defender, duelMode) {
+  // 固有效果初始化
+  const atkInnate = buildInnateContext(attacker.innateEffects);
+  const defInnate = buildInnateContext(defender.innateEffects);
+  applyInnatePassives(attacker, atkInnate);
+  applyInnatePassives(defender, defInnate);
+
   let round = 1;
   const battleLog = [];
   const detailLog = [];
@@ -30,27 +37,30 @@ function runPvpCombatLoop(attacker, defender, duelMode) {
 
     const firstSide = atkAct >= defAct ? "attacker" : "defender";
     const order = firstSide === "attacker"
-      ? [{ src: attacker, dst: defender, srcKey: "attacker" },
-         { src: defender, dst: attacker, srcKey: "defender" }]
-      : [{ src: defender, dst: attacker, srcKey: "defender" },
-         { src: attacker, dst: defender, srcKey: "attacker" }];
+      ? [{ src: attacker, dst: defender, srcKey: "attacker", srcInnate: atkInnate, dstInnate: defInnate },
+         { src: defender, dst: attacker, srcKey: "defender", srcInnate: defInnate, dstInnate: atkInnate }]
+      : [{ src: defender, dst: attacker, srcKey: "defender", srcInnate: defInnate, dstInnate: atkInnate },
+         { src: attacker, dst: defender, srcKey: "attacker", srcInnate: atkInnate, dstInnate: defInnate }];
 
-    for (const { src, dst, srcKey } of order) {
-      if (dst.hp <= 0) break;
-      const dmgResult = damCheck(src.stats.atk, src.stats.cri, dst.stats.def);
-      dst.hp -= dmgResult.damage;
-      battleLog.push(`${src.name} 對 ${dst.name} 造成了 ${dmgResult.damage} 點傷害。`);
-      detailLog.push({
-        attacker: src.name, defender: dst.name,
-        damage: dmgResult.damage, isCrit: dmgResult.isCrit,
-        damDetail: { atkTotal: dmgResult.atkTotal, defTotal: dmgResult.defTotal, critCount: dmgResult.critCount },
-      });
+    let skipNext = false;
+    for (let i = 0; i < order.length; i++) {
+      const { src, dst, srcKey, srcInnate, dstInnate } = order[i];
+      if (dst.hp <= 0 || skipNext) break;
 
-      if (duelMode === "first_strike" && dmgResult.damage >= dst.maxHp * 0.10) {
+      const r = processAttack(src, dst, detailLog, srcInnate, dstInnate);
+      battleLog.push(`${src.name} 對 ${dst.name} 造成了 ${detailLog[detailLog.length - 1].damage || 0} 點傷害。`);
+
+      // 暈眩：跳過對方的回擊
+      if (r.stunned && i === 0) {
+        skipNext = true;
+        detailLog.push({ type: "stun", target: dst.name });
+      }
+
+      if (duelMode === "first_strike" && dst.maxHp && (dst.maxHp - dst.hp) >= dst.maxHp * 0.10) {
         winnerSide = srcKey;
         break;
       }
-      if (duelMode === "half_loss" && dst.hp <= dst.maxHp * 0.50) {
+      if (duelMode === "half_loss" && dst.maxHp && dst.hp <= dst.maxHp * 0.50) {
         winnerSide = srcKey;
         break;
       }
@@ -72,9 +82,16 @@ function runPvpCombatLoop(attacker, defender, duelMode) {
 }
 
 function runPvpCombatLoopWithSkills(attacker, defender, duelMode, atkSkillCtx, defSkillCtx) {
+  // 固有效果初始化
+  const atkInnate = buildInnateContext(attacker.innateEffects);
+  const defInnate = buildInnateContext(defender.innateEffects);
+  applyInnatePassives(attacker, atkInnate);
+  applyInnatePassives(defender, defInnate);
+
   if ((!atkSkillCtx || atkSkillCtx.skills.length === 0) &&
       (!defSkillCtx || defSkillCtx.skills.length === 0)) {
-    return runPvpCombatLoop(attacker, defender, duelMode);
+    // 已套用 innatePassives，走無技能版 loop（但不能再呼叫 runPvpCombatLoop 避免重複套用）
+    return _runLoopNoSkills(attacker, defender, duelMode, atkInnate, defInnate);
   }
 
   if (atkSkillCtx) applyPassiveSkills(attacker, atkSkillCtx);
@@ -104,16 +121,18 @@ function runPvpCombatLoopWithSkills(attacker, defender, duelMode, atkSkillCtx, d
 
     const sides = firstSide === "attacker"
       ? [
-          { src: attacker, dst: defender, ctx: atkSkillCtx, key: "attacker" },
-          { src: defender, dst: attacker, ctx: defSkillCtx, key: "defender" },
+          { src: attacker, dst: defender, ctx: atkSkillCtx, key: "attacker", srcInnate: atkInnate, dstInnate: defInnate },
+          { src: defender, dst: attacker, ctx: defSkillCtx, key: "defender", srcInnate: defInnate, dstInnate: atkInnate },
         ]
       : [
-          { src: defender, dst: attacker, ctx: defSkillCtx, key: "defender" },
-          { src: attacker, dst: defender, ctx: atkSkillCtx, key: "attacker" },
+          { src: defender, dst: attacker, ctx: defSkillCtx, key: "defender", srcInnate: defInnate, dstInnate: atkInnate },
+          { src: attacker, dst: defender, ctx: atkSkillCtx, key: "attacker", srcInnate: atkInnate, dstInnate: defInnate },
         ];
 
-    for (const { src, dst, ctx, key } of sides) {
-      if (dst.hp <= 0) break;
+    let skipNext = false;
+    for (let i = 0; i < sides.length; i++) {
+      const { src, dst, ctx, key, srcInnate, dstInnate } = sides[i];
+      if (dst.hp <= 0 || skipNext) break;
 
       const triggered = ctx ? rollSkillTrigger(ctx) : null;
 
@@ -129,14 +148,13 @@ function runPvpCombatLoopWithSkills(attacker, defender, duelMode, atkSkillCtx, d
           isCrit: result.log.isCrit || false,
         });
       } else {
-        const dmgResult = damCheck(src.stats.atk, src.stats.cri, dst.stats.def);
-        dst.hp -= dmgResult.damage;
-        battleLog.push(`${src.name} 對 ${dst.name} 造成了 ${dmgResult.damage} 點傷害。`);
-        detailLog.push({
-          attacker: src.name, defender: dst.name,
-          damage: dmgResult.damage, isCrit: dmgResult.isCrit,
-          damDetail: { atkTotal: dmgResult.atkTotal, defTotal: dmgResult.defTotal, critCount: dmgResult.critCount },
-        });
+        const r = processAttack(src, dst, detailLog, srcInnate, dstInnate);
+        battleLog.push(`${src.name} 對 ${dst.name} 造成了 ${detailLog[detailLog.length - 1].damage || 0} 點傷害。`);
+
+        if (r.stunned && i === 0) {
+          skipNext = true;
+          detailLog.push({ type: "stun", target: dst.name });
+        }
       }
 
       if (duelMode === "first_strike" && dst.maxHp && (dst.maxHp - dst.hp) >= dst.maxHp * 0.10) {
@@ -166,6 +184,66 @@ function runPvpCombatLoopWithSkills(attacker, defender, duelMode, atkSkillCtx, d
   }
 
   return { battleLog, detailLog, winnerSide, skillEvents };
+}
+
+// 內部輔助：已套用 innatePassives 後的無技能 PvP loop
+function _runLoopNoSkills(attacker, defender, duelMode, atkInnate, defInnate) {
+  let round = 1;
+  const battleLog = [];
+  const detailLog = [];
+  let winnerSide = null;
+
+  while (attacker.hp > 0 && defender.hp > 0 && round <= ROUND_LIMIT) {
+    const atkInitRoll = roll.d66();
+    const defInitRoll = roll.d66();
+    const atkAct = atkInitRoll + attacker.stats.agi;
+    const defAct = defInitRoll + defender.stats.agi;
+    battleLog.push(`\n**第 ${round} 回合**`);
+    detailLog.push({
+      type: "round", number: round,
+      initiative: { atkRoll: atkInitRoll, defRoll: defInitRoll, atkAct, defAct },
+    });
+
+    const firstSide = atkAct >= defAct ? "attacker" : "defender";
+    const order = firstSide === "attacker"
+      ? [{ src: attacker, dst: defender, srcKey: "attacker", srcInnate: atkInnate, dstInnate: defInnate },
+         { src: defender, dst: attacker, srcKey: "defender", srcInnate: defInnate, dstInnate: atkInnate }]
+      : [{ src: defender, dst: attacker, srcKey: "defender", srcInnate: defInnate, dstInnate: atkInnate },
+         { src: attacker, dst: defender, srcKey: "attacker", srcInnate: atkInnate, dstInnate: defInnate }];
+
+    let skipNext = false;
+    for (let i = 0; i < order.length; i++) {
+      const { src, dst, srcKey, srcInnate, dstInnate } = order[i];
+      if (dst.hp <= 0 || skipNext) break;
+
+      const r = processAttack(src, dst, detailLog, srcInnate, dstInnate);
+      battleLog.push(`${src.name} 對 ${dst.name} 造成了 ${detailLog[detailLog.length - 1].damage || 0} 點傷害。`);
+
+      if (r.stunned && i === 0) {
+        skipNext = true;
+        detailLog.push({ type: "stun", target: dst.name });
+      }
+
+      if (duelMode === "first_strike" && dst.maxHp && (dst.maxHp - dst.hp) >= dst.maxHp * 0.10) {
+        winnerSide = srcKey; break;
+      }
+      if (duelMode === "half_loss" && dst.maxHp && dst.hp <= dst.maxHp * 0.50) {
+        winnerSide = srcKey; break;
+      }
+      if (dst.hp <= 0) {
+        winnerSide = srcKey; break;
+      }
+    }
+
+    if (winnerSide) break;
+    round++;
+  }
+
+  if (!winnerSide) {
+    winnerSide = attacker.hp >= defender.hp ? "attacker" : "defender";
+  }
+
+  return { battleLog, detailLog, winnerSide };
 }
 
 module.exports = { runPvpCombatLoop, runPvpCombatLoopWithSkills };

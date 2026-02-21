@@ -31,6 +31,7 @@ function buildPvePlayerSide(weapon, npc, titleMods = {}) {
     name: npc.name,
     hp: playerHp,
     stats: { atk: playerAtk, def: playerDef, agi: playerAgi, cri: playerCri },
+    innateEffects: weapon.innateEffects || [],
   };
 }
 
@@ -46,6 +47,7 @@ function buildPvpFighter(name, weapon, lvBonus, mods) {
       agi: Math.max(1, Math.round((weapon.agi || 0) * lvBonus.agiMult * (mods.battleAgi || 1))),
       cri: weapon.cri || 10,
     },
+    innateEffects: weapon.innateEffects || [],
   };
 }
 

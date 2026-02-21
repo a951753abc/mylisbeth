@@ -44,6 +44,7 @@ function getCombinedBattleStats(npcEffective, weapon) {
     def: (weapon.def || 0) + Math.floor(npcEffective.def * 0.5),
     agi: Math.max(weapon.agi || 0, npcEffective.agi),
     cri: weapon.cri || 10,
+    innateEffects: weapon.innateEffects || [],
   };
 }
 
