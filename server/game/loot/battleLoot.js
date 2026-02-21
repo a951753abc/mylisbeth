@@ -1,7 +1,6 @@
 /**
  * 戰利品共用邏輯 — 從 adv.js / soloAdv.js 提取
  */
-const _ = require("lodash");
 const roll = require("../roll.js");
 const db = require("../../db.js");
 const config = require("../config.js");
@@ -64,9 +63,9 @@ function getFloorMineList(allItems, floorNumber) {
 async function mineBattle(user, category, floorNumber) {
   const allItems = itemCache.getAll();
   const floorItems = getFloorMineList(allItems, floorNumber);
-  const mine = _.clone(floorItems[Math.floor(Math.random() * floorItems.length)]);
+  const mine = { ...floorItems[Math.floor(Math.random() * floorItems.length)] };
 
-  const list = _.find(BATTLE_MINE_LIST, ["category", category]);
+  const list = BATTLE_MINE_LIST.find((entry) => entry.category === category);
   if (!list || !list.list) {
     console.error(`錯誤：在 battleMineList 中找不到類別為 "${category}" 的掉落設定。`);
     return "";

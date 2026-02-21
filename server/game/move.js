@@ -1,4 +1,3 @@
-const _ = require("lodash");
 const config = require("./config.js");
 const db = require("../db.js");
 const { checkSettlement } = require("./economy/debtCheck.js");
@@ -51,7 +50,7 @@ module.exports = async function (cmd, userOrId) {
     if (existing.businessPaused) {
       return { error: "你的店已暫停營業，請先恢復營業才能進行操作。" };
     }
-    const moveTime = _.get(existing, "move_time", 0);
+    const moveTime = existing.move_time ?? 0;
     const remaining = Math.ceil((moveTime + coolTime - now) / 1000);
     return { error: "CD時間還有" + remaining + "秒", cooldown: remaining };
   }

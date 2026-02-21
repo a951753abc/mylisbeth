@@ -1,4 +1,3 @@
-const _ = require("lodash");
 const config = require("../config.js");
 const db = require("../../db.js");
 const weapon = require("../weapon/weapon.js");
@@ -53,8 +52,8 @@ async function applyWeaponDurability(userId, weaponIndex, outcomeKey, title, thi
 async function incrementFloorExploration(userId, user, currentFloor) {
   const floorProgressKey = `floorProgress.${currentFloor}.explored`;
   const maxExploreKey = `floorProgress.${currentFloor}.maxExplore`;
-  const currentExplored = _.get(user, `floorProgress.${currentFloor}.explored`, 0);
-  const maxExplore = _.get(user, `floorProgress.${currentFloor}.maxExplore`, config.FLOOR_MAX_EXPLORE);
+  const currentExplored = user.floorProgress?.[currentFloor]?.explored ?? 0;
+  const maxExplore = user.floorProgress?.[currentFloor]?.maxExplore ?? config.FLOOR_MAX_EXPLORE;
   if (currentExplored < maxExplore) {
     await db.update(
       "user",

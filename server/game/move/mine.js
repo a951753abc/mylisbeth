@@ -1,4 +1,3 @@
-const _ = require("lodash");
 const roll = require("../roll.js");
 const level = require("../level");
 const db = require("../../db.js");
@@ -78,7 +77,7 @@ module.exports = async function (cmd, rawUser) {
   const user = await ensureUserFields(rawUser);
 
   let text = "";
-  const mineLevel = _.get(user, "mineLevel", 1);
+  const mineLevel = user.mineLevel ?? 1;
   const filter = [
     { $match: { userId: user.userId } },
     { $project: { values: { $sum: "$itemStock.itemNum" }, name: 1 } },
@@ -103,7 +102,7 @@ module.exports = async function (cmd, rawUser) {
   const starMod = getModifier(user.title || null, "mineStarChance");
   let count = item[0].values;
   while (nowItems > count) {
-    const mine = _.clone(minePool[Math.floor(Math.random() * minePool.length)]);
+    const mine = { ...minePool[Math.floor(Math.random() * minePool.length)] };
     mine.level = drawItemLevel(mineLevel, starMod);
     text += "獲得[" + mine.level.text + "]" + mine.name + "\n";
     await db.saveItemToUser(user.userId, mine);

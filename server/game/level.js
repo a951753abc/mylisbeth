@@ -1,4 +1,3 @@
-const _ = require("lodash");
 const typeList = require("./type");
 const db = require("../db.js");
 
@@ -11,7 +10,7 @@ const levelList = {
 
 module.exports = async function (type, user) {
   let text = "";
-  const exp = _.get(expList, type, 0);
+  const exp = expList[type] ?? 0;
   text += "經驗值增加 " + exp + " 點\n";
 
   const query = { userId: user.userId };
@@ -24,9 +23,9 @@ module.exports = async function (type, user) {
     { returnDocument: "after" },
   );
 
-  const nowExp = _.get(updatedUser, type, 0);
-  const nowLevel = _.get(updatedUser, currentPath, 1);
-  const levelUpExp = _.get(levelList[type].level, [nowLevel - 1], 0);
+  const nowExp = updatedUser[type] ?? 0;
+  const nowLevel = updatedUser[currentPath] ?? 1;
+  const levelUpExp = levelList[type].level[nowLevel - 1] ?? 0;
 
   if (levelUpExp !== 0 && nowExp >= levelUpExp) {
     // Conditional update: only level-up if still at same level and exp threshold

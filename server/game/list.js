@@ -1,5 +1,4 @@
 const db = require("../db.js");
-const _ = require("lodash");
 const config = require("./config.js");
 
 const PLAYERS_PER_PAGE = 10;
@@ -16,7 +15,7 @@ module.exports = async function (page) {
 
   const totalAdventurers = allUsers.length + deadCount;
 
-  if (_.isEmpty(allUsers) && deadCount === 0) {
+  if (allUsers.length === 0 && deadCount === 0) {
     return { error: "目前沒有任何已註冊的玩家。" };
   }
 
@@ -33,12 +32,12 @@ module.exports = async function (page) {
     rank: startIndex + index + 1,
     userId: user.userId,
     name: user.name,
-    forgeLevel: _.get(user, "forgeLevel", 1),
-    mineLevel: _.get(user, "mineLevel", 1),
-    currentFloor: _.get(user, "currentFloor", 1),
-    title: _.get(user, "title", null),
-    isPK: _.get(user, "isPK", false),
-    battleLevel: _.get(user, "battleLevel", 1),
+    forgeLevel: user.forgeLevel ?? 1,
+    mineLevel: user.mineLevel ?? 1,
+    currentFloor: user.currentFloor ?? 1,
+    title: user.title ?? null,
+    isPK: user.isPK ?? false,
+    battleLevel: user.battleLevel ?? 1,
   }));
 
   return {

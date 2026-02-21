@@ -1,4 +1,3 @@
-const _ = require("lodash");
 const config = require("./config.js");
 const roll = require("./roll");
 const eneExample = require("./ene/list.json");
@@ -18,13 +17,13 @@ function getEneFromList(enemyList) {
       cri: roll.d66(),
     };
   } else if (enemyRoll > config.ENEMY_PROBABILITY.HELL) {
-    return _.clone(enemyList[0]);
+    return { ...enemyList[0] };
   } else if (enemyRoll > config.ENEMY_PROBABILITY.HARD) {
-    return _.clone(enemyList[1]);
+    return { ...enemyList[1] };
   } else if (enemyRoll > config.ENEMY_PROBABILITY.NORMAL) {
-    return _.clone(enemyList[2]);
+    return { ...enemyList[2] };
   } else {
-    return _.clone(enemyList[3]);
+    return { ...enemyList[3] };
   }
 }
 
@@ -64,11 +63,9 @@ function getEneFromFloor(floorEnemies) {
 
   const categoryEnemies = floorEnemies.filter((e) => e.category === category);
   if (categoryEnemies.length > 0) {
-    return _.clone(
-      categoryEnemies[Math.floor(Math.random() * categoryEnemies.length)],
-    );
+    return { ...categoryEnemies[Math.floor(Math.random() * categoryEnemies.length)] };
   }
-  return _.clone(floorEnemies[Math.floor(Math.random() * floorEnemies.length)]);
+  return { ...floorEnemies[Math.floor(Math.random() * floorEnemies.length)] };
 }
 
 function hitCheck(atkAgi, defAgi) {

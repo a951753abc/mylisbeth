@@ -1,4 +1,3 @@
-const _ = require("lodash");
 const db = require("../../db.js");
 const weapon = require("../weapon/weapon.js");
 const level = require("../level");
@@ -22,7 +21,7 @@ module.exports = async function (cmd, rawUser) {
   }
 
   // 強化上限前置檢查（避免消耗素材後才發現已達上限）
-  const currentBuff = _.get(user.weaponStock[cmd[2]], "buff", 0);
+  const currentBuff = user.weaponStock[cmd[2]]?.buff ?? 0;
   if (currentBuff >= config.BUFF_MAX) {
     return { error: "這把武器已達強化上限（+" + config.BUFF_MAX + "），無法繼續強化。" };
   }
@@ -68,7 +67,7 @@ module.exports = async function (cmd, rawUser) {
   await checkAndAward(user.userId);
 
   let weaponName = thisWeapon.weaponName;
-  if (_.get(thisWeapon, "buff", false)) {
+  if (thisWeapon.buff) {
     weaponName = weaponName + "+" + thisWeapon.buff;
   }
 

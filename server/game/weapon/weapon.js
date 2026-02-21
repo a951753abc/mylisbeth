@@ -1,4 +1,3 @@
-const _ = require("lodash");
 const db = require("../../db.js");
 const randWeapon = require("./category.json");
 const roll = require("../roll.js");
@@ -61,9 +60,9 @@ function getStatBoostText(perName, boost) {
 
 module.exports.buffWeapon = function (cmd, user) {
   const thisWeapon = user.weaponStock[cmd[2]];
-  const forgeLevel = _.get(user, "forgeLevel", 1);
+  const forgeLevel = user.forgeLevel ?? 1;
   const title = user.title || null;
-  const buffCount = _.get(thisWeapon, "buff", 0);
+  const buffCount = thisWeapon.buff ?? 0;
   thisWeapon.text = "";
 
   // 強化上限檢查
@@ -114,7 +113,7 @@ module.exports.buffWeapon = function (cmd, user) {
 };
 
 module.exports.createWeapon = async function (cmd, user, options = {}) {
-  const forgeLevel = _.get(user, "forgeLevel", 1);
+  const forgeLevel = user.forgeLevel ?? 1;
   const title = user.title || null;
   const critFailExtra = getRawModifier(title, "forgeCritFailExtra") * 100; // 0.05 → 5
   const critSuccessAdj = getRawModifier(title, "forgeCritSuccessAdj"); // integer
@@ -124,7 +123,7 @@ module.exports.createWeapon = async function (cmd, user, options = {}) {
   };
   let weapon = await db.findOne("weapon", query);
   if (!weapon) {
-    weapon = _.clone(randWeapon[Math.floor(Math.random() * randWeapon.length)]);
+    weapon = { ...randWeapon[Math.floor(Math.random() * randWeapon.length)] };
   }
   weapon.weaponName = cmd[4] || weapon.name;
   weapon.renameCount = 0;
