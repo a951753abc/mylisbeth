@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import ForgeAnimation from "./ForgeAnimation.jsx";
 import NarrativeDisplay from "./NarrativeDisplay.jsx";
 import RandomEventDisplay from "./RandomEventDisplay.jsx";
+import WeaponSelect from "./WeaponSelect.jsx";
 import { useStaminaTimer, formatCountdown } from "../hooks/useStaminaTimer.js";
 
 export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, cooldownActive }) {
@@ -411,18 +412,14 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
             marginBottom: "0.5rem",
           }}
         >
-          <select
+          <WeaponSelect
+            weapons={user.weapons}
             value={upWeapon}
             onChange={(e) => setUpWeapon(e.target.value)}
-          >
-            <option value="">— 選擇武器 —</option>
-            {(user.weapons || []).map((weapon) => (
-              <option key={weapon.index} value={String(weapon.index)}>
-                #{weapon.index} {weapon.rarityLabel ? `【${weapon.rarityLabel}】` : ""}{weapon.weaponName} [{weapon.name}] ATK:
-                {weapon.atk} 耐久:{weapon.durability}
-              </option>
-            ))}
-          </select>
+            showName
+            showAtk
+            showDur
+          />
           <select value={upMat} onChange={(e) => setUpMat(e.target.value)}>
             <option value="">— 選擇素材 —</option>
             {(user.items || [])
@@ -459,19 +456,13 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
             marginBottom: "0.5rem",
           }}
         >
-          <select
+          <WeaponSelect
+            weapons={user.weapons}
             value={repairWeapon}
             onChange={(e) => setRepairWeapon(e.target.value)}
-          >
-            <option value="">— 選擇武器 —</option>
-            {(user.weapons || []).map((weapon) => (
-              <option key={weapon.index} value={String(weapon.index)}>
-                #{weapon.index}{" "}
-                {weapon.rarityLabel ? `【${weapon.rarityLabel}】` : ""}
-                {weapon.weaponName} 耐久:{weapon.durability}
-              </option>
-            ))}
-          </select>
+            showAtk={false}
+            showDur
+          />
           <select
             value={repairMat}
             onChange={(e) => setRepairMat(e.target.value)}
@@ -542,20 +533,15 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
               );
             })}
           </select>
-          <select
+          <WeaponSelect
+            weapons={user.weapons}
             value={advWeapon}
             onChange={(e) => setAdvWeapon(e.target.value)}
-          >
-            <option value="">— 選擇武器 (預設#0) —</option>
-            {(user.weapons || []).map((weapon) => (
-              <option key={weapon.index} value={String(weapon.index)}>
-                #{weapon.index}{" "}
-                {weapon.rarityLabel ? `【${weapon.rarityLabel}】` : ""}
-                {weapon.weaponName} [{weapon.name}] ATK:
-                {weapon.atk} 耐久:{weapon.durability}
-              </option>
-            ))}
-          </select>
+            placeholder="— 選擇武器 (預設#0) —"
+            showName
+            showAtk
+            showDur
+          />
           <button
             className="btn-primary"
             disabled={isDisabled || !advNpc}
@@ -595,14 +581,14 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
           鍛造師基礎值：HP 30、靠武器數值戰鬥。無委託費，勝利可獲得正常冒險獎勵。
         </div>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center", marginBottom: "0.5rem" }}>
-          <select value={soloWeapon} onChange={(e) => setSoloWeapon(e.target.value)}>
-            <option value="">— 選擇武器（必填）—</option>
-            {(user.weapons || []).map((w) => (
-              <option key={w.index} value={String(w.index)}>
-                #{w.index} {w.rarityLabel ? `【${w.rarityLabel}】` : ""}{w.weaponName} ATK:{w.atk} 耐久:{w.durability}
-              </option>
-            ))}
-          </select>
+          <WeaponSelect
+            weapons={user.weapons}
+            value={soloWeapon}
+            onChange={(e) => setSoloWeapon(e.target.value)}
+            placeholder="— 選擇武器（必填）—"
+            showAtk
+            showDur
+          />
         </div>
         {!soloConfirm ? (
           <button
@@ -647,16 +633,13 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
           被其他玩家挑戰時自動使用的武器：
         </div>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
-          <select
-            value={defenseWeapon}
+          <WeaponSelect
+            weapons={user.weapons}
+            value={String(defenseWeapon)}
             onChange={(e) => setDefenseWeapon(Number(e.target.value))}
-          >
-            {(user.weapons || []).map((weapon) => (
-              <option key={weapon.index} value={weapon.index}>
-                #{weapon.index} {weapon.rarityLabel ? `【${weapon.rarityLabel}】` : ""}{weapon.weaponName} ATK:{weapon.atk}
-              </option>
-            ))}
-          </select>
+            placeholder={null}
+            showAtk
+          />
           <button
             className="btn-primary"
             disabled={isDisabled}

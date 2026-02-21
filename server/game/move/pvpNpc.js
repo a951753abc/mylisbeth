@@ -7,12 +7,11 @@ const { executeBankruptcy } = require("../economy/bankruptcy.js");
 const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
-const { getCombinedModifier } = require("../title/titleModifier.js");
-const { awardBattleExp } = require("../battleLevel.js");
+const { getBattleLevelBonus, awardBattleExp } = require("../battleLevel.js");
 const { isNewbie } = require("../time/gameTime.js");
 const { getEffectiveStats, getCombinedBattleStats } = require("../npc/npcStats.js");
-const { getBattleLevelBonus } = require("../battleLevel.js");
 const { killNpc, resolveNpcBattle } = require("../npc/npcManager.js");
+const { deductPvpStamina, deductWagers, buildCombatMods } = require("./pvpUtils.js");
 
 const PVP = config.PVP;
 const MODES = PVP.MODES;
@@ -119,41 +118,16 @@ module.exports = async function (cmd, rawAttacker) {
   }
 
   // === 所有驗證通過，扣除體力 ===
-  const staminaCost = PVP.STAMINA_COST.min + Math.floor(Math.random() * (PVP.STAMINA_COST.max - PVP.STAMINA_COST.min + 1));
-  const staminaUpdated = await db.findOneAndUpdate(
-    "user",
-    { userId: attacker.userId, stamina: { $gte: staminaCost } },
-    { $inc: { stamina: -staminaCost } },
-    { returnDocument: "after" },
-  );
-  if (!staminaUpdated) {
-    const freshAtk = await db.findOne("user", { userId: attacker.userId });
-    return { error: `體力不足！決鬥需要 ${staminaCost} 點，目前剩餘 ${freshAtk?.stamina ?? 0} 點。` };
-  }
+  const staminaResult = await deductPvpStamina(attacker.userId);
+  if (!staminaResult.ok) return { error: staminaResult.error };
+  const { staminaCost } = staminaResult;
 
   // === 賭注扣除 ===
-  if (mode !== MODES.TOTAL_LOSS && wagerCol > 0) {
-    const atkDeducted = await deductCol(attacker.userId, wagerCol);
-    if (!atkDeducted) {
-      await db.update("user", { userId: attacker.userId }, { $inc: { stamina: staminaCost } });
-      return { error: `你的 Col 不足以支付 ${wagerCol} 的賭注。` };
-    }
-    const ownerDeducted = await deductCol(ownerId, wagerCol);
-    if (!ownerDeducted) {
-      await awardCol(attacker.userId, wagerCol);
-      await db.update("user", { userId: attacker.userId }, { $inc: { stamina: staminaCost } });
-      return { error: `${owner.name} 的 Col 不足以支付 ${wagerCol} 的賭注，決鬥取消。` };
-    }
-  }
+  const wagerResult = await deductWagers(attacker.userId, ownerId, owner.name, wagerCol, staminaCost, mode);
+  if (!wagerResult.ok) return { error: wagerResult.error };
 
   // === 組裝戰鬥數據 ===
-  const atkTitle = attacker.title || null;
-  const atkRelics = attacker.bossRelics || [];
-  const attackerMods = {
-    battleAtk: getCombinedModifier(atkTitle, atkRelics, "battleAtk"),
-    battleDef: getCombinedModifier(atkTitle, atkRelics, "battleDef"),
-    battleAgi: getCombinedModifier(atkTitle, atkRelics, "battleAgi"),
-  };
+  const attackerMods = buildCombatMods(attacker.title || null, attacker.bossRelics || []);
 
   const attackerWeapon = attacker.weaponStock[atkWeaponIndex];
   const atkLvBonus = getBattleLevelBonus(attacker.battleLevel || 1);
@@ -343,7 +317,7 @@ module.exports = async function (cmd, rawAttacker) {
     loserDied,
     npcDied,
     isNpcDuel: true,
-    stamina: staminaUpdated.stamina,
+    stamina: staminaResult.stamina,
     staminaCost,
     socketEvents,
   };

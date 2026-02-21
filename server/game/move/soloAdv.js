@@ -1,8 +1,5 @@
-const _ = require("lodash");
 const config = require("../config.js");
 const db = require("../../db.js");
-const weapon = require("../weapon/weapon.js");
-const roll = require("../roll.js");
 const eneNameList = require("../ene/name.json");
 const { pveBattle } = require("../battle");
 const { generateNarrative } = require("../narrative/generate.js");
@@ -15,6 +12,7 @@ const ensureUserFields = require("../migration/ensureUserFields.js");
 const { getModifier } = require("../title/titleModifier.js");
 const { mineBattle } = require("../loot/battleLoot.js");
 const { getBattleLevelBonus, awardBattleExp } = require("../battleLevel.js");
+const { applyWeaponDurability, incrementFloorExploration } = require("./adventureUtils.js");
 
 const SOLO = config.SOLO_ADV;
 
@@ -73,35 +71,8 @@ module.exports = async function (cmd, rawUser) {
     else if (battleResult.dead === 1) outcomeKey = "LOSE";
     else                              outcomeKey = "DRAW";
 
-    // 武器耐久損耗（套用 advWeaponDmgChance 修正）
-    const weaponDmgMod = getModifier(title, "advWeaponDmgChance");
-    let durabilityText = "";
-    let weaponCheck;
-    if (outcomeKey === "WIN") {
-      weaponCheck = roll.d100Check(Math.min(100, Math.round(config.WEAPON_DAMAGE_CHANCE.WIN * weaponDmgMod)));
-    } else if (outcomeKey === "LOSE") {
-      weaponCheck = roll.d100Check(Math.min(100, Math.round(config.WEAPON_DAMAGE_CHANCE.DEAD * weaponDmgMod)));
-    } else {
-      weaponCheck = roll.d100Check(Math.min(100, Math.round(config.WEAPON_DAMAGE_CHANCE.DRAW * weaponDmgMod)));
-    }
-
-    if (weaponCheck) {
-      const reduceDurability = roll.d6();
-      const durPath = `weaponStock.${weaponIndex}.durability`;
-      const updatedUser = await db.findOneAndUpdate(
-        "user",
-        { userId: user.userId },
-        { $inc: { [durPath]: -reduceDurability } },
-        { returnDocument: "after" },
-      );
-
-      durabilityText = `\n\n(激烈的戰鬥後，${thisWeapon.weaponName} 的耐久度減少了 ${reduceDurability} 點。)`;
-      if (updatedUser.weaponStock[weaponIndex]?.durability <= 0) {
-        durabilityText += `\n**${thisWeapon.weaponName} 爆發四散了！**`;
-        await weapon.destroyWeapon(user.userId, weaponIndex);
-        await increment(user.userId, "weaponsBroken");
-      }
-    }
+    // 武器耐久損耗
+    const durabilityText = await applyWeaponDurability(user.userId, weaponIndex, outcomeKey, title, thisWeapon);
 
     // 死亡判定（套用 soloDeathChance 修正）
     const deathMod = getModifier(title, "soloDeathChance");
@@ -150,17 +121,7 @@ module.exports = async function (cmd, rawUser) {
     }
 
     // 更新探索進度
-    const floorProgressKey = `floorProgress.${currentFloor}.explored`;
-    const maxExploreKey = `floorProgress.${currentFloor}.maxExplore`;
-    const currentExplored = _.get(user, `floorProgress.${currentFloor}.explored`, 0);
-    const maxExplore = _.get(user, `floorProgress.${currentFloor}.maxExplore`, config.FLOOR_MAX_EXPLORE);
-    if (currentExplored < maxExplore) {
-      await db.update(
-        "user",
-        { userId: user.userId },
-        { $inc: { [floorProgressKey]: 1 }, $set: { [maxExploreKey]: maxExplore } },
-      );
-    }
+    await incrementFloorExploration(user.userId, user, currentFloor);
 
     await increment(user.userId, "totalAdventures");
     await increment(user.userId, "totalSoloAdventures");

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import WeaponSelect from './WeaponSelect.jsx';
+import useDuelState from '../hooks/useDuelState.js';
 
 // ── Constants ──────────────────────────────────────────────────────
 
@@ -139,13 +141,7 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
   const [gravesLoaded, setGravesLoaded] = useState(false);
 
   // Duel UI state
-  const [duelTarget, setDuelTarget] = useState(null);
-  const [duelMode, setDuelMode] = useState('half_loss');
-  const [duelWeapon, setDuelWeapon] = useState('');
-  const [duelWager, setDuelWager] = useState(0);
-  const [duelBusy, setDuelBusy] = useState(false);
-  const [duelResult, setDuelResult] = useState(null);
-  const [duelError, setDuelError] = useState('');
+  const playerDuel = useDuelState();
 
   // NPC view state
   const [npcViewUserId, setNpcViewUserId] = useState(null);
@@ -154,13 +150,7 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
   const [npcLoading, setNpcLoading] = useState(false);
 
   // NPC Duel UI state
-  const [npcDuelTarget, setNpcDuelTarget] = useState(null);
-  const [npcDuelMode, setNpcDuelMode] = useState('half_loss');
-  const [npcDuelWeapon, setNpcDuelWeapon] = useState('');
-  const [npcDuelWager, setNpcDuelWager] = useState(0);
-  const [npcDuelBusy, setNpcDuelBusy] = useState(false);
-  const [npcDuelResult, setNpcDuelResult] = useState(null);
-  const [npcDuelError, setNpcDuelError] = useState('');
+  const npcDuel = useDuelState();
 
   const fetchStats = useCallback(async () => {
     try {
@@ -239,8 +229,7 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
     setCategory(newCat);
     setSub(null);
     setPage(1);
-    setDuelTarget(null);
-    setDuelResult(null);
+    playerDuel.reset();
   };
 
   const handleSubChange = (newSub) => {
@@ -249,26 +238,26 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
   };
 
   const handleDuel = async () => {
-    if (!duelTarget) return;
-    setDuelBusy(true);
-    setDuelError('');
-    setDuelResult(null);
+    if (!playerDuel.target) return;
+    playerDuel.setBusy(true);
+    playerDuel.setError('');
+    playerDuel.setResult(null);
     try {
       const result = await onAction('pvp', {
-        targetUserId: duelTarget.userId,
-        weaponId: duelWeapon || '0',
-        mode: duelMode,
-        wagerCol: duelMode === 'total_loss' ? 0 : parseInt(duelWager, 10) || 0,
+        targetUserId: playerDuel.target.userId,
+        weaponId: playerDuel.weapon || '0',
+        mode: playerDuel.mode,
+        wagerCol: playerDuel.mode === 'total_loss' ? 0 : parseInt(playerDuel.wager, 10) || 0,
       });
       if (result.error) {
-        setDuelError(result.error);
+        playerDuel.setError(result.error);
       } else {
-        setDuelResult(result);
+        playerDuel.setResult(result);
       }
     } catch {
-      setDuelError('決鬥請求失敗');
+      playerDuel.setError('決鬥請求失敗');
     } finally {
-      setDuelBusy(false);
+      playerDuel.setBusy(false);
     }
   };
 
@@ -294,39 +283,35 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
     if (npcViewUserId === userId) {
       setNpcViewUserId(null);
       setNpcList([]);
-      setNpcDuelTarget(null);
-      setNpcDuelResult(null);
-      setNpcDuelError('');
+      npcDuel.reset();
     } else {
       setNpcViewUserId(userId);
-      setNpcDuelTarget(null);
-      setNpcDuelResult(null);
-      setNpcDuelError('');
+      npcDuel.reset();
       fetchNpcs(userId);
     }
   };
 
   const handleNpcDuel = async () => {
-    if (!npcDuelTarget) return;
-    setNpcDuelBusy(true);
-    setNpcDuelError('');
-    setNpcDuelResult(null);
+    if (!npcDuel.target) return;
+    npcDuel.setBusy(true);
+    npcDuel.setError('');
+    npcDuel.setResult(null);
     try {
       const result = await onAction('pvp-npc', {
-        targetNpcId: npcDuelTarget.npcId,
-        weaponId: npcDuelWeapon || '0',
-        mode: npcDuelMode,
-        wagerCol: npcDuelMode === 'total_loss' ? 0 : parseInt(npcDuelWager, 10) || 0,
+        targetNpcId: npcDuel.target.npcId,
+        weaponId: npcDuel.weapon || '0',
+        mode: npcDuel.mode,
+        wagerCol: npcDuel.mode === 'total_loss' ? 0 : parseInt(npcDuel.wager, 10) || 0,
       });
       if (result.error) {
-        setNpcDuelError(result.error);
+        npcDuel.setError(result.error);
       } else {
-        setNpcDuelResult(result);
+        npcDuel.setResult(result);
       }
     } catch {
-      setNpcDuelError('NPC 決鬥請求失敗');
+      npcDuel.setError('NPC 決鬥請求失敗');
     } finally {
-      setNpcDuelBusy(false);
+      npcDuel.setBusy(false);
     }
   };
 
@@ -453,12 +438,12 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
                             className="btn-danger"
                             style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
                             onClick={() => {
-                              setDuelTarget(duelTarget?.userId === player.userId ? null : { userId: player.userId, name: player.name });
-                              setDuelResult(null);
-                              setDuelError('');
+                              playerDuel.setTarget(playerDuel.target?.userId === player.userId ? null : { userId: player.userId, name: player.name });
+                              playerDuel.setResult(null);
+                              playerDuel.setError('');
                             }}
                           >
-                            {duelTarget?.userId === player.userId ? '取消' : '決鬥'}
+                            {playerDuel.target?.userId === player.userId ? '取消' : '決鬥'}
                           </button>
                           <button
                             className="btn-secondary"
@@ -473,7 +458,7 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
                   </div>
 
                   {/* Duel panel */}
-                  {duelTarget?.userId === player.userId && (
+                  {playerDuel.target?.userId === player.userId && (
                     <div style={{
                       background: 'rgba(239,68,68,0.05)',
                       border: '1px solid rgba(239,68,68,0.2)',
@@ -490,54 +475,50 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
                         {Object.entries(MODE_LABELS).map(([key, label]) => (
                           <button
                             key={key}
-                            className={duelMode === key ? 'btn-primary' : 'btn-secondary'}
+                            className={playerDuel.mode === key ? 'btn-primary' : 'btn-secondary'}
                             style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
-                            onClick={() => setDuelMode(key)}
+                            onClick={() => playerDuel.setMode(key)}
                           >
                             {label}
                           </button>
                         ))}
                       </div>
                       <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                        {MODE_DESCS[duelMode]}
+                        {MODE_DESCS[playerDuel.mode]}
                       </div>
 
                       {/* Weapon + Wager */}
                       <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.4rem' }}>
-                        <select
-                          value={duelWeapon}
-                          onChange={(e) => setDuelWeapon(e.target.value)}
+                        <WeaponSelect
+                          weapons={weapons}
+                          value={playerDuel.weapon}
+                          onChange={(e) => playerDuel.setWeapon(e.target.value)}
+                          placeholder="— 武器（預設#0）—"
+                          showAtk
                           style={{ fontSize: '0.8rem' }}
-                        >
-                          <option value="">— 武器（預設#0）—</option>
-                          {weapons.map((w) => (
-                            <option key={w.index} value={String(w.index)}>
-                              #{w.index} {w.rarityLabel ? `【${w.rarityLabel}】` : ''}{w.weaponName} ATK:{w.atk}
-                            </option>
-                          ))}
-                        </select>
-                        {duelMode !== 'total_loss' && (
+                        />
+                        {playerDuel.mode !== 'total_loss' && (
                           <input
                             type="number"
                             min="0"
                             max="5000"
                             placeholder="賭注 Col"
-                            value={duelWager}
-                            onChange={(e) => setDuelWager(e.target.value)}
+                            value={playerDuel.wager}
+                            onChange={(e) => playerDuel.setWager(e.target.value)}
                             style={{ width: '80px', fontSize: '0.8rem' }}
                           />
                         )}
                         <button
                           className="btn-danger"
-                          disabled={duelBusy || cooldownActive}
+                          disabled={playerDuel.busy || cooldownActive}
                           onClick={handleDuel}
                           style={{ padding: '0.25rem 0.6rem', fontSize: '0.8rem' }}
                         >
-                          {duelBusy ? '決鬥中...' : cooldownActive ? '冷卻中...' : '確認決鬥'}
+                          {playerDuel.busy ? '決鬥中...' : cooldownActive ? '冷卻中...' : '確認決鬥'}
                         </button>
                       </div>
 
-                      {duelMode === 'total_loss' && (
+                      {playerDuel.mode === 'total_loss' && (
                         <div style={{
                           fontSize: '0.72rem',
                           color: '#f87171',
@@ -547,8 +528,8 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
                         </div>
                       )}
 
-                      {duelError && <div className="error-msg" style={{ fontSize: '0.8rem' }}>{duelError}</div>}
-                      {duelResult && (
+                      {playerDuel.error && <div className="error-msg" style={{ fontSize: '0.8rem' }}>{playerDuel.error}</div>}
+                      {playerDuel.result && (
                         <div style={{
                           background: 'rgba(0,0,0,0.2)',
                           borderRadius: '4px',
@@ -557,7 +538,7 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
                           fontSize: '0.8rem',
                           whiteSpace: 'pre-wrap',
                         }}>
-                          {duelResult.battleLog}
+                          {playerDuel.result.battleLog}
                         </div>
                       )}
                     </div>
@@ -603,22 +584,22 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
                                 className="btn-danger"
                                 style={{ padding: '0.15rem 0.4rem', fontSize: '0.72rem' }}
                                 onClick={() => {
-                                  setNpcDuelTarget(
-                                    npcDuelTarget?.npcId === npc.npcId
+                                  npcDuel.setTarget(
+                                    npcDuel.target?.npcId === npc.npcId
                                       ? null
                                       : { npcId: npc.npcId, name: npc.name }
                                   );
-                                  setNpcDuelResult(null);
-                                  setNpcDuelError('');
+                                  npcDuel.setResult(null);
+                                  npcDuel.setError('');
                                 }}
                               >
-                                {npcDuelTarget?.npcId === npc.npcId ? '取消' : '挑戰'}
+                                {npcDuel.target?.npcId === npc.npcId ? '取消' : '挑戰'}
                               </button>
                             )}
                           </div>
 
                           {/* NPC Duel config */}
-                          {npcDuelTarget?.npcId === npc.npcId && (
+                          {npcDuel.target?.npcId === npc.npcId && (
                             <div style={{
                               background: 'rgba(59,130,246,0.05)',
                               border: '1px solid rgba(59,130,246,0.2)',
@@ -633,57 +614,53 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
                                 {Object.entries(MODE_LABELS).map(([key, label]) => (
                                   <button
                                     key={key}
-                                    className={npcDuelMode === key ? 'btn-primary' : 'btn-secondary'}
+                                    className={npcDuel.mode === key ? 'btn-primary' : 'btn-secondary'}
                                     style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
-                                    onClick={() => setNpcDuelMode(key)}
+                                    onClick={() => npcDuel.setMode(key)}
                                   >
                                     {label}
                                   </button>
                                 ))}
                               </div>
                               <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                                {MODE_DESCS[npcDuelMode]}
+                                {MODE_DESCS[npcDuel.mode]}
                               </div>
                               <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.4rem' }}>
-                                <select
-                                  value={npcDuelWeapon}
-                                  onChange={(e) => setNpcDuelWeapon(e.target.value)}
+                                <WeaponSelect
+                                  weapons={weapons}
+                                  value={npcDuel.weapon}
+                                  onChange={(e) => npcDuel.setWeapon(e.target.value)}
+                                  placeholder="— 武器（預設#0）—"
+                                  showAtk
                                   style={{ fontSize: '0.8rem' }}
-                                >
-                                  <option value="">— 武器（預設#0）—</option>
-                                  {weapons.map((w) => (
-                                    <option key={w.index} value={String(w.index)}>
-                                      #{w.index} {w.rarityLabel ? `【${w.rarityLabel}】` : ''}{w.weaponName} ATK:{w.atk}
-                                    </option>
-                                  ))}
-                                </select>
-                                {npcDuelMode !== 'total_loss' && (
+                                />
+                                {npcDuel.mode !== 'total_loss' && (
                                   <input
                                     type="number"
                                     min="0"
                                     max="5000"
                                     placeholder="賭注 Col"
-                                    value={npcDuelWager}
-                                    onChange={(e) => setNpcDuelWager(e.target.value)}
+                                    value={npcDuel.wager}
+                                    onChange={(e) => npcDuel.setWager(e.target.value)}
                                     style={{ width: '80px', fontSize: '0.8rem' }}
                                   />
                                 )}
                                 <button
                                   className="btn-danger"
-                                  disabled={npcDuelBusy || cooldownActive}
+                                  disabled={npcDuel.busy || cooldownActive}
                                   onClick={handleNpcDuel}
                                   style={{ padding: '0.25rem 0.6rem', fontSize: '0.8rem' }}
                                 >
-                                  {npcDuelBusy ? '決鬥中...' : cooldownActive ? '冷卻中...' : '確認決鬥'}
+                                  {npcDuel.busy ? '決鬥中...' : cooldownActive ? '冷卻中...' : '確認決鬥'}
                                 </button>
                               </div>
-                              {npcDuelMode === 'total_loss' && (
+                              {npcDuel.mode === 'total_loss' && (
                                 <div style={{ fontSize: '0.72rem', color: '#f87171', marginBottom: '0.3rem' }}>
                                   &#x26A0;&#xFE0F; 全損決着：敗者可能死亡（你或 NPC），勝方搶走 50% Col。
                                 </div>
                               )}
-                              {npcDuelError && <div className="error-msg" style={{ fontSize: '0.8rem' }}>{npcDuelError}</div>}
-                              {npcDuelResult && (
+                              {npcDuel.error && <div className="error-msg" style={{ fontSize: '0.8rem' }}>{npcDuel.error}</div>}
+                              {npcDuel.result && (
                                 <div style={{
                                   background: 'rgba(0,0,0,0.2)',
                                   borderRadius: '4px',
@@ -692,7 +669,7 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
                                   fontSize: '0.8rem',
                                   whiteSpace: 'pre-wrap',
                                 }}>
-                                  {npcDuelResult.battleLog}
+                                  {npcDuel.result.battleLog}
                                 </div>
                               )}
                             </div>
