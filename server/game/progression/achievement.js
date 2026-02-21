@@ -471,6 +471,72 @@ const ACHIEVEMENTS = [
     check: (user) => (user.stats?.firstStrikeWins || 0) >= 10,
     titleReward: "初撃剣士",
   },
+  // Season 8: 劍技系統
+  {
+    id: "skill_first",
+    name: "ソードスキル覚醒",
+    nameCn: "劍技覺醒",
+    desc: "首次習得劍技",
+    check: (user) => (user.learnedSkills || []).length >= 1,
+    titleReward: "剣技使い",
+  },
+  {
+    id: "skill_10",
+    name: "技の探求者",
+    nameCn: "技之探索者",
+    desc: "習得 10 個劍技",
+    check: (user) => (user.learnedSkills || []).length >= 10,
+    titleReward: null,
+  },
+  {
+    id: "skill_20",
+    name: "万能の剣士",
+    nameCn: "萬能劍士",
+    desc: "習得 20 個劍技",
+    check: (user) => (user.learnedSkills || []).length >= 20,
+    titleReward: "万能の剣士",
+  },
+  {
+    id: "prof_500",
+    name: "武器の達人",
+    nameCn: "武器達人",
+    desc: "任一武器熟練度達到 500",
+    check: (user) => {
+      const wp = user.weaponProficiency || {};
+      return Object.values(wp).some((v) => v >= 500);
+    },
+    titleReward: "武器の達人",
+  },
+  {
+    id: "prof_1000",
+    name: "極みに至る者",
+    nameCn: "達到極致之人",
+    desc: "任一武器熟練度達到 1000（上限）",
+    check: (user) => {
+      const wp = user.weaponProficiency || {};
+      return Object.values(wp).some((v) => v >= 1000);
+    },
+    titleReward: "極みの剣士",
+  },
+  {
+    id: "extra_skill_first",
+    name: "隠されし力",
+    nameCn: "隱藏之力",
+    desc: "首次解鎖額外技能",
+    check: (user) => (user.extraSkills || []).length >= 1,
+    titleReward: "覚醒者",
+  },
+  {
+    id: "multi_prof",
+    name: "多刀流の片鱗",
+    nameCn: "多刀流之片鱗",
+    desc: "3 種以上武器熟練度達到 500",
+    check: (user) => {
+      const wp = user.weaponProficiency || {};
+      return Object.values(wp).filter((v) => v >= 500).length >= 3;
+    },
+    titleReward: "多刀流",
+  },
 ];
 
 async function checkAndAward(userId) {

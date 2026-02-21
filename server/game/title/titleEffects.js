@@ -345,6 +345,60 @@ const TITLE_EFFECTS = {
     staminaCost: -0.20,         // 體力消耗 -20%
     battleAtk: -0.10,           // 攻擊力 -10%（悠閒風格的代價）
   },
+
+  // === Season 8 劍技系統稱號 ===
+
+  // 43. 剣技使い — 劍技入門者
+  "剣技使い": {
+    battleAtk: 0.10,            // 攻擊力 +10%
+    battleAgi: 0.05,            // 敏捷 +5%
+    forgeBuffChance: -0.10,     // 強化成功率 -10%
+  },
+
+  // 44. 万能の剣士 — 習得多種劍技的全能戰士
+  "万能の剣士": {
+    battleAtk: 0.15,            // 攻擊力 +15%
+    battleDef: 0.10,            // 防禦力 +10%
+    battleAgi: 0.10,            // 敏捷 +10%
+    forgeBuffChance: -0.15,     // 強化成功率 -15%
+    settlementBill: 0.20,       // 帳單 +20%
+  },
+
+  // 45. 武器の達人 — 武器熟練度 500 達成
+  "武器の達人": {
+    battleAtk: 0.15,            // 攻擊力 +15%
+    battleAgi: 0.10,            // 敏捷 +10%
+    advColReward: 0.10,         // 冒險 Col +10%
+    forgeBuffChance: -0.20,     // 強化成功率 -20%
+    mineStarChance: -0.10,      // 三星挖掘率 -10%
+  },
+
+  // 46. 極みの剣士 — 武器熟練度 1000 登頂
+  "極みの剣士": {
+    battleAtk: 0.25,            // 攻擊力 +25%
+    battleDef: 0.15,            // 防禦力 +15%
+    battleAgi: 0.15,            // 敏捷 +15%
+    forgeBuffChance: -0.25,     // 強化成功率 -25%
+    settlementBill: 0.30,       // 帳單 +30%
+    staminaCost: 0.15,          // 體力消耗 +15%
+  },
+
+  // 47. 覚醒者 — 隱藏技能解鎖者
+  "覚醒者": {
+    battleAtk: 0.10,            // 攻擊力 +10%
+    soloDeathChance: -0.10,     // 獨自冒險死亡率 -10%
+    staminaCost: 0.10,          // 體力消耗 +10%
+  },
+
+  // 48. 多刀流 — 多武器精通（SAO 致敬）
+  "多刀流": {
+    battleAtk: 0.20,            // 攻擊力 +20%
+    battleDef: 0.15,            // 防禦力 +15%
+    battleAgi: 0.15,            // 敏捷 +15%
+    advColReward: 0.15,         // 冒險 Col +15%
+    forgeBuffChance: -0.20,     // 強化成功率 -20%
+    settlementBill: 0.25,       // 帳單 +25%
+  },
 };
 
 module.exports = { TITLE_EFFECTS };

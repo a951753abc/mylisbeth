@@ -139,6 +139,9 @@ export default function SkillPanel({ user }) {
   return (
     <div className="card">
       <h2>劍技系統</h2>
+      <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", margin: "0 0 0.6rem" }}>
+        你的武器熟練度與劍技。獨自出擊時使用你裝備的劍技；派遣 NPC 冒險時，NPC 會獨立學習並使用自己的劍技。
+      </p>
 
       {error && <div style={{ color: "var(--danger)", marginBottom: "0.5rem" }}>{error}</div>}
 

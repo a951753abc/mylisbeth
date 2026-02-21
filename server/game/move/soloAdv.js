@@ -141,13 +141,13 @@ module.exports = async function (cmd, rawUser) {
     const profResult = await awardProficiency(user.userId, thisWeapon, profGainKey);
     let skillText = "";
     if (profResult && profResult.profGained > 0) {
-      skillText += `\n${profResult.weaponType} 熟練度 +${profResult.profGained}`;
+      skillText += `\n你的 ${profResult.weaponType} 熟練度 +${profResult.profGained}`;
     }
     if (profResult && profResult.newSkills.length > 0) {
       const { getSkill } = require("../skill/skillRegistry.js");
       for (const sid of profResult.newSkills) {
         const sk = getSkill(sid);
-        skillText += `\n🗡️ 新劍技習得：【${sk ? sk.nameCn : sid}】！`;
+        skillText += `\n🗡️ 你習得了新劍技：【${sk ? sk.nameCn : sid}】！`;
       }
     }
 
@@ -158,7 +158,7 @@ module.exports = async function (cmd, rawUser) {
       const { getSkill } = require("../skill/skillRegistry.js");
       for (const sid of extraUnlocked) {
         const sk = getSkill(sid);
-        skillText += `\n✨ 隱藏技能解鎖：【${sk ? sk.nameCn : sid}】！`;
+        skillText += `\n✨ 你解鎖了隱藏技能：【${sk ? sk.nameCn : sid}】！`;
       }
     }
 
