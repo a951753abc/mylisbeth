@@ -24,6 +24,7 @@ const EFFECT_LABELS = {
   missionSuccessRate: '任務成功率',
   missionReward: '任務獎勵',
   marketListingFee: '掛賣手續費',
+  lcDeathChance: 'LC事件死亡率',
 };
 
 // 正值對玩家有利為 true，不利為 false
@@ -50,6 +51,7 @@ const POSITIVE_IS_GOOD = {
   missionSuccessRate: true,
   missionReward: true,
   marketListingFee: false,
+  lcDeathChance: false,
 };
 
 /**
