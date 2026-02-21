@@ -57,6 +57,24 @@ export default function RandomEventDisplay({ event }) {
         </div>
       )}
 
+      {event.rewards?.material && (
+        <div style={{ color: "#4ade80", marginTop: "0.3rem", fontSize: "0.85rem" }}>
+          獲得素材：[{event.rewards.material.level}] {event.rewards.material.name}
+        </div>
+      )}
+
+      {event.rewards?.buff && (
+        <div style={{ color: "#a78bfa", marginTop: "0.3rem", fontSize: "0.85rem", fontWeight: "bold" }}>
+          獲得效果：{event.rewards.buff}
+        </div>
+      )}
+
+      {event.rewards?.npcUpgrade && (
+        <div style={{ color: "#fbbf24", marginTop: "0.3rem", fontSize: "0.85rem", fontWeight: "bold" }}>
+          {event.rewards.npcUpgrade.npcName}：{event.rewards.npcUpgrade.oldQuality} → {event.rewards.npcUpgrade.newQuality}
+        </div>
+      )}
+
       {event.losses?.col > 0 && (
         <div style={{ color: "#f87171", marginTop: "0.3rem" }}>
           -{event.losses.col} Col
@@ -78,6 +96,12 @@ export default function RandomEventDisplay({ event }) {
       {event.losses?.npcDeath && (
         <div style={{ color: "#f87171", fontWeight: "bold", fontSize: "0.85rem" }}>
           {event.losses.npcDeath.name} 陣亡
+        </div>
+      )}
+
+      {event.losses?.npcCondition > 0 && (
+        <div style={{ color: "#f87171", fontSize: "0.85rem" }}>
+          NPC 體力 -{event.losses.npcCondition}
         </div>
       )}
     </div>

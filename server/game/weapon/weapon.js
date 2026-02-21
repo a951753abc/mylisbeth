@@ -111,7 +111,7 @@ module.exports.buffWeapon = function (cmd, user) {
   return thisWeapon;
 };
 
-module.exports.createWeapon = async function (cmd, user) {
+module.exports.createWeapon = async function (cmd, user, options = {}) {
   const forgeLevel = _.get(user, "forgeLevel", 1);
   const title = user.title || null;
   const critFailExtra = getRawModifier(title, "forgeCritFailExtra") * 100; // 0.05 → 5
@@ -167,12 +167,19 @@ module.exports.createWeapon = async function (cmd, user) {
   }
 
   let rollResult = roll.d66();
-  // 大失敗：自然骰出 2，或額外機率觸發
+  // 大失敗：自然骰出 2，或額外機率觸發（鍛造靈感可免除大失敗）
   const isCritFail = rollResult === 2 || (rollResult > 2 && critFailExtra > 0 && roll.d100Check(critFailExtra));
-  if (isCritFail) {
+  if (isCritFail && !options.forgeInspiration) {
     changeWeapon(weapon, "fail");
     return weapon;
   }
+
+  // 鍛造靈感：保證 1 次大成功（流浪鍛冶師事件 buff），且免除大失敗
+  if (options.forgeInspiration) {
+    changeWeapon(weapon, "success");
+    weapon.text += "鍛造靈感湧現！額外強化成功！\n";
+  }
+
   // 大成功門檻：基礎 10，正值代表更難觸發
   const critSuccessThresh = 10 + critSuccessAdj;
   while (rollResult >= critSuccessThresh) {

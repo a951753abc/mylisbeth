@@ -61,8 +61,7 @@ module.exports = async function (cmd, rawUser) {
     }
   }
 
-  const thisWeapon = await weapon.createWeapon(cmd, user);
-
+  // 先扣素材（原子操作），確認成功後再使用靈感 buff
   const item1 = user.itemStock[cmd[2]];
   const item2 = user.itemStock[cmd[3]];
   let decOk;
@@ -103,6 +102,13 @@ module.exports = async function (cmd, rawUser) {
   }
   if (!decOk) {
     return { error: "素材已不足，無法鍛造。" };
+  }
+
+  // 鍛造靈感 buff（流浪鍛冶師事件）— 素材扣除成功後才消耗
+  const hasInspiration = user.forgeInspiration || false;
+  const thisWeapon = await weapon.createWeapon(cmd, user, { forgeInspiration: hasInspiration });
+  if (hasInspiration) {
+    await db.update("user", { userId: user.userId }, { $set: { forgeInspiration: false } });
   }
 
   const rarity = calculateRarity(thisWeapon);

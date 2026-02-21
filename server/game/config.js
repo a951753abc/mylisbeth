@@ -214,6 +214,33 @@ module.exports = {
         adv: 15,                        // NPC 替玩家擋刀（NPC 死亡）
       },
     },
+    // Season 8: 神秘寶箱
+    MYSTERIOUS_CHEST: {
+      CHANCE: 2,                        // 觸發機率 (%)
+      WIN_COL_MIN: 50,
+      WIN_COL_MAX: 150,
+      LOSE_COL_MIN: 30,
+      LOSE_COL_MAX: 80,
+    },
+    // Season 8: 流浪鍛冶師
+    WANDERING_BLACKSMITH: {
+      CHANCE: 2,                        // 觸發機率 (%)
+      CHAT_COL_MIN: 20,
+      CHAT_COL_MAX: 50,
+    },
+    // Season 8: 迷宮裂隙
+    LABYRINTH_RIFT: {
+      CHANCE: 1,                        // 觸發機率 (%)
+      MIN_CONDITION: 40,                // NPC 體力門檻
+      LOSE_CONDITION: 20,               // 失敗時額外體力消耗
+      FLOOR_BONUS: 2,                   // 探索樓層 +2
+    },
+    // Season 8: NPC 覺醒
+    NPC_AWAKENING: {
+      CHANCE: 1,                        // 觸發機率 (%)
+    },
+    // 品質升級順序
+    QUALITY_ORDER: ["見習", "普通", "優秀", "精銳", "傳說"],
   },
 
   // 戰鬥通用常數

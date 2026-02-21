@@ -46,6 +46,10 @@ const DEFAULT_FIELDS = {
     totalMarketEarned: 0,
     // Season 7: 暫停營業
     totalPauses: 0,
+    // Season 8: 隨機事件擴充
+    mysteriousChestsOpened: 0,
+    forgeInspirationReceived: 0,
+    npcAwakenings: 0,
   },
   // Season 3 fields
   gameCreatedAt: null,
@@ -80,6 +84,8 @@ const DEFAULT_FIELDS = {
   defenseWeaponIndex: 0,
   // Season 8: 封印武器
   sealedWeapons: [],
+  // Season 8: 鍛造靈感（流浪鍛冶師事件）
+  forgeInspiration: false,
 };
 
 module.exports = async function ensureUserFields(user) {

@@ -33,6 +33,10 @@ const VALID_STATS = [
   "totalMarketEarned",
   // Season 7: 暫停營業
   "totalPauses",
+  // Season 8: 隨機事件擴充
+  "mysteriousChestsOpened",
+  "forgeInspirationReceived",
+  "npcAwakenings",
 ];
 
 async function increment(userId, statName, amount = 1) {
