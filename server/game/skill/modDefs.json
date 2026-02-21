@@ -1,0 +1,50 @@
+[
+  {
+    "id": "power_boost",
+    "nameCn": "威力強化",
+    "nameJp": "パワーブースト",
+    "description": "技能傷害 +10%",
+    "cost": 200,
+    "effect": { "type": "damage_mult_bonus", "value": 0.1 }
+  },
+  {
+    "id": "speed_boost",
+    "nameCn": "速度強化",
+    "nameJp": "スピードブースト",
+    "description": "技能觸發率 +5%",
+    "cost": 250,
+    "effect": { "type": "trigger_chance_bonus", "value": 5 }
+  },
+  {
+    "id": "range_expand",
+    "nameCn": "範圍擴張",
+    "nameJp": "レンジエクスパンド",
+    "description": "多段攻擊 +1 hit",
+    "cost": 300,
+    "effect": { "type": "extra_hit", "value": 1 }
+  },
+  {
+    "id": "crit_enhance",
+    "nameCn": "會心強化",
+    "nameJp": "クリティカルエンハンス",
+    "description": "暴擊門檻 -1",
+    "cost": 250,
+    "effect": { "type": "cri_bonus", "value": 1 }
+  },
+  {
+    "id": "quick_motion",
+    "nameCn": "後搖短縮",
+    "nameJp": "クイックモーション",
+    "description": "後搖值 -1（提升 Skill Connect 機率）",
+    "cost": 350,
+    "effect": { "type": "delay_reduction", "value": 1 }
+  },
+  {
+    "id": "hp_drain",
+    "nameCn": "HP 吸收",
+    "nameJp": "HPドレイン",
+    "description": "技能攻擊吸收 5% 傷害為 HP",
+    "cost": 300,
+    "effect": { "type": "lifesteal_bonus", "value": 0.05 }
+  }
+]

@@ -16,6 +16,7 @@ const userRoutes = require("./routes/user.js");
 const gameRoutes = require("./routes/game.js");
 const npcRoutes = require("./routes/npc.js");
 const marketRoutes = require("./routes/market.js");
+const skillRoutes = require("./routes/skill.js");
 const adminRoutes = require("./routes/admin/index.js");
 const { setupGameEvents } = require("./socket/gameEvents.js");
 const { runNpcPurchases } = require("./game/economy/market.js");
@@ -76,6 +77,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/game", gameRoutes);
 app.use("/api/npc", npcRoutes);
 app.use("/api/market", marketRoutes);
+app.use("/api/skill", skillRoutes);
 app.use("/api/admin", adminRoutes);
 
 // Socket.io

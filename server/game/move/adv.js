@@ -2,7 +2,7 @@ const config = require("../config.js");
 const db = require("../../db.js");
 const level = require("../level");
 const eneNameList = require("../ene/name.json");
-const { pveBattle } = require("../battle");
+const { pveBattleWithSkills } = require("../battle");
 const { generateNarrative } = require("../narrative/generate.js");
 const { awardCol } = require("../economy/col.js");
 const { increment } = require("../progression/statsTracker.js");
@@ -18,6 +18,12 @@ const { awardAdvExp } = require("../progression/adventureLevel.js");
 const { applyWeaponDurability, incrementFloorExploration } = require("./adventureUtils.js");
 const roll = require("../roll.js");
 const { recoverFromDiscardPool } = require("../loot/discardRecovery.js");
+const { getNpcEffectiveSkills } = require("../skill/skillSlot.js");
+const { buildSkillContext } = require("../skill/skillCombat.js");
+const { awardProficiency, awardNpcProficiency, getProfGainKey } = require("../skill/skillProficiency.js");
+const { resolveWeaponType } = require("../weapon/weaponType.js");
+const { tryNpcLearnSkill } = require("../skill/npcSkillLearning.js");
+const { checkExtraSkills } = require("../skill/extraSkillChecker.js");
 
 // 冒險結果對應 NPC 經驗值
 const NPC_EXP_GAIN = {
@@ -90,7 +96,15 @@ module.exports = async function (cmd, rawUser) {
       battleDef: getModifier(title, "battleDef"),
       battleAgi: getModifier(title, "battleAgi"),
     };
-    const battleResult = await pveBattle(thisWeapon, npcForBattle, eneNameList, floorData.enemies, titleMods);
+    // 構建 NPC 技能上下文
+    const npcSkills = getNpcEffectiveSkills(hiredNpc, thisWeapon);
+    const weaponType = resolveWeaponType(thisWeapon);
+    const npcProf = hiredNpc.weaponProficiency || 0;
+    const skillCtx = npcSkills.length > 0
+      ? buildSkillContext(npcSkills, npcProf, weaponType)
+      : null;
+
+    const battleResult = await pveBattleWithSkills(thisWeapon, npcForBattle, eneNameList, floorData.enemies, titleMods, skillCtx);
 
     const narrative = generateNarrative(battleResult, {
       weaponName: thisWeapon.weaponName,
@@ -186,6 +200,43 @@ module.exports = async function (cmd, rawUser) {
     // 更新探索進度
     await incrementFloorExploration(user.userId, user, currentFloor);
 
+    // 發放武器熟練度（玩家 + NPC）
+    const profGainKey = getProfGainKey(outcomeKey, "adv");
+    const profResult = await awardProficiency(user.userId, thisWeapon, profGainKey);
+    let skillText = "";
+    if (profResult && profResult.profGained > 0) {
+      skillText += `\n${profResult.weaponType} 熟練度 +${profResult.profGained}`;
+    }
+    if (profResult && profResult.newSkills.length > 0) {
+      const { getSkill } = require("../skill/skillRegistry.js");
+      for (const sid of profResult.newSkills) {
+        const sk = getSkill(sid);
+        skillText += `\n🗡️ 新劍技習得：【${sk ? sk.nameCn : sid}】！`;
+      }
+    }
+    // NPC 熟練度
+    const npcIdx = hired.findIndex((n) => n.npcId === npcId);
+    if (npcIdx >= 0) {
+      await awardNpcProficiency(user.userId, npcIdx, thisWeapon, profGainKey);
+    }
+
+    // NPC 自動學技
+    const npcLearnResult = await tryNpcLearnSkill(user.userId, npcIdx, hiredNpc, thisWeapon);
+    if (npcLearnResult && npcLearnResult.learned) {
+      skillText += `\n🗡️ ${hiredNpc.name} 學會了新劍技：【${npcLearnResult.skillName}】！`;
+    }
+
+    // Extra Skill 解鎖檢查
+    const freshUser = await db.findOne("user", { userId: user.userId });
+    const extraUnlocked = await checkExtraSkills(user.userId, freshUser || user);
+    if (extraUnlocked.length > 0) {
+      const { getSkill } = require("../skill/skillRegistry.js");
+      for (const sid of extraUnlocked) {
+        const sk = getSkill(sid);
+        skillText += `\n✨ 隱藏技能解鎖：【${sk ? sk.nameCn : sid}】！`;
+      }
+    }
+
     await increment(user.userId, "totalAdventures");
     await checkAndAward(user.userId);
 
@@ -201,7 +252,8 @@ module.exports = async function (cmd, rawUser) {
       },
       narrative,
       durabilityText,
-      reward: rewardText + npcEventText,
+      reward: rewardText + npcEventText + skillText,
+      skillEvents: battleResult.skillEvents || [],
       colEarned,
       colSpent: colSpentFee,
       floor: currentFloor,

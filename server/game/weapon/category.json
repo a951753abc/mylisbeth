@@ -1,6 +1,7 @@
 [
   {
     "name": "單手劍",
+    "type": "one_handed_sword",
     "atk": 5,
     "def": 1,
     "agi": 1,
@@ -8,6 +9,7 @@
   },
   {
     "name": "雙手劍",
+    "type": "two_handed_sword",
     "atk": 10,
     "def": 0,
     "agi": 0,
@@ -15,6 +17,7 @@
   },
   {
     "name": "雙手斧",
+    "type": "two_handed_axe",
     "atk": 10,
     "def": 0,
     "agi": 0,
@@ -22,6 +25,7 @@
   },
   {
     "name": "單手棍",
+    "type": "mace",
     "atk": 4,
     "def": 0,
     "agi": 1,
@@ -29,6 +33,7 @@
   },
   {
     "name": "刀",
+    "type": "katana",
     "atk": 3,
     "def": 0,
     "agi": 1,
@@ -36,6 +41,7 @@
   },
   {
     "name": "彎刀",
+    "type": "curved_sword",
     "atk": 5,
     "def": 0,
     "agi": 0,
@@ -43,6 +49,7 @@
   },
   {
     "name": "細劍",
+    "type": "rapier",
     "atk": 2,
     "def": 0,
     "agi": 2,
@@ -50,6 +57,7 @@
   },
   {
     "name": "短劍",
+    "type": "dagger",
     "atk": 1,
     "def": 0,
     "agi": 6,
@@ -57,6 +65,7 @@
   },
   {
     "name": "槍",
+    "type": "spear",
     "atk": 6,
     "def": 1,
     "agi": 0,
@@ -64,6 +73,7 @@
   },
   {
     "name": "弓",
+    "type": "bow",
     "atk": 8,
     "def": 0,
     "agi": 0,
@@ -71,6 +81,7 @@
   },
   {
     "name": "大盾",
+    "type": "shield",
     "atk": 1,
     "def": 6,
     "agi": 0,

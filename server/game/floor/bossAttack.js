@@ -10,6 +10,7 @@ const { resolveNpcBattle } = require("../npc/npcManager.js");
 const { getCombinedModifier } = require("../title/titleModifier.js");
 const bossCounterAttack = require("./bossCounterAttack.js");
 const { awardAdvExp } = require("../progression/adventureLevel.js");
+const { awardProficiency, awardNpcProficiency } = require("../skill/skillProficiency.js");
 const { distributeBossDrops, processLastAttackRelic, distributeBossColRewards } = require("./bossRewards.js");
 const { advanceFloor } = require("./floorAdvancement.js");
 
@@ -307,6 +308,13 @@ module.exports = async function bossAttack(cmd, rawUser) {
     }
 
     await increment(user.userId, "totalBossAttacks");
+
+    // 發放武器熟練度（Boss 戰）
+    await awardProficiency(user.userId, weapon, "BOSS");
+    const bossNpcIdx = (user.hiredNpcs || []).findIndex((n) => n.npcId === npcId);
+    if (bossNpcIdx >= 0) {
+      await awardNpcProficiency(user.userId, bossNpcIdx, weapon, "BOSS");
+    }
 
     // 冒險等級經驗
     const advExpResult = await awardAdvExp(user.userId, config.ADV_LEVEL.EXP_BOSS_ATTACK);

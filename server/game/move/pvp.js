@@ -1,7 +1,7 @@
 const db = require("../../db.js");
 const config = require("../config.js");
 const roll = require("../roll.js");
-const { pvpBattle } = require("../battle.js");
+const { pvpBattle, pvpBattleWithSkills } = require("../battle.js");
 const { awardCol, deductCol } = require("../economy/col.js");
 const { executeBankruptcy } = require("../economy/bankruptcy.js");
 const { increment } = require("../progression/statsTracker.js");
@@ -10,6 +10,10 @@ const ensureUserFields = require("../migration/ensureUserFields.js");
 const { awardBattleExp } = require("../battleLevel.js");
 const { isNewbie } = require("../time/gameTime.js");
 const { deductPvpStamina, deductWagers, buildCombatMods } = require("./pvpUtils.js");
+const { getEffectiveSkills } = require("../skill/skillSlot.js");
+const { buildSkillContext } = require("../skill/skillCombat.js");
+const { awardProficiency, getProfGainKey } = require("../skill/skillProficiency.js");
+const { resolveWeaponType } = require("../weapon/weaponType.js");
 
 const PVP = config.PVP;
 const MODES = PVP.MODES;
@@ -152,12 +156,25 @@ module.exports = async function (cmd, rawAttacker) {
 
   const attackerWeapon = attacker.weaponStock[atkWeaponIndex];
 
+  // === 技能上下文 ===
+  const atkSkills = getEffectiveSkills(attacker, attackerWeapon);
+  const atkWeaponType = resolveWeaponType(attackerWeapon);
+  const atkSkillCtx = atkSkills.length > 0
+    ? buildSkillContext(atkSkills, attacker.weaponProficiency, atkWeaponType)
+    : null;
+
+  const defSkills = getEffectiveSkills(defender, defenderWeapon);
+  const defWeaponType = resolveWeaponType(defenderWeapon);
+  const defSkillCtx = defSkills.length > 0
+    ? buildSkillContext(defSkills, defender.weaponProficiency, defWeaponType)
+    : null;
+
   // === 戰鬥 ===
-  const battleResult = await pvpBattle(
+  const battleResult = await pvpBattleWithSkills(
     attacker, attackerWeapon,
     defender, defenderWeapon,
     attackerMods, defenderMods,
-    mode,
+    mode, atkSkillCtx, defSkillCtx,
   );
 
   let resultText = battleResult.log.join("\n");
@@ -248,6 +265,10 @@ module.exports = async function (cmd, rawAttacker) {
   if (mode === MODES.HALF_LOSS) await increment(winnerId, "halfLossWins");
   if (mode === MODES.TOTAL_LOSS) await increment(winnerId, "totalLossWins");
 
+  // 發放武器熟練度（雙方）
+  await awardProficiency(winnerId, winnerId === attacker.userId ? attackerWeapon : defenderWeapon, "PVP_WIN");
+  await awardProficiency(loserId, loserId === attacker.userId ? attackerWeapon : defenderWeapon, "PVP_LOSE");
+
   const expResult = await awardBattleExp(winnerId, config.BATTLE_LEVEL.EXP_PVP_WIN);
   if (expResult.leveled) {
     rewardText += `\n${winnerName} 的戰鬥等級提升至 Lv.${expResult.newLevel}！`;
@@ -302,5 +323,6 @@ module.exports = async function (cmd, rawAttacker) {
     staminaCost,
     socketEvents,
     battleLevelUp: expResult.leveled ? expResult.newLevel : null,
+    skillEvents: battleResult.skillEvents || [],
   };
 };

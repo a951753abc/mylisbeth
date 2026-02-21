@@ -1,6 +1,8 @@
 const seedrandom = require("seedrandom");
 const config = require("../config.js");
 const { SURNAMES, GIVEN_NAMES } = require("./namePool.js");
+const { getSkillsByWeaponType } = require("../skill/skillRegistry.js");
+const weaponCategories = require("../weapon/category.json");
 
 const NPC_CFG = config.NPC;
 const QUALITIES = Object.keys(NPC_CFG.QUALITY_DIST); // ["見習","普通","優秀","精銳","傳說"]
@@ -56,6 +58,26 @@ function generateNpc(index, serverSeed = "lisbeth") {
     agi: randInt(rng, range.agi[0], range.agi[1]),
   };
 
+  // 高品質 NPC 初始技能（精銳 1 個、傳說 2 個 Tier 1 技能）
+  let initialSkills = [];
+  let proficientType = null;
+  const initialSkillCount = quality === "傳說" ? 2 : quality === "精銳" ? 1 : 0;
+  if (initialSkillCount > 0) {
+    // 隨機選一種武器類型作為擅長類型
+    const weaponTypes = weaponCategories.map((c) => c.type).filter(Boolean);
+    const typeIdx = Math.floor(rng() * weaponTypes.length);
+    proficientType = weaponTypes[typeIdx];
+    const tier1Skills = (getSkillsByWeaponType(proficientType) || [])
+      .filter((s) => s.tier === 1);
+    // Fisher-Yates shuffle（完全確定性）
+    const arr = tier1Skills.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    initialSkills = arr.slice(0, initialSkillCount).map((s) => s.id);
+  }
+
   return {
     npcId: `npc_${index}`,
     index,
@@ -67,6 +89,9 @@ function generateNpc(index, serverSeed = "lisbeth") {
     exp: 0,
     hireCost: NPC_CFG.HIRE_COST[quality],
     monthlyCost: NPC_CFG.MONTHLY_WAGE[quality],
+    learnedSkills: initialSkills,
+    equippedSkills: initialSkills.map((id) => ({ skillId: id, mods: [] })),
+    proficientType,
   };
 }
 

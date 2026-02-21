@@ -86,6 +86,16 @@ const DEFAULT_FIELDS = {
   sealedWeapons: [],
   // Season 8: 鍛造靈感（流浪鍛冶師事件）
   forgeInspiration: false,
+  // Season 9: 劍技系統
+  weaponProficiency: {
+    one_handed_sword: 0, two_handed_sword: 0, two_handed_axe: 0,
+    mace: 0, katana: 0, curved_sword: 0, rapier: 0,
+    dagger: 0, spear: 0, bow: 0, shield: 0,
+  },
+  learnedSkills: [],
+  equippedSkills: [],
+  extraSkills: [],
+  uniqueSkills: [],
 };
 
 module.exports = async function ensureUserFields(user) {
@@ -108,6 +118,20 @@ module.exports = async function ensureUserFields(user) {
     }
     if (Object.keys(statsPatch).length > 0) {
       Object.assign(updates, statsPatch);
+    }
+  }
+
+  // 嵌套 weaponProficiency 合併：舊玩家已有 weaponProficiency 但可能缺少新武器類型
+  if (user.weaponProficiency && !updates.weaponProficiency) {
+    const profDefaults = DEFAULT_FIELDS.weaponProficiency;
+    const profPatch = {};
+    for (const [typeKey, typeDefault] of Object.entries(profDefaults)) {
+      if (user.weaponProficiency[typeKey] === undefined) {
+        profPatch[`weaponProficiency.${typeKey}`] = typeDefault;
+      }
+    }
+    if (Object.keys(profPatch).length > 0) {
+      Object.assign(updates, profPatch);
     }
   }
 

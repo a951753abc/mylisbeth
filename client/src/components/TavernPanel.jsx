@@ -134,6 +134,11 @@ export default function TavernPanel({ user, onRefresh }) {
                   <div style={{ fontSize: "0.75rem", color: "var(--gold)", marginTop: "0.1rem" }}>
                     雇用費 {npc.hireCost} Col｜月薪 {npc.monthlyCost || npc.weeklyCost} Col/月
                   </div>
+                  {(npc.learnedSkills || []).length > 0 && (
+                    <div style={{ fontSize: "0.7rem", color: "#a855f7", marginTop: "0.15rem" }}>
+                      自帶劍技：{npc.learnedSkills.length} 個
+                    </div>
+                  )}
                 </div>
                 <button
                   className="btn-success"

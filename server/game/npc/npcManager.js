@@ -34,7 +34,7 @@ async function hireNpc(userId, npcId) {
   // 雇用上限檢查
   const limit = getHireLimit(user.adventureLevel);
   if (hired.length >= limit) {
-    return { error: `已達雇用上限（${limit} 人）。提升鍛造等級可增加上限。` };
+    return { error: `已達雇用上限（${limit} 人）。提升冒險等級可增加上限。` };
   }
 
   if (hired.some((n) => n.npcId === npcId)) {
@@ -88,6 +88,11 @@ async function hireNpc(userId, npcId) {
     monthlyCost: npcDoc.monthlyCost || npcDoc.weeklyCost || NPC_CFG.MONTHLY_WAGE[npcDoc.quality],
     mission: null,
     hiredAt: Date.now(),
+    // Season 9: 劍技系統（高品質 NPC 可能自帶初始技能）
+    learnedSkills: npcDoc.learnedSkills || [],
+    equippedSkills: npcDoc.equippedSkills || [],
+    weaponProficiency: typeof npcDoc.weaponProficiency === "object" ? npcDoc.weaponProficiency : (npcDoc.weaponProficiency || 0),
+    proficientType: npcDoc.proficientType || null,
   };
   const pushResult = await db.findOneAndUpdate(
     "user",
@@ -99,7 +104,7 @@ async function hireNpc(userId, npcId) {
     // 競爭條件：雇用上限已在其他併發請求中達到，回滾 NPC 狀態 + 退款
     await db.update("npc", { npcId }, { $set: { status: "available", hiredBy: null } });
     await awardCol(userId, cost);
-    return { error: `已達雇用上限（${limit} 人）。提升鍛造等級可增加上限。` };
+    return { error: `已達雇用上限（${limit} 人）。提升冒險等級可增加上限。` };
   }
 
   return { success: true, npc: npcEntry, cost };

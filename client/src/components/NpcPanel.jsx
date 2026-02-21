@@ -23,6 +23,20 @@ function formatCountdown(ms) {
   return `${min}分 ${sec}秒`;
 }
 
+const WEAPON_TYPE_NAMES = {
+  one_handed_sword: "單手劍",
+  two_handed_sword: "雙手劍",
+  two_handed_axe: "雙手斧",
+  mace: "單手棍",
+  katana: "刀",
+  curved_sword: "彎刀",
+  rapier: "細劍",
+  dagger: "短劍",
+  spear: "槍",
+  bow: "弓",
+  shield: "大盾",
+};
+
 export default function NpcPanel({ user, onRefresh }) {
   const [busy, setBusy] = useState(null);
   const [message, setMessage] = useState("");
@@ -31,9 +45,22 @@ export default function NpcPanel({ user, onRefresh }) {
   const [missionResults, setMissionResults] = useState([]);
   const [countdowns, setCountdowns] = useState({});
   const [concurrentLimit, setConcurrentLimit] = useState(2);
+  const [skillMap, setSkillMap] = useState({});
 
   const npcs = user.hiredNpcs || [];
   const weapons = user.weapons || [];
+
+  // 讀取技能定義（建立 ID→技能 查詢表）
+  useEffect(() => {
+    fetch("/api/skill/definitions", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        const map = {};
+        (data.skills || []).forEach((s) => { map[s.id] = s; });
+        setSkillMap(map);
+      })
+      .catch(() => {});
+  }, []);
   const isPaused = user.businessPaused;
 
   // 倒計時更新
@@ -363,6 +390,74 @@ export default function NpcPanel({ user, onRefresh }) {
                   </span>
                 )}
               </div>
+
+              {/* NPC 劍技 */}
+              {((npc.learnedSkills || []).length > 0 || (npc.equippedSkills || []).length > 0) && (
+                <div style={{ marginTop: "0.4rem" }}>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.2rem" }}>
+                    劍技（已學 {(npc.learnedSkills || []).length}，裝備 {(npc.equippedSkills || []).length}）
+                    {npc.proficientType && (
+                      <span style={{ marginLeft: "0.4rem", color: "var(--gold)" }}>
+                        擅長：{WEAPON_TYPE_NAMES[npc.proficientType] || npc.proficientType}
+                        {npc.weaponProficiency > 0 && ` (熟練度 ${npc.weaponProficiency})`}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
+                    {(npc.equippedSkills || []).map((es, idx) => {
+                      const skillId = typeof es === "string" ? es : es.skillId;
+                      const def = skillMap[skillId];
+                      const mods = typeof es === "object" && es.mods ? es.mods : [];
+                      return (
+                        <span
+                          key={`${skillId}_${idx}`}
+                          style={{
+                            display: "inline-block",
+                            padding: "0.15rem 0.4rem",
+                            fontSize: "0.7rem",
+                            background: `${def?.color || "#a855f7"}22`,
+                            border: `1px solid ${def?.color || "#a855f7"}`,
+                            borderRadius: "3px",
+                            color: def?.color || "#a855f7",
+                          }}
+                          title={def ? `${def.nameJp} — ${def.description}` : skillId}
+                        >
+                          {def ? def.nameCn : skillId}
+                          {mods.length > 0 && ` +${mods.length}`}
+                        </span>
+                      );
+                    })}
+                    {/* 已學但未裝備的技能 */}
+                    {(() => {
+                      const equippedSet = new Set((npc.equippedSkills || []).map(
+                        (es) => typeof es === "string" ? es : es.skillId,
+                      ));
+                      return (npc.learnedSkills || [])
+                        .filter((s) => !equippedSet.has(s))
+                        .map((skillId, idx) => {
+                          const def = skillMap[skillId];
+                          return (
+                            <span
+                              key={`unequip_${skillId}_${idx}`}
+                              style={{
+                                display: "inline-block",
+                                padding: "0.15rem 0.4rem",
+                                fontSize: "0.7rem",
+                                background: "rgba(100, 100, 100, 0.15)",
+                                border: "1px dashed #666",
+                                borderRadius: "3px",
+                                color: "#888",
+                              }}
+                              title={def ? `${def.nameJp}（未裝備）` : `${skillId}（未裝備）`}
+                            >
+                              {def ? def.nameCn : skillId}
+                            </span>
+                          );
+                        });
+                    })()}
+                  </div>
+                </div>
+              )}
 
               {/* 派遣任務按鈕（不在任務中時顯示） */}
               {!onMission && (

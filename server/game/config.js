@@ -243,6 +243,45 @@ module.exports = {
     QUALITY_ORDER: ["見習", "普通", "優秀", "精銳", "傳說"],
   },
 
+  // Season 9: 劍技系統
+  SKILL: {
+    MAX_PROFICIENCY: 1000,
+    PROF_GAIN: {
+      ADV_WIN: 8, ADV_DRAW: 4, ADV_LOSE: 2,
+      SOLO_WIN: 10, SOLO_DRAW: 5, SOLO_LOSE: 2,
+      PVP_WIN: 12, PVP_LOSE: 6,
+      BOSS: 15,
+    },
+    // 玩家技能槽位
+    PLAYER_SLOTS_BASE: 2,
+    PLAYER_SLOTS_PER_100_PROF: 1,
+    PLAYER_SLOTS_MAX: 8,
+    // NPC 技能槽位
+    NPC_SLOTS_BASE: 1,
+    NPC_SLOTS_PER_2_LEVEL: 1,
+    NPC_SLOTS_MAX: 5,
+    NPC_QUALITY_BONUS: { 見習: 0, 普通: 0, 優秀: 1, 精銳: 1, 傳說: 2 },
+    // NPC 自動學習
+    NPC_LEARN_CHANCE: 5,  // 每場戰鬥 5% 學習新技能
+    NPC_QUALITY_LEARN_MULT: { 見習: 0.5, 普通: 1.0, 優秀: 1.5, 精銳: 2.0, 傳說: 3.0 },
+    // Mod 系統
+    MOD_SLOTS_PER_50_PROF: 1,
+    MOD_MAX_PER_SKILL: 3,
+    MOD_INSTALL_COST_MULT: 1.0, // Col 乘數（可用 configManager 調整）
+    // Skill Connect
+    CONNECT_MAX_CHAIN: 3,
+    CONNECT_DAMAGE_BONUS: 0.15,  // 每個連鎖 +15%
+    CONNECT_BASE_CHANCE: 40,
+    CONNECT_PROF_BONUS_PER_100: 5,
+  },
+
+  // Season 9: 武器固有效果
+  WEAPON_INNATE: {
+    BASE_CHANCE: 5,           // 基礎觸發機率 (%)
+    FORGE_LEVEL_MULT: 2,     // forgeLevel × 此值 加到機率
+    MAX_EFFECTS: 2,           // 每把武器最多固有效果數
+  },
+
   // 戰鬥通用常數
   BATTLE: {
     ROUND_LIMIT: 5,

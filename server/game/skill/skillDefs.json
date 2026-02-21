@@ -1,0 +1,942 @@
+[
+  {
+    "id": "horizontal",
+    "nameJp": "ホリゾンタル",
+    "nameCn": "水平斬",
+    "category": "weapon",
+    "weaponType": "one_handed_sword",
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "probability",
+    "triggerChance": 30,
+    "triggerCondition": null,
+    "color": "#3b82f6",
+    "postMotionDelay": 1,
+    "effects": [{ "type": "damage_mult", "value": 1.3 }],
+    "description": "水平橫斬的基礎劍技，動作快速且後搖極短。"
+  },
+  {
+    "id": "slant",
+    "nameJp": "スラント",
+    "nameCn": "斜切",
+    "category": "weapon",
+    "weaponType": "one_handed_sword",
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "probability",
+    "triggerChance": 30,
+    "triggerCondition": null,
+    "color": "#22c55e",
+    "postMotionDelay": 1,
+    "effects": [
+      { "type": "damage_mult", "value": 1.2 },
+      { "type": "agi_boost", "value": 1 }
+    ],
+    "description": "斜線方向的快速斬擊，附帶敏捷提升。"
+  },
+  {
+    "id": "vertical_arc",
+    "nameJp": "バーチカル・アーク",
+    "nameCn": "垂直弧",
+    "category": "weapon",
+    "weaponType": "one_handed_sword",
+    "tier": 2,
+    "requiredProficiency": 100,
+    "triggerType": "probability",
+    "triggerChance": 25,
+    "triggerCondition": null,
+    "color": "#a855f7",
+    "postMotionDelay": 2,
+    "effects": [{ "type": "damage_mult", "value": 1.5 }],
+    "description": "由上而下的弧形斬擊，威力中等。"
+  },
+  {
+    "id": "sonic_leap",
+    "nameJp": "ソニックリープ",
+    "nameCn": "音速跳躍",
+    "category": "weapon",
+    "weaponType": "one_handed_sword",
+    "tier": 3,
+    "requiredProficiency": 250,
+    "triggerType": "probability",
+    "triggerChance": 20,
+    "triggerCondition": null,
+    "color": "#eab308",
+    "postMotionDelay": 2,
+    "effects": [
+      { "type": "damage_mult", "value": 1.8 },
+      { "type": "initiative", "value": true }
+    ],
+    "description": "高速跳躍突進斬擊，必定取得先手攻擊權。"
+  },
+  {
+    "id": "vorpal_strike",
+    "nameJp": "ヴォーパルストライク",
+    "nameCn": "魔劍擊",
+    "category": "weapon",
+    "weaponType": "one_handed_sword",
+    "tier": 4,
+    "requiredProficiency": 500,
+    "triggerType": "probability",
+    "triggerChance": 15,
+    "triggerCondition": null,
+    "color": "#dc2626",
+    "postMotionDelay": 3,
+    "effects": [
+      { "type": "damage_mult", "value": 2.2 },
+      { "type": "ignore_def", "value": 0.3 }
+    ],
+    "description": "全力刺出的高威力突刺，射程為劍身兩倍。後搖極長。"
+  },
+  {
+    "id": "deadly_sins",
+    "nameJp": "デッドリー・シンズ",
+    "nameCn": "七罪斬",
+    "category": "weapon",
+    "weaponType": "one_handed_sword",
+    "tier": 5,
+    "requiredProficiency": 800,
+    "triggerType": "probability",
+    "triggerChance": 10,
+    "triggerCondition": null,
+    "color": "#f97316",
+    "postMotionDelay": 4,
+    "effects": [
+      { "type": "multi_hit", "value": 7 },
+      { "type": "damage_mult", "value": 0.5 },
+      { "type": "guaranteed_crit", "value": true }
+    ],
+    "description": "七連斬——單手劍最強的連擊劍技，每一擊都是暴擊。"
+  },
+  {
+    "id": "linear",
+    "nameJp": "リニアー",
+    "nameCn": "直線突刺",
+    "category": "weapon",
+    "weaponType": "rapier",
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "probability",
+    "triggerChance": 35,
+    "triggerCondition": null,
+    "color": "#60a5fa",
+    "postMotionDelay": 1,
+    "effects": [
+      { "type": "damage_mult", "value": 1.2 },
+      { "type": "initiative", "value": true }
+    ],
+    "description": "細劍最基本的直線突刺，速度極快，必定先手。"
+  },
+  {
+    "id": "triangular",
+    "nameJp": "トライアンギュラー",
+    "nameCn": "三角突刺",
+    "category": "weapon",
+    "weaponType": "rapier",
+    "tier": 2,
+    "requiredProficiency": 100,
+    "triggerType": "probability",
+    "triggerChance": 25,
+    "triggerCondition": null,
+    "color": "#c084fc",
+    "postMotionDelay": 2,
+    "effects": [
+      { "type": "multi_hit", "value": 3 },
+      { "type": "damage_mult", "value": 0.6 }
+    ],
+    "description": "三角軌跡的連續突刺，三段攻擊。"
+  },
+  {
+    "id": "flashing_penetrator",
+    "nameJp": "フラッシング・ペネトレイター",
+    "nameCn": "閃光穿刺",
+    "category": "weapon",
+    "weaponType": "rapier",
+    "tier": 3,
+    "requiredProficiency": 250,
+    "triggerType": "probability",
+    "triggerChance": 20,
+    "triggerCondition": null,
+    "color": "#facc15",
+    "postMotionDelay": 2,
+    "effects": [
+      { "type": "damage_mult", "value": 1.6 },
+      { "type": "ignore_def", "value": 0.4 }
+    ],
+    "description": "光速突刺，無視大部分防禦。"
+  },
+  {
+    "id": "quadruple_pain",
+    "nameJp": "クアドラプル・ペイン",
+    "nameCn": "四重苦刺",
+    "category": "weapon",
+    "weaponType": "rapier",
+    "tier": 4,
+    "requiredProficiency": 500,
+    "triggerType": "probability",
+    "triggerChance": 15,
+    "triggerCondition": null,
+    "color": "#ef4444",
+    "postMotionDelay": 3,
+    "effects": [
+      { "type": "multi_hit", "value": 4 },
+      { "type": "damage_mult", "value": 0.7 },
+      { "type": "ignore_def", "value": 0.2 }
+    ],
+    "description": "四段高速突刺，兼具穿透力。"
+  },
+  {
+    "id": "star_splash",
+    "nameJp": "スター・スプラッシュ",
+    "nameCn": "星光飛散",
+    "category": "weapon",
+    "weaponType": "rapier",
+    "tier": 5,
+    "requiredProficiency": 800,
+    "triggerType": "probability",
+    "triggerChance": 10,
+    "triggerCondition": null,
+    "color": "#f59e0b",
+    "postMotionDelay": 4,
+    "effects": [
+      { "type": "multi_hit", "value": 7 },
+      { "type": "damage_mult", "value": 0.6 },
+      { "type": "guaranteed_crit", "value": true }
+    ],
+    "description": "細劍最高位的七連突刺，光芒四射如星辰般散落。"
+  },
+  {
+    "id": "tsujikaze",
+    "nameJp": "辻風",
+    "nameCn": "辻風",
+    "category": "weapon",
+    "weaponType": "katana",
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "probability",
+    "triggerChance": 30,
+    "triggerCondition": null,
+    "color": "#10b981",
+    "postMotionDelay": 1,
+    "effects": [
+      { "type": "damage_mult", "value": 1.3 },
+      { "type": "agi_boost", "value": 1 }
+    ],
+    "description": "如路邊吹過的疾風般的拔刀斬。"
+  },
+  {
+    "id": "gengetsu",
+    "nameJp": "弦月",
+    "nameCn": "弦月",
+    "category": "weapon",
+    "weaponType": "katana",
+    "tier": 2,
+    "requiredProficiency": 100,
+    "triggerType": "probability",
+    "triggerChance": 25,
+    "triggerCondition": null,
+    "color": "#8b5cf6",
+    "postMotionDelay": 2,
+    "effects": [
+      { "type": "damage_mult", "value": 1.5 },
+      { "type": "cri_boost", "value": 1 }
+    ],
+    "description": "弧形軌跡的斬擊，如弦月般美麗而銳利。"
+  },
+  {
+    "id": "ukifune",
+    "nameJp": "浮舟",
+    "nameCn": "浮舟",
+    "category": "weapon",
+    "weaponType": "katana",
+    "tier": 3,
+    "requiredProficiency": 250,
+    "triggerType": "probability",
+    "triggerChance": 20,
+    "triggerCondition": null,
+    "color": "#06b6d4",
+    "postMotionDelay": 2,
+    "effects": [
+      { "type": "damage_mult", "value": 1.7 },
+      { "type": "evasion_boost", "value": 2 }
+    ],
+    "description": "如漂浮的小舟般飄忽不定的劍術，大幅提升閃避。"
+  },
+  {
+    "id": "iai",
+    "nameJp": "居合",
+    "nameCn": "居合",
+    "category": "weapon",
+    "weaponType": "katana",
+    "tier": 4,
+    "requiredProficiency": 500,
+    "triggerType": "probability",
+    "triggerChance": 12,
+    "triggerCondition": null,
+    "color": "#dc2626",
+    "postMotionDelay": 3,
+    "effects": [
+      { "type": "damage_mult", "value": 2.5 },
+      { "type": "initiative", "value": true },
+      { "type": "ignore_def", "value": 0.5 }
+    ],
+    "description": "一擊必殺的居合斬——拔刀的瞬間即是斬殺的瞬間。"
+  },
+  {
+    "id": "zekkuu",
+    "nameJp": "絕空",
+    "nameCn": "絕空",
+    "category": "weapon",
+    "weaponType": "katana",
+    "tier": 5,
+    "requiredProficiency": 800,
+    "triggerType": "probability",
+    "triggerChance": 8,
+    "triggerCondition": null,
+    "color": "#f97316",
+    "postMotionDelay": 4,
+    "effects": [
+      { "type": "multi_hit", "value": 5 },
+      { "type": "damage_mult", "value": 0.8 },
+      { "type": "guaranteed_crit", "value": true }
+    ],
+    "description": "斬斷虛空的五連刀技，刀之極致。"
+  },
+  {
+    "id": "avalanche",
+    "nameJp": "アバランチ",
+    "nameCn": "雪崩",
+    "category": "weapon",
+    "weaponType": "two_handed_sword",
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "probability",
+    "triggerChance": 25,
+    "triggerCondition": null,
+    "color": "#64748b",
+    "postMotionDelay": 2,
+    "effects": [{ "type": "damage_mult", "value": 1.5 }],
+    "description": "如雪崩般壓倒性的重擊。"
+  },
+  {
+    "id": "cyclone",
+    "nameJp": "サイクロン",
+    "nameCn": "旋風",
+    "category": "weapon",
+    "weaponType": "two_handed_sword",
+    "tier": 2,
+    "requiredProficiency": 100,
+    "triggerType": "probability",
+    "triggerChance": 22,
+    "triggerCondition": null,
+    "color": "#0ea5e9",
+    "postMotionDelay": 2,
+    "effects": [
+      { "type": "damage_mult", "value": 1.7 },
+      { "type": "multi_hit", "value": 2 }
+    ],
+    "description": "雙手大劍旋轉斬擊，兩段連續攻擊。"
+  },
+  {
+    "id": "earthquake",
+    "nameJp": "アースクエイク",
+    "nameCn": "大地震",
+    "category": "weapon",
+    "weaponType": "two_handed_sword",
+    "tier": 3,
+    "requiredProficiency": 250,
+    "triggerType": "probability",
+    "triggerChance": 18,
+    "triggerCondition": null,
+    "color": "#b45309",
+    "postMotionDelay": 3,
+    "effects": [
+      { "type": "damage_mult", "value": 2.0 },
+      { "type": "stun", "value": 30 }
+    ],
+    "description": "將巨劍砸向地面，震動使敵方暈眩。"
+  },
+  {
+    "id": "calamity",
+    "nameJp": "カラミティ",
+    "nameCn": "災厄",
+    "category": "weapon",
+    "weaponType": "two_handed_sword",
+    "tier": 5,
+    "requiredProficiency": 800,
+    "triggerType": "probability",
+    "triggerChance": 10,
+    "triggerCondition": null,
+    "color": "#991b1b",
+    "postMotionDelay": 4,
+    "effects": [
+      { "type": "damage_mult", "value": 3.0 },
+      { "type": "ignore_def", "value": 0.4 }
+    ],
+    "description": "雙手劍最高位劍技——帶來災厄的毀滅一擊。"
+  },
+  {
+    "id": "rapid_bite",
+    "nameJp": "ラピッドバイト",
+    "nameCn": "急速咬擊",
+    "category": "weapon",
+    "weaponType": "dagger",
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "probability",
+    "triggerChance": 35,
+    "triggerCondition": null,
+    "color": "#14b8a6",
+    "postMotionDelay": 1,
+    "effects": [
+      { "type": "multi_hit", "value": 2 },
+      { "type": "damage_mult", "value": 0.7 }
+    ],
+    "description": "如毒蛇噬咬般的高速二連擊。"
+  },
+  {
+    "id": "fad_edge",
+    "nameJp": "ファドエッジ",
+    "nameCn": "消逝之刃",
+    "category": "weapon",
+    "weaponType": "dagger",
+    "tier": 2,
+    "requiredProficiency": 100,
+    "triggerType": "probability",
+    "triggerChance": 30,
+    "triggerCondition": null,
+    "color": "#a78bfa",
+    "postMotionDelay": 1,
+    "effects": [
+      { "type": "damage_mult", "value": 1.3 },
+      { "type": "evasion_boost", "value": 3 }
+    ],
+    "description": "身影消逝後的致命刺擊，大幅提升閃避。"
+  },
+  {
+    "id": "shadow_sting",
+    "nameJp": "シャドウスティング",
+    "nameCn": "影刺",
+    "category": "weapon",
+    "weaponType": "dagger",
+    "tier": 3,
+    "requiredProficiency": 250,
+    "triggerType": "probability",
+    "triggerChance": 22,
+    "triggerCondition": null,
+    "color": "#6366f1",
+    "postMotionDelay": 2,
+    "effects": [
+      { "type": "damage_mult", "value": 1.5 },
+      { "type": "ignore_def", "value": 0.3 },
+      { "type": "initiative", "value": true }
+    ],
+    "description": "從陰影中發動的突襲，無視部分防禦且必定先手。"
+  },
+  {
+    "id": "accel_raid",
+    "nameJp": "アクセルレイド",
+    "nameCn": "加速突襲",
+    "category": "weapon",
+    "weaponType": "dagger",
+    "tier": 5,
+    "requiredProficiency": 800,
+    "triggerType": "probability",
+    "triggerChance": 10,
+    "triggerCondition": null,
+    "color": "#f97316",
+    "postMotionDelay": 3,
+    "effects": [
+      { "type": "multi_hit", "value": 6 },
+      { "type": "damage_mult", "value": 0.5 },
+      { "type": "guaranteed_crit", "value": true }
+    ],
+    "description": "超加速的六連刺擊，短劍最高位技能。"
+  },
+  {
+    "id": "reaver",
+    "nameJp": "リーヴァー",
+    "nameCn": "掠奪斬",
+    "category": "weapon",
+    "weaponType": "curved_sword",
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "probability",
+    "triggerChance": 28,
+    "triggerCondition": null,
+    "color": "#ef4444",
+    "postMotionDelay": 1,
+    "effects": [
+      { "type": "damage_mult", "value": 1.4 },
+      { "type": "lifesteal", "value": 0.1 }
+    ],
+    "description": "掠過敵方的弧形斬擊，吸收生命力。"
+  },
+  {
+    "id": "fell_crescent",
+    "nameJp": "フェルクレセント",
+    "nameCn": "落月斬",
+    "category": "weapon",
+    "weaponType": "curved_sword",
+    "tier": 2,
+    "requiredProficiency": 100,
+    "triggerType": "probability",
+    "triggerChance": 22,
+    "triggerCondition": null,
+    "color": "#8b5cf6",
+    "postMotionDelay": 2,
+    "effects": [
+      { "type": "damage_mult", "value": 1.6 },
+      { "type": "ignore_def", "value": 0.2 }
+    ],
+    "description": "如新月墜落般的下劈斬擊。"
+  },
+  {
+    "id": "whirlwind",
+    "nameJp": "ワールウィンド",
+    "nameCn": "旋風斬",
+    "category": "weapon",
+    "weaponType": "curved_sword",
+    "tier": 4,
+    "requiredProficiency": 500,
+    "triggerType": "probability",
+    "triggerChance": 15,
+    "triggerCondition": null,
+    "color": "#dc2626",
+    "postMotionDelay": 3,
+    "effects": [
+      { "type": "multi_hit", "value": 4 },
+      { "type": "damage_mult", "value": 0.6 }
+    ],
+    "description": "旋轉中的四連斬擊，彎刀高段劍技。"
+  },
+  {
+    "id": "smash",
+    "nameJp": "スマッシュ",
+    "nameCn": "粉碎",
+    "category": "weapon",
+    "weaponType": "mace",
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "probability",
+    "triggerChance": 28,
+    "triggerCondition": null,
+    "color": "#78716c",
+    "postMotionDelay": 2,
+    "effects": [
+      { "type": "damage_mult", "value": 1.4 },
+      { "type": "stun", "value": 20 }
+    ],
+    "description": "單純但有效的重擊，有機率暈眩對手。"
+  },
+  {
+    "id": "heavy_blow",
+    "nameJp": "ヘヴィブロウ",
+    "nameCn": "重擊",
+    "category": "weapon",
+    "weaponType": "mace",
+    "tier": 2,
+    "requiredProficiency": 100,
+    "triggerType": "probability",
+    "triggerChance": 22,
+    "triggerCondition": null,
+    "color": "#a855f7",
+    "postMotionDelay": 2,
+    "effects": [
+      { "type": "damage_mult", "value": 1.8 },
+      { "type": "ignore_def", "value": 0.3 }
+    ],
+    "description": "蓄力後的一擊，穿透敵方防禦。"
+  },
+  {
+    "id": "skull_crusher",
+    "nameJp": "スカルクラッシャー",
+    "nameCn": "碎顱擊",
+    "category": "weapon",
+    "weaponType": "mace",
+    "tier": 4,
+    "requiredProficiency": 500,
+    "triggerType": "probability",
+    "triggerChance": 12,
+    "triggerCondition": null,
+    "color": "#dc2626",
+    "postMotionDelay": 3,
+    "effects": [
+      { "type": "damage_mult", "value": 2.5 },
+      { "type": "stun", "value": 50 }
+    ],
+    "description": "瞄準頭部的致命一擊，高機率暈眩。"
+  },
+  {
+    "id": "cleave",
+    "nameJp": "クリーヴ",
+    "nameCn": "劈砍",
+    "category": "weapon",
+    "weaponType": "two_handed_axe",
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "probability",
+    "triggerChance": 25,
+    "triggerCondition": null,
+    "color": "#b91c1c",
+    "postMotionDelay": 2,
+    "effects": [{ "type": "damage_mult", "value": 1.5 }],
+    "description": "大斧基礎劈砍，威力十足。"
+  },
+  {
+    "id": "executioner",
+    "nameJp": "エクスキューショナー",
+    "nameCn": "處刑者",
+    "category": "weapon",
+    "weaponType": "two_handed_axe",
+    "tier": 3,
+    "requiredProficiency": 250,
+    "triggerType": "probability",
+    "triggerChance": 18,
+    "triggerCondition": null,
+    "color": "#7c2d12",
+    "postMotionDelay": 3,
+    "effects": [
+      { "type": "damage_mult", "value": 2.2 },
+      { "type": "ignore_def", "value": 0.3 }
+    ],
+    "description": "處刑般的致命一擊，無視部分防禦。"
+  },
+  {
+    "id": "berserker_rage",
+    "nameJp": "バーサーカーレイジ",
+    "nameCn": "狂戰士之怒",
+    "category": "weapon",
+    "weaponType": "two_handed_axe",
+    "tier": 5,
+    "requiredProficiency": 800,
+    "triggerType": "probability",
+    "triggerChance": 8,
+    "triggerCondition": null,
+    "color": "#f97316",
+    "postMotionDelay": 4,
+    "effects": [
+      { "type": "damage_mult", "value": 3.5 },
+      { "type": "multi_hit", "value": 2 },
+      { "type": "stun", "value": 40 }
+    ],
+    "description": "狂暴化的雙手斧最高位技能——毀滅一切的雙連擊。"
+  },
+  {
+    "id": "thrust",
+    "nameJp": "スラスト",
+    "nameCn": "突擊",
+    "category": "weapon",
+    "weaponType": "spear",
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "probability",
+    "triggerChance": 28,
+    "triggerCondition": null,
+    "color": "#0284c7",
+    "postMotionDelay": 1,
+    "effects": [
+      { "type": "damage_mult", "value": 1.3 },
+      { "type": "ignore_def", "value": 0.15 }
+    ],
+    "description": "長槍的基礎突擊，利用射程優勢穿透防禦。"
+  },
+  {
+    "id": "spiral_lance",
+    "nameJp": "スパイラルランス",
+    "nameCn": "螺旋槍",
+    "category": "weapon",
+    "weaponType": "spear",
+    "tier": 2,
+    "requiredProficiency": 100,
+    "triggerType": "probability",
+    "triggerChance": 22,
+    "triggerCondition": null,
+    "color": "#7c3aed",
+    "postMotionDelay": 2,
+    "effects": [
+      { "type": "damage_mult", "value": 1.6 },
+      { "type": "multi_hit", "value": 2 }
+    ],
+    "description": "螺旋旋轉的二段突刺。"
+  },
+  {
+    "id": "gale_spear",
+    "nameJp": "ゲイルスピア",
+    "nameCn": "疾風槍",
+    "category": "weapon",
+    "weaponType": "spear",
+    "tier": 4,
+    "requiredProficiency": 500,
+    "triggerType": "probability",
+    "triggerChance": 14,
+    "triggerCondition": null,
+    "color": "#dc2626",
+    "postMotionDelay": 3,
+    "effects": [
+      { "type": "damage_mult", "value": 2.0 },
+      { "type": "initiative", "value": true },
+      { "type": "multi_hit", "value": 3 }
+    ],
+    "description": "疾風般的三連突刺，必定先手。"
+  },
+  {
+    "id": "single_shot",
+    "nameJp": "シングルショット",
+    "nameCn": "單箭射擊",
+    "category": "weapon",
+    "weaponType": "bow",
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "probability",
+    "triggerChance": 30,
+    "triggerCondition": null,
+    "color": "#65a30d",
+    "postMotionDelay": 1,
+    "effects": [
+      { "type": "damage_mult", "value": 1.3 },
+      { "type": "initiative", "value": true }
+    ],
+    "description": "精確瞄準的一箭，遠距離先手攻擊。"
+  },
+  {
+    "id": "rain_of_arrows",
+    "nameJp": "レイン・オブ・アローズ",
+    "nameCn": "箭雨",
+    "category": "weapon",
+    "weaponType": "bow",
+    "tier": 3,
+    "requiredProficiency": 250,
+    "triggerType": "probability",
+    "triggerChance": 18,
+    "triggerCondition": null,
+    "color": "#4338ca",
+    "postMotionDelay": 3,
+    "effects": [
+      { "type": "multi_hit", "value": 4 },
+      { "type": "damage_mult", "value": 0.5 }
+    ],
+    "description": "高速連射四箭的範圍攻擊。"
+  },
+  {
+    "id": "snipe",
+    "nameJp": "スナイプ",
+    "nameCn": "狙擊",
+    "category": "weapon",
+    "weaponType": "bow",
+    "tier": 4,
+    "requiredProficiency": 500,
+    "triggerType": "probability",
+    "triggerChance": 12,
+    "triggerCondition": null,
+    "color": "#dc2626",
+    "postMotionDelay": 3,
+    "effects": [
+      { "type": "damage_mult", "value": 2.5 },
+      { "type": "guaranteed_crit", "value": true },
+      { "type": "ignore_def", "value": 0.5 }
+    ],
+    "description": "瞄準弱點的精確狙擊——必定暴擊且穿透半數防禦。"
+  },
+  {
+    "id": "shield_bash",
+    "nameJp": "シールドバッシュ",
+    "nameCn": "盾擊",
+    "category": "weapon",
+    "weaponType": "shield",
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "probability",
+    "triggerChance": 25,
+    "triggerCondition": null,
+    "color": "#475569",
+    "postMotionDelay": 2,
+    "effects": [
+      { "type": "damage_mult", "value": 1.2 },
+      { "type": "stun", "value": 30 }
+    ],
+    "description": "以大盾猛擊敵方，高機率暈眩。"
+  },
+  {
+    "id": "fortress",
+    "nameJp": "フォートレス",
+    "nameCn": "堡壘",
+    "category": "weapon",
+    "weaponType": "shield",
+    "tier": 2,
+    "requiredProficiency": 100,
+    "triggerType": "passive",
+    "triggerChance": 0,
+    "triggerCondition": null,
+    "color": "#1e40af",
+    "postMotionDelay": 0,
+    "effects": [
+      { "type": "damage_reduction", "value": 0.15 },
+      { "type": "def_boost", "value": 2 }
+    ],
+    "description": "被動防禦姿態，降低受到的傷害並提升防禦。"
+  },
+  {
+    "id": "aegis",
+    "nameJp": "イージス",
+    "nameCn": "神盾",
+    "category": "weapon",
+    "weaponType": "shield",
+    "tier": 4,
+    "requiredProficiency": 500,
+    "triggerType": "conditional",
+    "triggerChance": 0,
+    "triggerCondition": "hp_below_50",
+    "color": "#eab308",
+    "postMotionDelay": 0,
+    "effects": [
+      { "type": "shield_hp", "value": 30 },
+      { "type": "counter", "value": 50 }
+    ],
+    "description": "HP 低於 50% 時自動啟動——產生護盾並獲得反擊能力。"
+  },
+  {
+    "id": "battle_cry",
+    "nameJp": "バトルクライ",
+    "nameCn": "戰吼",
+    "category": "combat",
+    "weaponType": null,
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "passive",
+    "triggerChance": 0,
+    "triggerCondition": null,
+    "color": "#f59e0b",
+    "postMotionDelay": 0,
+    "effects": [{ "type": "atk_boost", "value": 1 }],
+    "description": "被動效果：戰鬥開始時提升攻擊力。"
+  },
+  {
+    "id": "iron_will",
+    "nameJp": "アイアンウィル",
+    "nameCn": "鋼鐵意志",
+    "category": "combat",
+    "weaponType": null,
+    "tier": 2,
+    "requiredProficiency": 100,
+    "triggerType": "passive",
+    "triggerChance": 0,
+    "triggerCondition": null,
+    "color": "#6b7280",
+    "postMotionDelay": 0,
+    "effects": [{ "type": "damage_reduction", "value": 0.1 }],
+    "description": "被動效果：減少受到的所有傷害 10%。"
+  },
+  {
+    "id": "adrenaline",
+    "nameJp": "アドレナリン",
+    "nameCn": "腎上腺素",
+    "category": "combat",
+    "weaponType": null,
+    "tier": 3,
+    "requiredProficiency": 250,
+    "triggerType": "conditional",
+    "triggerChance": 0,
+    "triggerCondition": "hp_below_30",
+    "color": "#ef4444",
+    "postMotionDelay": 0,
+    "effects": [
+      { "type": "atk_boost", "value": 3 },
+      { "type": "agi_boost", "value": 2 }
+    ],
+    "description": "HP 低於 30% 時自動啟動，大幅提升攻擊和敏捷。"
+  },
+  {
+    "id": "last_stand",
+    "nameJp": "ラストスタンド",
+    "nameCn": "最後的抵抗",
+    "category": "combat",
+    "weaponType": null,
+    "tier": 4,
+    "requiredProficiency": 500,
+    "triggerType": "conditional",
+    "triggerChance": 0,
+    "triggerCondition": "hp_below_10",
+    "color": "#dc2626",
+    "postMotionDelay": 0,
+    "effects": [
+      { "type": "damage_mult", "value": 2.0 },
+      { "type": "guaranteed_crit", "value": true }
+    ],
+    "description": "HP 低於 10% 時的最後反擊——所有攻擊傷害翻倍且必定暴擊。"
+  },
+  {
+    "id": "martial_arts",
+    "nameJp": "体術",
+    "nameCn": "體術",
+    "category": "extra",
+    "weaponType": null,
+    "tier": 3,
+    "requiredProficiency": 0,
+    "triggerType": "probability",
+    "triggerChance": 20,
+    "triggerCondition": null,
+    "unlockCondition": { "type": "adventure_count", "value": 50 },
+    "color": "#f97316",
+    "postMotionDelay": 1,
+    "effects": [
+      { "type": "multi_hit", "value": 3 },
+      { "type": "damage_mult", "value": 0.6 }
+    ],
+    "description": "隱藏技能：徒手格鬥三連擊。需累計 50 場冒險解鎖。"
+  },
+  {
+    "id": "meditation",
+    "nameJp": "瞑想",
+    "nameCn": "冥想",
+    "category": "extra",
+    "weaponType": null,
+    "tier": 2,
+    "requiredProficiency": 0,
+    "triggerType": "passive",
+    "triggerChance": 0,
+    "triggerCondition": null,
+    "unlockCondition": { "type": "survive_days", "value": 100 },
+    "color": "#06b6d4",
+    "postMotionDelay": 0,
+    "effects": [{ "type": "heal_per_round", "value": 5 }],
+    "description": "隱藏技能：每回合回復 5% 最大 HP。需存活 100 遊戲日解鎖。"
+  },
+  {
+    "id": "katana_mastery",
+    "nameJp": "刀術極意",
+    "nameCn": "刀術極意",
+    "category": "extra",
+    "weaponType": "katana",
+    "tier": 4,
+    "requiredProficiency": 0,
+    "triggerType": "passive",
+    "triggerChance": 0,
+    "triggerCondition": null,
+    "unlockCondition": { "type": "katana_proficiency", "value": 500 },
+    "color": "#dc2626",
+    "postMotionDelay": 0,
+    "effects": [
+      { "type": "katana_trigger_bonus", "value": 10 },
+      { "type": "katana_damage_bonus", "value": 0.2 }
+    ],
+    "description": "隱藏技能：刀類技能觸發率 +10%，傷害 +20%。需刀類熟練度 500 解鎖。"
+  },
+  {
+    "id": "tracking",
+    "nameJp": "トラッキング",
+    "nameCn": "追蹤",
+    "category": "extra",
+    "weaponType": null,
+    "tier": 2,
+    "requiredProficiency": 0,
+    "triggerType": "passive",
+    "triggerChance": 0,
+    "triggerCondition": null,
+    "unlockCondition": { "type": "adventure_count", "value": 200 },
+    "color": "#22c55e",
+    "postMotionDelay": 0,
+    "effects": [{ "type": "rare_encounter_bonus", "value": 5 }],
+    "description": "隱藏技能：Hell/優樹遭遇率 +5%。需累計 200 次冒險解鎖。"
+  }
+]

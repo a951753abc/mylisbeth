@@ -4,6 +4,8 @@ const randWeapon = require("./category.json");
 const roll = require("../roll.js");
 const { getModifier, getRawModifier } = require("../title/titleModifier.js");
 const config = require("../config.js");
+const { rollInnateEffects } = require("./innateEffect.js");
+const { resolveWeaponType } = require("./weaponType.js");
 
 const weaponPer = ["hp", "atk", "def", "agi", "durability"];
 
@@ -186,6 +188,18 @@ module.exports.createWeapon = async function (cmd, user, options = {}) {
     changeWeapon(weapon, "success");
     rollResult = roll.d66();
   }
+
+  // Season 9: 武器類型 + 固有效果
+  const weaponType = resolveWeaponType(weapon);
+  if (weaponType) {
+    weapon.type = weaponType;
+  }
+  const innateResults = rollInnateEffects(weapon, weaponType, forgeLevel);
+  if (innateResults.length > 0) {
+    const innateNames = innateResults.map((e) => e.name).join("、");
+    weapon.text += `武器獲得固有效果：${innateNames}\n`;
+  }
+
   return weapon;
 };
 

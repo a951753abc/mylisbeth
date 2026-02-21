@@ -15,6 +15,7 @@ import BankruptcyScreen from "../components/BankruptcyScreen";
 import NpcDeathToast from "../components/NpcDeathToast";
 import ShopPanel from "../components/ShopPanel";
 import MarketPanel from "../components/MarketPanel";
+import SkillPanel from "../components/SkillPanel";
 
 export default function Game({ user, onLogout }) {
   const [gameUser, setGameUser] = useState(null);
@@ -298,6 +299,7 @@ export default function Game({ user, onLogout }) {
               >
                 NPC{(gameUser.hiredNpcs || []).length > 0 ? `(${gameUser.hiredNpcs.length})` : ""}
               </button>
+              <button className={tab === "skill" ? "active" : ""} onClick={() => setTab("skill")}>劍技</button>
               <button
                 className={`${tab === "settlement" ? "active" : ""}${gameUser.isInDebt ? " debt-tab-badge" : ""}`}
                 onClick={() => setTab("settlement")}
@@ -356,6 +358,9 @@ export default function Game({ user, onLogout }) {
         )}
         {tab === "npc" && (
           <NpcPanel user={gameUser} onRefresh={fetchUser} />
+        )}
+        {tab === "skill" && (
+          <SkillPanel user={gameUser} />
         )}
         {tab === "settlement" && (
           <SettlementPanel

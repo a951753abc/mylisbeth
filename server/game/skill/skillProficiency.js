@@ -1,0 +1,135 @@
+const db = require("../../db.js");
+const config = require("../config.js");
+const { resolveWeaponType } = require("../weapon/weaponType.js");
+const { checkUnlockableSkills } = require("./skillRegistry.js");
+
+const SKILL_CFG = config.SKILL;
+
+/**
+ * 戰鬥後發放武器熟練度，並自動解鎖新技能
+ * @param {string} userId
+ * @param {object} weapon - 使用的武器
+ * @param {string} gainKey - PROF_GAIN 的 key，如 "ADV_WIN", "BOSS"
+ * @returns {{ profGained: number, weaponType: string, newSkills: string[] } | null}
+ */
+async function awardProficiency(userId, weapon, gainKey) {
+  const weaponType = resolveWeaponType(weapon);
+  if (!weaponType) return null;
+
+  const gain = SKILL_CFG.PROF_GAIN[gainKey];
+  if (!gain || gain <= 0) return null;
+
+  const profPath = `weaponProficiency.${weaponType}`;
+
+  // 原子增加熟練度（上限 MAX_PROFICIENCY）
+  const updated = await db.findOneAndUpdate(
+    "user",
+    { userId, [profPath]: { $lt: SKILL_CFG.MAX_PROFICIENCY } },
+    { $inc: { [profPath]: gain } },
+    { returnDocument: "after" },
+  );
+
+  if (!updated) {
+    // 可能已滿 → 嘗試 cap
+    await db.update(
+      "user",
+      { userId, [profPath]: { $gt: SKILL_CFG.MAX_PROFICIENCY } },
+      { $set: { [profPath]: SKILL_CFG.MAX_PROFICIENCY } },
+    );
+    return { profGained: 0, weaponType, newSkills: [] };
+  }
+
+  // cap 超出值
+  const currentProf = (updated.weaponProficiency || {})[weaponType] || 0;
+  if (currentProf > SKILL_CFG.MAX_PROFICIENCY) {
+    await db.update(
+      "user",
+      { userId },
+      { $set: { [profPath]: SKILL_CFG.MAX_PROFICIENCY } },
+    );
+  }
+
+  // 檢查可解鎖的技能
+  const user = await db.findOne("user", { userId });
+  const newSkills = checkUnlockableSkills(user);
+
+  if (newSkills.length > 0) {
+    await db.update(
+      "user",
+      { userId },
+      { $addToSet: { learnedSkills: { $each: newSkills } } },
+    );
+  }
+
+  return {
+    profGained: Math.min(gain, SKILL_CFG.MAX_PROFICIENCY - (currentProf - gain)),
+    weaponType,
+    newSkills,
+  };
+}
+
+/**
+ * NPC 戰鬥後增加熟練度
+ * @param {string} userId
+ * @param {number} npcIdx - hiredNpcs 中的索引
+ * @param {object} weapon - NPC 使用的武器
+ * @param {string} gainKey
+ * @returns {{ profGained: number, weaponType: string } | null}
+ */
+async function awardNpcProficiency(userId, npcIdx, weapon, gainKey) {
+  const weaponType = resolveWeaponType(weapon);
+  if (!weaponType) return null;
+
+  const gain = SKILL_CFG.PROF_GAIN[gainKey];
+  if (!gain || gain <= 0) return null;
+
+  const profPath = `hiredNpcs.${npcIdx}.weaponProficiency`;
+
+  await db.update(
+    "user",
+    { userId },
+    {
+      $inc: { [profPath]: gain },
+      $set: { [`hiredNpcs.${npcIdx}.proficientType`]: weaponType },
+    },
+  );
+
+  // cap
+  const user = await db.findOne("user", { userId });
+  const npc = (user?.hiredNpcs || [])[npcIdx];
+  if (npc && (npc.weaponProficiency || 0) > SKILL_CFG.MAX_PROFICIENCY) {
+    await db.update(
+      "user",
+      { userId },
+      { $set: { [profPath]: SKILL_CFG.MAX_PROFICIENCY } },
+    );
+  }
+
+  return { profGained: gain, weaponType };
+}
+
+/**
+ * 根據戰鬥結果取得對應的 PROF_GAIN key
+ * @param {"WIN"|"LOSE"|"DRAW"} outcome
+ * @param {"adv"|"solo"|"pvp"|"boss"} battleType
+ * @returns {string}
+ */
+function getProfGainKey(outcome, battleType) {
+  if (battleType === "boss") return "BOSS";
+  if (battleType === "pvp") return outcome === "WIN" ? "PVP_WIN" : "PVP_LOSE";
+  if (battleType === "solo") {
+    if (outcome === "WIN") return "SOLO_WIN";
+    if (outcome === "DRAW") return "SOLO_DRAW";
+    return "SOLO_LOSE";
+  }
+  // adv
+  if (outcome === "WIN") return "ADV_WIN";
+  if (outcome === "DRAW") return "ADV_DRAW";
+  return "ADV_LOSE";
+}
+
+module.exports = {
+  awardProficiency,
+  awardNpcProficiency,
+  getProfGainKey,
+};

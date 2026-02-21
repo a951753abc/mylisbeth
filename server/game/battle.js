@@ -307,6 +307,275 @@ function runPvpCombatLoop(attacker, defender, duelMode) {
   return { battleLog, winnerSide };
 }
 
+// --- Skill-enhanced combat ---
+
+const {
+  buildSkillContext,
+  applyPassiveSkills,
+  checkConditionalSkills,
+  rollSkillTrigger,
+  processSkillAttack,
+  applyEndOfRoundEffects,
+} = require("./skill/skillCombat.js");
+const { trySkillConnect } = require("./skill/skillConnect.js");
+
+/**
+ * 技能加持版 PvE 戰鬥迴圈
+ * @param {object} playerSide - { name, hp, maxHp, stats }
+ * @param {object} enemySide - { name, hp, stats }
+ * @param {object|null} skillCtx - buildSkillContext() 的結果，null 則退回普通戰鬥
+ * @returns {object} battleResult
+ */
+function runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx) {
+  if (!skillCtx || skillCtx.skills.length === 0) {
+    return runPveCombatLoop(playerSide, enemySide);
+  }
+
+  // 儲存 maxHp
+  playerSide.maxHp = playerSide.hp;
+  enemySide.maxHp = enemySide.hp;
+
+  // Phase 0: 套用被動技能
+  applyPassiveSkills(playerSide, skillCtx);
+
+  let round = 1;
+  const battleResult = {
+    log: [],
+    win: 0,
+    dead: 0,
+    enemyName: enemySide.name,
+    npcName: playerSide.name,
+    initialHp: { npc: playerSide.hp, enemy: enemySide.hp },
+    finalHp: {},
+    skillEvents: [],
+  };
+
+  let connectChain = 0;
+
+  while (playerSide.hp > 0 && enemySide.hp > 0 && round <= ROUND_LIMIT) {
+    battleResult.log.push({ type: "round", number: round });
+
+    // 條件觸發檢查
+    checkConditionalSkills(playerSide, skillCtx);
+
+    // 機率觸發判定
+    const triggeredEntry = rollSkillTrigger(skillCtx);
+
+    // 先手判定
+    let playerFirst;
+    if (triggeredEntry) {
+      const { parseSkillEffects } = require("./skill/skillCombat.js");
+      const effects = parseSkillEffects(triggeredEntry.skill, triggeredEntry.mods);
+      if (effects.initiative) {
+        playerFirst = true;
+      }
+    }
+    if (playerFirst === undefined) {
+      const npcAct = roll.d66() + playerSide.stats.agi;
+      const eneAct = roll.d66() + enemySide.stats.agi;
+      playerFirst = npcAct >= eneAct;
+    }
+
+    if (playerFirst) {
+      // 玩家方先攻
+      if (triggeredEntry) {
+        const result = processSkillAttack(
+          playerSide, enemySide,
+          triggeredEntry.skill, triggeredEntry.mods,
+          connectChain, skillCtx, damCheck,
+        );
+        battleResult.log.push(result.log);
+        battleResult.skillEvents.push(result.log);
+
+        // Skill Connect
+        let connectResult = trySkillConnect(skillCtx, triggeredEntry.skill, triggeredEntry.mods, connectChain);
+        while (connectResult.connected && enemySide.hp > 0) {
+          const chainResult = processSkillAttack(
+            playerSide, enemySide,
+            connectResult.nextEntry.skill, connectResult.nextEntry.mods,
+            connectResult.newChain, skillCtx, damCheck,
+          );
+          battleResult.log.push(chainResult.log);
+          battleResult.skillEvents.push(chainResult.log);
+          connectChain = connectResult.newChain;
+          connectResult = trySkillConnect(
+            skillCtx, connectResult.nextEntry.skill,
+            connectResult.nextEntry.mods, connectChain,
+          );
+        }
+        connectChain = connectResult.connected ? connectResult.newChain : (triggeredEntry ? 1 : 0);
+
+        if (result.stunned && enemySide.hp > 0) {
+          battleResult.log.push({ type: "stun", target: enemySide.name });
+        }
+      } else {
+        processAttack(playerSide, enemySide, battleResult.log);
+        connectChain = 0;
+      }
+
+      if (enemySide.hp <= 0) {
+        battleResult.win = 1;
+        break;
+      }
+
+      // 敵方反擊
+      if (enemySide.hp > 0) {
+        processAttack(enemySide, playerSide, battleResult.log);
+        if (playerSide.hp <= 0) {
+          battleResult.dead = 1;
+          break;
+        }
+      }
+    } else {
+      // 敵方先攻
+      processAttack(enemySide, playerSide, battleResult.log);
+      if (playerSide.hp <= 0) {
+        battleResult.dead = 1;
+        break;
+      }
+
+      // 玩家方攻擊
+      if (triggeredEntry) {
+        const result = processSkillAttack(
+          playerSide, enemySide,
+          triggeredEntry.skill, triggeredEntry.mods,
+          connectChain, skillCtx, damCheck,
+        );
+        battleResult.log.push(result.log);
+        battleResult.skillEvents.push(result.log);
+
+        let connectResult = trySkillConnect(skillCtx, triggeredEntry.skill, triggeredEntry.mods, connectChain);
+        while (connectResult.connected && enemySide.hp > 0) {
+          const chainResult = processSkillAttack(
+            playerSide, enemySide,
+            connectResult.nextEntry.skill, connectResult.nextEntry.mods,
+            connectResult.newChain, skillCtx, damCheck,
+          );
+          battleResult.log.push(chainResult.log);
+          battleResult.skillEvents.push(chainResult.log);
+          connectChain = connectResult.newChain;
+          connectResult = trySkillConnect(
+            skillCtx, connectResult.nextEntry.skill,
+            connectResult.nextEntry.mods, connectChain,
+          );
+        }
+        connectChain = triggeredEntry ? 1 : 0;
+      } else {
+        processAttack(playerSide, enemySide, battleResult.log);
+        connectChain = 0;
+      }
+
+      if (enemySide.hp <= 0) {
+        battleResult.win = 1;
+        break;
+      }
+    }
+
+    // 回合結束效果
+    const healLog = applyEndOfRoundEffects(playerSide, skillCtx);
+    if (healLog) battleResult.log.push(healLog);
+
+    round++;
+  }
+
+  if (round > ROUND_LIMIT && playerSide.hp > 0 && enemySide.hp > 0) {
+    battleResult.log.push({ type: "end", outcome: "draw" });
+  } else if (battleResult.win) {
+    battleResult.log.push({ type: "end", outcome: "win", winner: playerSide.name });
+  } else if (battleResult.dead) {
+    battleResult.log.push({ type: "end", outcome: "lose", winner: enemySide.name });
+  }
+
+  battleResult.finalHp = { npc: playerSide.hp, enemy: enemySide.hp };
+  return battleResult;
+}
+
+/**
+ * 技能加持版 PvP 戰鬥迴圈
+ */
+function runPvpCombatLoopWithSkills(attacker, defender, duelMode, atkSkillCtx, defSkillCtx) {
+  if ((!atkSkillCtx || atkSkillCtx.skills.length === 0) &&
+      (!defSkillCtx || defSkillCtx.skills.length === 0)) {
+    return runPvpCombatLoop(attacker, defender, duelMode);
+  }
+
+  // 套用被動
+  if (atkSkillCtx) applyPassiveSkills(attacker, atkSkillCtx);
+  if (defSkillCtx) applyPassiveSkills(defender, defSkillCtx);
+
+  let round = 1;
+  const battleLog = [];
+  const skillEvents = [];
+  let winnerSide = null;
+
+  while (attacker.hp > 0 && defender.hp > 0 && round <= ROUND_LIMIT) {
+    battleLog.push(`\n**第 ${round} 回合**`);
+
+    // 條件觸發
+    if (atkSkillCtx) checkConditionalSkills(attacker, atkSkillCtx);
+    if (defSkillCtx) checkConditionalSkills(defender, defSkillCtx);
+
+    const atkAct = roll.d66() + attacker.stats.agi;
+    const defAct = roll.d66() + defender.stats.agi;
+    const firstSide = atkAct >= defAct ? "attacker" : "defender";
+
+    const sides = firstSide === "attacker"
+      ? [
+          { src: attacker, dst: defender, ctx: atkSkillCtx, key: "attacker" },
+          { src: defender, dst: attacker, ctx: defSkillCtx, key: "defender" },
+        ]
+      : [
+          { src: defender, dst: attacker, ctx: defSkillCtx, key: "defender" },
+          { src: attacker, dst: defender, ctx: atkSkillCtx, key: "attacker" },
+        ];
+
+    for (const { src, dst, ctx, key } of sides) {
+      if (dst.hp <= 0) break;
+
+      const triggered = ctx ? rollSkillTrigger(ctx) : null;
+
+      if (triggered) {
+        const result = processSkillAttack(
+          src, dst, triggered.skill, triggered.mods, 0, ctx, damCheck,
+        );
+        battleLog.push(`⚔️ ${src.name} 發動劍技【${triggered.skill.nameCn}】對 ${dst.name} 造成 ${result.totalDamage} 點傷害！`);
+        skillEvents.push(result.log);
+      } else {
+        const dmgResult = damCheck(src.stats.atk, src.stats.cri, dst.stats.def);
+        dst.hp -= dmgResult.damage;
+        battleLog.push(`${src.name} 對 ${dst.name} 造成了 ${dmgResult.damage} 點傷害。`);
+      }
+
+      if (duelMode === "first_strike" && dst.maxHp && (dst.maxHp - dst.hp) >= dst.maxHp * 0.10) {
+        winnerSide = key;
+        break;
+      }
+      if (duelMode === "half_loss" && dst.maxHp && dst.hp <= dst.maxHp * 0.50) {
+        winnerSide = key;
+        break;
+      }
+      if (dst.hp <= 0) {
+        winnerSide = key;
+        break;
+      }
+    }
+
+    if (winnerSide) break;
+
+    // 回合結束效果
+    if (atkSkillCtx) applyEndOfRoundEffects(attacker, atkSkillCtx);
+    if (defSkillCtx) applyEndOfRoundEffects(defender, defSkillCtx);
+
+    round++;
+  }
+
+  if (!winnerSide) {
+    winnerSide = attacker.hp >= defender.hp ? "attacker" : "defender";
+  }
+
+  return { battleLog, winnerSide, skillEvents };
+}
+
 // --- Battle module ---
 
 const battleModule = {};
@@ -436,8 +705,96 @@ battleModule.pveBattleDirect = async function (weapon, npc, enemyData, titleMods
   return battleResult;
 };
 
+/**
+ * 技能加持版 PvE 戰鬥
+ */
+battleModule.pveBattleWithSkills = async function (weapon, npc, npcNameList, floorEnemies, titleMods = {}, skillCtx = null) {
+  const playerSide = buildPvePlayerSide(weapon, npc, titleMods);
+
+  const enemyData = floorEnemies
+    ? getEneFromFloor(floorEnemies)
+    : getEneFromList(eneExample);
+  const enemyName =
+    npcNameList[Math.floor(Math.random() * npcNameList.length)].name;
+  const enemySide = {
+    name: `${enemyData.category}${enemyData.name || enemyName}`,
+    hp: enemyData.hp,
+    stats: {
+      atk: enemyData.atk,
+      def: enemyData.def,
+      agi: enemyData.agi,
+      cri: enemyData.cri,
+    },
+  };
+
+  const battleResult = runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx);
+  battleResult.category = enemyData.category;
+  return battleResult;
+};
+
+/**
+ * 技能加持版 PvP 戰鬥
+ */
+battleModule.pvpBattleWithSkills = async function (
+  attackerData, attackerWeapon,
+  defenderData, defenderWeapon,
+  attackerMods, defenderMods,
+  duelMode, atkSkillCtx, defSkillCtx,
+) {
+  const { getBattleLevelBonus } = require("./battleLevel.js");
+
+  const atkLvBonus = getBattleLevelBonus(attackerData.battleLevel || 1);
+  const attacker = buildPvpFighter(attackerData.name, attackerWeapon, atkLvBonus, attackerMods);
+
+  const defLvBonus = getBattleLevelBonus(defenderData.battleLevel || 1);
+  const defender = buildPvpFighter(defenderData.name, defenderWeapon, defLvBonus, defenderMods);
+
+  const { battleLog, winnerSide, skillEvents } = runPvpCombatLoopWithSkills(
+    attacker, defender, duelMode, atkSkillCtx, defSkillCtx,
+  );
+
+  const winner = winnerSide === "attacker" ? attackerData : defenderData;
+  const loser = winnerSide === "attacker" ? defenderData : attackerData;
+
+  return {
+    log: battleLog,
+    winner,
+    loser,
+    duelMode,
+    winnerHpRemaining: winnerSide === "attacker" ? attacker.hp : defender.hp,
+    loserHpRemaining: winnerSide === "attacker" ? defender.hp : attacker.hp,
+    attackerHp: attacker.hp,
+    defenderHp: defender.hp,
+    attackerMaxHp: attacker.maxHp,
+    defenderMaxHp: defender.maxHp,
+    skillEvents: skillEvents || [],
+  };
+};
+
+/**
+ * 技能加持版直接 PvE 戰鬥
+ */
+battleModule.pveBattleDirectWithSkills = async function (weapon, npc, enemyData, titleMods = {}, skillCtx = null) {
+  const playerSide = buildPvePlayerSide(weapon, npc, titleMods);
+  const enemySide = {
+    name: enemyData.name,
+    hp: enemyData.hp,
+    stats: {
+      atk: enemyData.atk,
+      def: enemyData.def,
+      agi: enemyData.agi,
+      cri: enemyData.cri,
+    },
+  };
+
+  const battleResult = runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx);
+  battleResult.category = enemyData.category || "[Event]";
+  return battleResult;
+};
+
 battleModule.hitCheck = hitCheck;
 battleModule.damCheck = damCheck;
 battleModule.buildPvpFighter = buildPvpFighter;
+battleModule.buildSkillContext = buildSkillContext;
 
 module.exports = battleModule;

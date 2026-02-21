@@ -52,6 +52,38 @@ export default function BattleLog({ logs }) {
             {log.reward && <div style={{ color: 'var(--success)' }}>{log.reward}</div>}
             {log.battleLog && <div>{log.battleLog}</div>}
 
+            {/* 劍技事件 */}
+            {log.skillEvents && log.skillEvents.length > 0 && (
+              <div style={{ marginTop: '0.3rem' }}>
+                {log.skillEvents.map((evt, si) => (
+                  <div
+                    key={si}
+                    style={{
+                      fontSize: '0.85rem',
+                      padding: '0.2rem 0.4rem',
+                      marginBottom: '0.2rem',
+                      borderLeft: `2px solid ${evt.color || '#a855f7'}`,
+                      background: 'rgba(168, 85, 247, 0.05)',
+                    }}
+                  >
+                    <span style={{ color: evt.color || '#a855f7', fontWeight: 'bold' }}>
+                      ⚔️ {evt.attacker} 發動【{evt.skillName}】
+                    </span>
+                    {' → '}{evt.defender} {evt.damage} 傷害
+                    {evt.hitCount > 1 && ` (${evt.hitCount}hit)`}
+                    {evt.isCrit && <span style={{ color: 'var(--gold)' }}> 暴擊！</span>}
+                    {evt.stunned && <span style={{ color: 'var(--warning)' }}> 暈眩！</span>}
+                    {evt.chainCount > 0 && (
+                      <span style={{ color: '#f97316' }}> Skill Connect ×{evt.chainCount}!</span>
+                    )}
+                    {evt.healed > 0 && (
+                      <span style={{ color: 'var(--success)' }}> 回復 {evt.healed} HP</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Floor info for adventure */}
             {log.floor && log.floorName && (
               <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
