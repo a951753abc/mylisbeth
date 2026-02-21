@@ -11,7 +11,7 @@ const { getAllDefinitions, checkAndAward } = require("../game/progression/achiev
 const claimDaily = require("../game/progression/daily.js");
 const { calculateBill, payDebt } = require("../game/economy/settlement.js");
 const { takeLoan, getLoanInfo } = require("../game/economy/loan.js");
-const { sellItem, sellWeapon } = require("../game/economy/shop.js");
+const { sellItem, sellWeapon, sellSealedWeapon } = require("../game/economy/shop.js");
 const { TITLE_EFFECTS } = require("../game/title/titleEffects.js");
 const { validateName } = require("../utils/sanitize.js");
 const config = require("../game/config.js");
@@ -450,6 +450,15 @@ router.post("/sell-weapon", ensureAuth, ensureNotPaused, async (req, res) => {
     if (weaponIndex === undefined || weaponIndex === null) return { error: "缺少武器索引" };
     return await sellWeapon(req.user.discordId, parseInt(weaponIndex, 10));
   }, "出售武器失敗");
+});
+
+// Sell sealed weapon (封印武器高價回收)
+router.post("/sell-sealed-weapon", ensureAuth, ensureNotPaused, async (req, res) => {
+  await handleRoute(res, async () => {
+    const { sealedIndex } = req.body;
+    if (sealedIndex === undefined || sealedIndex === null) return { error: "缺少封印武器索引" };
+    return await sellSealedWeapon(req.user.discordId, parseInt(sealedIndex, 10));
+  }, "出售封印武器失敗");
 });
 
 // Solo adventure (鍛造師親自冒險)

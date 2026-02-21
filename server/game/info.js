@@ -165,5 +165,36 @@ module.exports = function (user) {
     adventureExp: _.get(user, "adventureExp", 0),
     adventureExpNext: getAdvExpToNextLevel(_.get(user, "adventureLevel", 1)),
     hireLimit: getHireLimit(_.get(user, "adventureLevel", 1)),
+    // Season 8: 封印武器
+    sealedWeapons: (_.get(user, "sealedWeapons", [])).map((w, idx) => {
+      const rarity = w.rarity
+        ? { id: w.rarity, label: w.rarityLabel, color: w.rarityColor }
+        : calculateRarity(w);
+      const totalScore =
+        rarity.totalScore ||
+        (w.atk || 0) +
+          (w.def || 0) +
+          (w.agi || 0) +
+          Math.max(0, 14 - (w.cri || 10)) +
+          (w.hp || 0) +
+          (w.maxDurability || w.durability || 0);
+      return {
+        index: idx,
+        name: w.name,
+        weaponName: w.weaponName,
+        atk: w.atk,
+        def: w.def,
+        agi: w.agi,
+        cri: w.cri,
+        hp: w.hp,
+        durability: w.durability,
+        buff: w.buff || 0,
+        rarity: rarity.id,
+        rarityLabel: rarity.label,
+        rarityColor: rarity.color,
+        totalScore,
+        sealedAt: w.sealedAt,
+      };
+    }),
   };
 };

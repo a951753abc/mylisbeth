@@ -8,6 +8,7 @@ export default function ShopPanel({ user, onRefresh }) {
 
   const items = user.items || [];
   const weapons = user.weapons || [];
+  const sealedWeapons = user.sealedWeapons || [];
 
   const setQty = (index, val) => {
     setQuantities((prev) => ({ ...prev, [index]: val }));
@@ -57,6 +58,43 @@ export default function ShopPanel({ user, onRefresh }) {
         setError(data.error);
       } else {
         const achText = (data.newAchievements || []).map((a) => `🏆 成就解鎖：${a.nameCn}${a.titleReward ? `（獲得稱號「${a.titleReward}」）` : ""}`).join("\n");
+        setMessage(data.message + (achText ? "\n" + achText : ""));
+        await onRefresh();
+      }
+    } catch {
+      setError("連線失敗");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleSellSealedWeapon = async (sealedIndex, weaponName, sellPrice) => {
+    if (
+      !window.confirm(
+        `確定要以 ${sellPrice} Col 回收封印武器「${weaponName}」？此操作無法復原。`
+      )
+    )
+      return;
+    setBusy(true);
+    setMessage("");
+    setError("");
+    try {
+      const res = await fetch("/api/game/sell-sealed-weapon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sealedIndex }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+      } else {
+        const achText = (data.newAchievements || [])
+          .map(
+            (a) =>
+              `成就解鎖：${a.nameCn}${a.titleReward ? `（獲得稱號「${a.titleReward}」）` : ""}`
+          )
+          .join("\n");
         setMessage(data.message + (achText ? "\n" + achText : ""));
         await onRefresh();
       }
@@ -216,6 +254,108 @@ export default function ShopPanel({ user, onRefresh }) {
           </table>
         )}
       </div>
+      {/* 封印武器回收 */}
+      {sealedWeapons.length > 0 && (
+        <div
+          className="card"
+          style={{
+            borderColor: "#f59e0b",
+            boxShadow: "0 0 12px rgba(245, 158, 11, 0.25)",
+          }}
+        >
+          <h2 style={{ color: "#f59e0b" }}>封印武器高價回收</h2>
+          <p
+            style={{
+              fontSize: "0.8rem",
+              color: "#fbbf24",
+              marginBottom: "0.5rem",
+            }}
+          >
+            封印武器可以高價回收！售價 = 總分 x 10 Col（固定價格，不受骰運影響）
+          </p>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              fontSize: "0.85rem",
+            }}
+          >
+            <thead>
+              <tr style={{ color: "var(--text-secondary)", textAlign: "left" }}>
+                <th style={{ padding: "0.3rem 0.5rem" }}>武器</th>
+                <th style={{ padding: "0.3rem 0.5rem" }}>稀有度</th>
+                <th style={{ padding: "0.3rem 0.5rem" }}>總分</th>
+                <th style={{ padding: "0.3rem 0.5rem" }}>售價</th>
+                <th style={{ padding: "0.3rem 0.5rem" }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {sealedWeapons.map((w) => {
+                const sellPrice = (w.totalScore || 0) * 10;
+                return (
+                  <tr
+                    key={w.index}
+                    style={{
+                      borderTop: "1px solid rgba(245, 158, 11, 0.15)",
+                    }}
+                  >
+                    <td style={{ padding: "0.4rem 0.5rem" }}>
+                      <span style={{ color: "#f59e0b", marginRight: "0.3rem" }}>
+                        [封印]
+                      </span>
+                      {w.weaponName}
+                    </td>
+                    <td style={{ padding: "0.4rem 0.5rem" }}>
+                      {w.rarityLabel && (
+                        <span style={{ color: w.rarityColor }}>
+                          【{w.rarityLabel}】
+                        </span>
+                      )}
+                    </td>
+                    <td
+                      style={{
+                        padding: "0.4rem 0.5rem",
+                        color: "#fbbf24",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {w.totalScore}
+                    </td>
+                    <td
+                      style={{
+                        padding: "0.4rem 0.5rem",
+                        color: "var(--gold)",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {sellPrice} Col
+                    </td>
+                    <td style={{ padding: "0.4rem 0.5rem" }}>
+                      <button
+                        className="btn-warning"
+                        disabled={busy}
+                        onClick={() =>
+                          handleSellSealedWeapon(
+                            w.index,
+                            w.weaponName,
+                            sellPrice
+                          )
+                        }
+                        style={{
+                          padding: "0.2rem 0.6rem",
+                          fontSize: "0.78rem",
+                        }}
+                      >
+                        高價回收
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

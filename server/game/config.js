@@ -87,6 +87,12 @@ module.exports = {
     EASY: 0,
   },
 
+  // 封印武器（歷史 BUG 產物，buff > BUFF_MAX）
+  SEALED_WEAPON: {
+    SELL_SCORE_MULTIPLIER: 10,  // 售價 = totalScore × 10
+    TITLE: "超越系統的鍛造",
+  },
+
   BUFF_BASE_CHANCE: 20,
   BUFF_MAX: 10,                    // 武器強化上限
   BUFF_FORGE_LEVEL_MULT: 3,       // 成功率公式：forgeLevel * 3（原本 * 10）

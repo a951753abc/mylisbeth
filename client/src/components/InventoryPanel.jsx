@@ -237,6 +237,124 @@ export default function InventoryPanel({ user, onUserUpdate }) {
         )}
       </div>
 
+      {/* Sealed Weapons */}
+      {user.sealedWeapons && user.sealedWeapons.length > 0 && (
+        <div
+          className="card"
+          style={{
+            borderColor: "#f59e0b",
+            boxShadow: "0 0 12px rgba(245, 158, 11, 0.25)",
+          }}
+        >
+          <div
+            style={{
+              background: "linear-gradient(90deg, #f59e0b, #d97706)",
+              height: "3px",
+              borderRadius: "2px",
+              marginBottom: "0.75rem",
+            }}
+          />
+          <h2 style={{ color: "#f59e0b" }}>封印武器</h2>
+          <p
+            style={{
+              fontSize: "0.78rem",
+              color: "#fbbf24",
+              marginBottom: "0.5rem",
+            }}
+          >
+            因歷史 BUG 產生的超規格武器，已被系統封印。無法使用，但可在商店高價回收。
+          </p>
+          {user.sealedWeapons.map((weapon) => (
+            <div
+              key={weapon.index}
+              className="weapon-card"
+              style={{
+                borderColor: "#f59e0b",
+                boxShadow: "0 0 8px rgba(245, 158, 11, 0.3)",
+                opacity: 0.9,
+              }}
+            >
+              <div
+                className="weapon-rarity-bar"
+                style={{
+                  background: "linear-gradient(90deg, #f59e0b, #ef4444)",
+                }}
+              />
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <span>
+                  <span
+                    style={{
+                      color: "#f59e0b",
+                      fontWeight: "bold",
+                      marginRight: "0.5rem",
+                    }}
+                  >
+                    [封印]
+                  </span>
+                  <span className="weapon-name">
+                    {weapon.weaponName}
+                    {weapon.buff > 0 && `+${weapon.buff}`}
+                  </span>
+                  <span
+                    style={{
+                      color: "var(--text-secondary)",
+                      marginLeft: "0.5rem",
+                    }}
+                  >
+                    [{weapon.name}]
+                  </span>
+                </span>
+                <span
+                  className="rarity-badge"
+                  style={{
+                    color: weapon.rarityColor,
+                    borderColor: weapon.rarityColor,
+                  }}
+                >
+                  {weapon.rarityLabel}
+                  {weapon.totalScore != null && (
+                    <span className="rarity-score">{weapon.totalScore}</span>
+                  )}
+                </span>
+              </div>
+              <div className="stat-grid">
+                <div className="stat-item">
+                  <div className="label">ATK</div>
+                  <div className="value">{weapon.atk}</div>
+                </div>
+                <div className="stat-item">
+                  <div className="label">DEF</div>
+                  <div className="value">{weapon.def}</div>
+                </div>
+                <div className="stat-item">
+                  <div className="label">AGI</div>
+                  <div className="value">{weapon.agi}</div>
+                </div>
+                <div className="stat-item">
+                  <div className="label">CRI</div>
+                  <div className="value">{weapon.cri}</div>
+                </div>
+                <div className="stat-item">
+                  <div className="label">HP</div>
+                  <div className="value">{weapon.hp}</div>
+                </div>
+                <div className="stat-item">
+                  <div className="label">耐久</div>
+                  <div className="value">{weapon.durability}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Win records */}
       {user.wins && Object.keys(user.wins).length > 0 && (
         <div className="card">

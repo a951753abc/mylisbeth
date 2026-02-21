@@ -113,4 +113,52 @@ async function sellWeapon(userId, weaponIndex) {
   };
 }
 
-module.exports = { sellItem, sellWeapon };
+/**
+ * 出售封印武器（以 sealedWeapons 陣列索引定位）
+ * 定價公式：totalScore × SELL_SCORE_MULTIPLIER（固定，無隨機）
+ * @param {string} userId
+ * @param {number} sealedIndex - sealedWeapons 陣列索引
+ * @returns {Promise<{success?: boolean, error?: string, ...}>}
+ */
+async function sellSealedWeapon(userId, sealedIndex) {
+  if (!Number.isInteger(sealedIndex) || sealedIndex < 0) {
+    return { error: "無效的封印武器索引" };
+  }
+
+  const user = await db.findOne("user", { userId });
+  if (!user) return { error: "角色不存在" };
+  if (user.isPK) return { error: "你是紅名玩家，城鎮商店拒絕為你服務。" };
+
+  const sealed = (user.sealedWeapons || [])[sealedIndex];
+  if (!sealed) return { error: "找不到該封印武器" };
+
+  // 計算總分
+  const rarity = calculateRarity(sealed);
+  const totalScore = rarity.totalScore;
+  const price = Math.max(1, totalScore * config.SEALED_WEAPON.SELL_SCORE_MULTIPLIER);
+
+  // 刪除封印武器（$unset + $pull null 模式）
+  await db.update(
+    "user",
+    { userId },
+    { $unset: { [`sealedWeapons.${sealedIndex}`]: 1 } },
+  );
+  await db.update("user", { userId }, { $pull: { sealedWeapons: null } });
+
+  // 發放 Col + 統計
+  await awardCol(userId, price);
+  await increment(userId, "totalShopSells");
+  const newAchievements = await checkAndAward(userId);
+
+  return {
+    success: true,
+    newAchievements: newAchievements.map((a) => ({ id: a.id, nameCn: a.nameCn, titleReward: a.titleReward })),
+    weaponName: sealed.weaponName,
+    rarityLabel: rarity.label,
+    totalScore,
+    price,
+    message: `封印武器【${rarity.label}】${sealed.weaponName}（+${sealed.buff || 0}）以 ${price} Col 高價回收！（總分 ${totalScore} × ${config.SEALED_WEAPON.SELL_SCORE_MULTIPLIER}）`,
+  };
+}
+
+module.exports = { sellItem, sellWeapon, sellSealedWeapon };

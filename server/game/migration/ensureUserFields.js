@@ -78,6 +78,8 @@ const DEFAULT_FIELDS = {
   isPK: false,
   pkKills: 0,
   defenseWeaponIndex: 0,
+  // Season 8: 封印武器
+  sealedWeapons: [],
 };
 
 module.exports = async function ensureUserFields(user) {
