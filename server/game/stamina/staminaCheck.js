@@ -2,6 +2,7 @@ const db = require("../../db.js");
 const config = require("../config.js");
 const { d6 } = require("../roll.js");
 const { getModifier } = require("../title/titleModifier.js");
+const { formatText } = require("../textManager.js");
 
 const STAMINA_ACTIONS = new Set(["mine", "forge", "repair", "soloAdv"]);
 
@@ -115,7 +116,7 @@ async function checkAndConsumeStamina(userId, action, userTitle = null, extraCos
     const current = user?.stamina ?? 0;
     return {
       ok: false,
-      error: `體力不足！需要 ${cost} 點，目前剩餘 ${current} 點（每 5 分鐘自然回復 ${config.STAMINA.RECOVERY_PER_GAME_DAY} 點）`,
+      error: formatText("STAMINA.INSUFFICIENT", { cost, current, recovery: config.STAMINA.RECOVERY_PER_GAME_DAY }),
     };
   }
 

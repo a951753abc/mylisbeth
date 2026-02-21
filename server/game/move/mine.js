@@ -2,6 +2,7 @@ const roll = require("../roll.js");
 const level = require("../level");
 const db = require("../../db.js");
 const config = require("../config.js");
+const { formatText } = require("../textManager.js");
 const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
@@ -86,11 +87,7 @@ module.exports = async function (cmd, rawUser) {
   const nowItems = itemLimit + mineLevel;
   if (item[0].values >= nowItems) {
     return {
-      error:
-        "無法繼續挖礦 \n 目前素材數:" +
-        item[0].values +
-        " \n 素材儲存上限 " +
-        nowItems,
+      error: formatText("MINE.CAPACITY_FULL", { current: item[0].values, max: nowItems }),
     };
   }
 
@@ -104,7 +101,7 @@ module.exports = async function (cmd, rawUser) {
   while (nowItems > count) {
     const mine = { ...minePool[Math.floor(Math.random() * minePool.length)] };
     mine.level = drawItemLevel(mineLevel, starMod);
-    text += "獲得[" + mine.level.text + "]" + mine.name + "\n";
+    text += formatText("MINE.OBTAINED", { star: mine.level.text, name: mine.name }) + "\n";
     await db.saveItemToUser(user.userId, mine);
     count++;
   }

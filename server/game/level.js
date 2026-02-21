@@ -1,5 +1,6 @@
 const typeList = require("./type");
 const db = require("../db.js");
+const { formatText } = require("./textManager.js");
 
 const expList = { mine: 10, forge: 10, adv: 10 };
 const levelList = {
@@ -11,7 +12,7 @@ const levelList = {
 module.exports = async function (type, user) {
   let text = "";
   const exp = expList[type] ?? 0;
-  text += "經驗值增加 " + exp + " 點\n";
+  text += formatText("MINE.EXP_GAIN", { exp }) + "\n";
 
   const query = { userId: user.userId };
   const currentPath = type + "Level";
@@ -40,7 +41,7 @@ module.exports = async function (type, user) {
       { returnDocument: "after" },
     );
     if (result) {
-      text += typeList(type) + "等級提升 \n";
+      text += formatText("MINE.LEVEL_UP", { type: typeList(type) }) + "\n";
     }
   }
 

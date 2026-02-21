@@ -5,6 +5,7 @@ const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { calculateRarity } = require("../weapon/rarity.js");
+const { formatText, getText } = require("../textManager.js");
 
 const config = require("../config.js");
 const weaponLimit = config.INITIAL_WEAPON_LIMIT;
@@ -14,7 +15,7 @@ module.exports = async function (cmd, rawUser) {
 
   // 負債禁止鍛造
   if (user.isInDebt) {
-    return { error: "你目前有未清還的負債，無法進行鍛造！請先至帳單頁面還清負債。" };
+    return { error: getText("FORGE.DEBT_BLOCKED") };
   }
 
   const weaponLevel = user.forgeLevel ?? 1;
@@ -27,11 +28,7 @@ module.exports = async function (cmd, rawUser) {
     const nowWeaponLimit = weaponLimit + weaponLevel;
     if (weaponNum[0].values >= nowWeaponLimit) {
       return {
-        error:
-          "無法製造武器 \n 目前武器數:" +
-          weaponNum[0].values +
-          " \n 武器儲存上限 " +
-          nowWeaponLimit,
+        error: formatText("FORGE.WEAPON_CAPACITY_FULL", { current: weaponNum[0].values, max: nowWeaponLimit }),
       };
     }
   }
@@ -41,13 +38,13 @@ module.exports = async function (cmd, rawUser) {
   const weaponName = Array.isArray(cmd[2]) ? cmd[3] : cmd[4];
 
   if (materialIndices.length < 2 || materialIndices.length > 4) {
-    return { error: "鍛造需要 2~4 個素材" };
+    return { error: getText("FORGE.MATERIAL_COUNT_ERROR") };
   }
 
   // 驗證所有素材索引
   for (const idx of materialIndices) {
     if (!user.itemStock || !user.itemStock[idx]) {
-      return { error: "錯誤！素材 " + idx + " 不存在" };
+      return { error: formatText("FORGE.MATERIAL_NOT_FOUND", { index: idx }) };
     }
   }
 
@@ -60,7 +57,7 @@ module.exports = async function (cmd, rawUser) {
   // 檢查數量是否足夠
   for (const [idx, count] of Object.entries(usageCounts)) {
     if (user.itemStock[idx].itemNum < count) {
-      return { error: "錯誤！素材 " + idx + " 數量不足（需要 " + count + " 個）" };
+      return { error: formatText("FORGE.MATERIAL_INSUFFICIENT", { index: idx, count }) };
     }
   }
 
@@ -96,7 +93,7 @@ module.exports = async function (cmd, rawUser) {
     for (const d of deducted) {
       await db.atomicIncItem(user.userId, d.item.itemId, d.item.itemLevel, d.item.itemName, d.count);
     }
-    return { error: "素材已不足，無法鍛造。" };
+    return { error: getText("FORGE.MATERIAL_DEDUCTION_FAILED") };
   }
 
   // 組裝 materials 物件陣列（傳給 createWeapon）
@@ -116,7 +113,7 @@ module.exports = async function (cmd, rawUser) {
 
   let weaponIndex = -1;
   if (thisWeapon.durability <= 0) {
-    thisWeapon.text += thisWeapon.weaponName + " 爆發四散了。";
+    thisWeapon.text += formatText("FORGE.WEAPON_BROKEN", { weaponName: thisWeapon.weaponName });
     await increment(user.userId, "weaponsBroken");
   } else {
     const updated = await db.findOneAndUpdate(

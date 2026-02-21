@@ -6,6 +6,7 @@ const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { calculateRarity } = require("../weapon/rarity.js");
 const config = require("../config.js");
+const { formatText, getText } = require("../textManager.js");
 
 module.exports = async function (cmd, rawUser) {
   const user = await ensureUserFields(rawUser);
@@ -14,26 +15,26 @@ module.exports = async function (cmd, rawUser) {
   const weaponIdx = parseInt(cmd[2], 10);
   const materialIdx = parseInt(cmd[3], 10);
   if (!Number.isInteger(weaponIdx) || weaponIdx < 0) {
-    return { error: "無效的武器索引" };
+    return { error: getText("UPGRADE.INVALID_WEAPON_INDEX") };
   }
   if (!Number.isInteger(materialIdx) || materialIdx < 0) {
-    return { error: "無效的素材索引" };
+    return { error: getText("UPGRADE.INVALID_MATERIAL_INDEX") };
   }
 
   if (!user.weaponStock || !user.weaponStock[weaponIdx]) {
-    return { error: "錯誤！武器" + weaponIdx + " 不存在" };
+    return { error: formatText("UPGRADE.WEAPON_NOT_FOUND", { index: weaponIdx }) };
   }
   if (!user.itemStock || !user.itemStock[materialIdx]) {
-    return { error: "錯誤！素材" + materialIdx + " 不存在" };
+    return { error: formatText("UPGRADE.MATERIAL_NOT_FOUND", { index: materialIdx }) };
   }
   if (user.itemStock[materialIdx].itemNum < 1) {
-    return { error: "錯誤！素材" + materialIdx + " 數量不足" };
+    return { error: formatText("UPGRADE.MATERIAL_INSUFFICIENT", { index: materialIdx }) };
   }
 
   // 強化上限前置檢查（避免消耗素材後才發現已達上限）
   const currentBuff = user.weaponStock[weaponIdx]?.buff ?? 0;
   if (currentBuff >= config.BUFF_MAX) {
-    return { error: "這把武器已達強化上限（+" + config.BUFF_MAX + "），無法繼續強化。" };
+    return { error: formatText("FORGE.BUFF_MAX", { max: config.BUFF_MAX }) };
   }
 
   const safeCmd = [cmd[0], cmd[1], weaponIdx, materialIdx];
@@ -48,7 +49,7 @@ module.exports = async function (cmd, rawUser) {
     -1,
   );
   if (!decOk) {
-    return { error: "素材已不足，無法強化。" };
+    return { error: getText("UPGRADE.MATERIAL_DEDUCTION_FAILED") };
   }
 
   // Recalculate rarity based on updated stats
@@ -59,11 +60,11 @@ module.exports = async function (cmd, rawUser) {
   thisWeapon.rarityColor = rarity.color;
 
   if (oldRarity && oldRarity !== rarity.id) {
-    thisWeapon.text += "稀有度提升為 " + rarity.label + "！\n";
+    thisWeapon.text += formatText("FORGE.RARITY_UP", { rarity: rarity.label }) + "\n";
   }
 
   if (thisWeapon.durability <= 0) {
-    thisWeapon.text += thisWeapon.weaponName + " 爆發四散了。";
+    thisWeapon.text += formatText("FORGE.WEAPON_BROKEN", { weaponName: thisWeapon.weaponName });
     await weapon.destroyWeapon(user.userId, weaponIdx);
     await increment(user.userId, "weaponsBroken");
   } else {

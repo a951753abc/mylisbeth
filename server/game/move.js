@@ -1,5 +1,6 @@
 const config = require("./config.js");
 const db = require("../db.js");
+const { formatText, getText } = require("./textManager.js");
 const { checkSettlement } = require("./economy/debtCheck.js");
 const { checkAndConsumeStamina } = require("./stamina/staminaCheck.js");
 const { checkEvent } = require("./events/eventTrigger.js");
@@ -21,7 +22,7 @@ const cmdList = { mine, forge, up, adv, pvp, pvpNpc, repair, soloAdv, boss: boss
 
 module.exports = async function (cmd, userOrId) {
   if (!(cmd[1] in cmdList)) {
-    return { error: "指令錯誤\n 可用指令: mine, forge, up, adv, pvp, repair, boss" };
+    return { error: getText("SYSTEM.INVALID_COMMAND") };
   }
 
   let userId = userOrId;
@@ -45,14 +46,14 @@ module.exports = async function (cmd, userOrId) {
 
   if (!user) {
     const existing = await db.findOne("user", { userId });
-    if (!existing) return { error: "請先建立角色" };
+    if (!existing) return { error: getText("SYSTEM.CHAR_NOT_FOUND") };
     // 暫停營業：在冷卻錯誤前優先返回暫停提示
     if (existing.businessPaused) {
-      return { error: "你的店已暫停營業，請先恢復營業才能進行操作。" };
+      return { error: getText("SYSTEM.BUSINESS_PAUSED") };
     }
     const moveTime = existing.move_time ?? 0;
     const remaining = Math.ceil((moveTime + coolTime - now) / 1000);
-    return { error: "CD時間還有" + remaining + "秒", cooldown: remaining };
+    return { error: formatText("SYSTEM.COOLDOWN", { remaining }), cooldown: remaining };
   }
 
   // 暫停營業：封鎖所有遊戲行動，並回退冷卻時間
@@ -60,7 +61,7 @@ module.exports = async function (cmd, userOrId) {
     await db.update("user", { userId }, {
       $set: { move_time: user.move_time || 0, lastActionAt: user.lastActionAt || 0 },
     });
-    return { error: "你的店已暫停營業，請先恢復營業才能進行操作。" };
+    return { error: getText("SYSTEM.BUSINESS_PAUSED") };
   }
 
   // 懶結算：CD 通過後 dispatch 前執行
@@ -68,7 +69,7 @@ module.exports = async function (cmd, userOrId) {
   if (settlementResult.bankruptcy) {
     return {
       bankruptcy: true,
-      message: "你因無力清償負債而宣告破產，角色已被刪除。遊戲結束。",
+      message: getText("SYSTEM.BANKRUPTCY"),
       bankruptcyInfo: settlementResult.bankruptcyInfo,
     };
   }
