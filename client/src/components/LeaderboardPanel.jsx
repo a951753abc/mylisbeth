@@ -1,20 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import WeaponSelect from './WeaponSelect.jsx';
 import useDuelState from '../hooks/useDuelState.js';
+import DuelPanel from './DuelPanel.jsx';
+import GraveyardView from './GraveyardView.jsx';
 
 // ── Constants ──────────────────────────────────────────────────────
-
-const MODE_LABELS = {
-  first_strike: '初撃決着',
-  half_loss: '半減決着',
-  total_loss: '全損決着',
-};
-
-const MODE_DESCS = {
-  first_strike: '任一擊造成 >= 10% HP 即勝。賭注制。',
-  half_loss: '對方 HP <= 50% 即勝。賭注制。',
-  total_loss: 'HP 歸零即勝。掠奪制，敗者可能死亡！',
-};
 
 const CATEGORIES = [
   { key: 'power',      label: '綜合實力', subs: [] },
@@ -133,7 +122,6 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Player list stats (from /players endpoint for counts)
   const [stats, setStats] = useState({ totalAdventurers: 0, aliveCount: 0, deadCount: 0 });
 
   // Graveyard
@@ -206,23 +194,14 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
     }
   }, []);
 
-  // Initial load
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+  useEffect(() => { fetchStats(); }, [fetchStats]);
 
-  // Fetch leaderboard when category/sub/page changes
   useEffect(() => {
-    if (view === 'leaderboard') {
-      fetchLeaderboard(category, sub, page);
-    }
+    if (view === 'leaderboard') fetchLeaderboard(category, sub, page);
   }, [view, category, sub, page, fetchLeaderboard]);
 
-  // Fetch graveyard when switching to graveyard view
   useEffect(() => {
-    if (view === 'graveyard' && !gravesLoaded) {
-      fetchGraveyard();
-    }
+    if (view === 'graveyard' && !gravesLoaded) fetchGraveyard();
   }, [view, gravesLoaded, fetchGraveyard]);
 
   const handleCategoryChange = (newCat) => {
@@ -230,11 +209,6 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
     setSub(null);
     setPage(1);
     playerDuel.reset();
-  };
-
-  const handleSubChange = (newSub) => {
-    setSub(newSub);
-    setPage(1);
   };
 
   const handleDuel = async () => {
@@ -315,12 +289,6 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
     }
   };
 
-  const formatDate = (ts) => {
-    if (!ts) return '不明';
-    const d = new Date(ts);
-    return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
-  };
-
   const weapons = user?.weapons || [];
   const currentCat = CATEGORIES.find((c) => c.key === category);
   const isMyRow = (player) => player.userId === user?.userId;
@@ -375,7 +343,7 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
             <button
               key={s.key}
               className={(sub === s.key || (sub === null && i === 0)) ? 'active' : ''}
-              onClick={() => handleSubChange(i === 0 ? null : s.key)}
+              onClick={() => i === 0 ? setSub(null) : setSub(s.key)}
             >
               {s.label}
             </button>
@@ -457,91 +425,16 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
                     </span>
                   </div>
 
-                  {/* Duel panel */}
+                  {/* Player Duel panel */}
                   {playerDuel.target?.userId === player.userId && (
-                    <div style={{
-                      background: 'rgba(239,68,68,0.05)',
-                      border: '1px solid rgba(239,68,68,0.2)',
-                      borderRadius: '6px',
-                      padding: '0.6rem 0.8rem',
-                      marginTop: '0.3rem',
-                    }}>
-                      <div style={{ fontSize: '0.82rem', marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-                        挑戰 <strong>{player.name}</strong>
-                      </div>
-
-                      {/* Mode selection */}
-                      <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
-                        {Object.entries(MODE_LABELS).map(([key, label]) => (
-                          <button
-                            key={key}
-                            className={playerDuel.mode === key ? 'btn-primary' : 'btn-secondary'}
-                            style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
-                            onClick={() => playerDuel.setMode(key)}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                        {MODE_DESCS[playerDuel.mode]}
-                      </div>
-
-                      {/* Weapon + Wager */}
-                      <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.4rem' }}>
-                        <WeaponSelect
-                          weapons={weapons}
-                          value={playerDuel.weapon}
-                          onChange={(e) => playerDuel.setWeapon(e.target.value)}
-                          placeholder="— 武器（預設#0）—"
-                          showAtk
-                          style={{ fontSize: '0.8rem' }}
-                        />
-                        {playerDuel.mode !== 'total_loss' && (
-                          <input
-                            type="number"
-                            min="0"
-                            max="5000"
-                            placeholder="賭注 Col"
-                            value={playerDuel.wager}
-                            onChange={(e) => playerDuel.setWager(e.target.value)}
-                            style={{ width: '80px', fontSize: '0.8rem' }}
-                          />
-                        )}
-                        <button
-                          className="btn-danger"
-                          disabled={playerDuel.busy || cooldownActive}
-                          onClick={handleDuel}
-                          style={{ padding: '0.25rem 0.6rem', fontSize: '0.8rem' }}
-                        >
-                          {playerDuel.busy ? '決鬥中...' : cooldownActive ? '冷卻中...' : '確認決鬥'}
-                        </button>
-                      </div>
-
-                      {playerDuel.mode === 'total_loss' && (
-                        <div style={{
-                          fontSize: '0.72rem',
-                          color: '#f87171',
-                          marginBottom: '0.3rem',
-                        }}>
-                          &#x26A0;&#xFE0F; 全損決着：敗者 20~80% 機率死亡，勝者搶走 50% Col + 1 素材。殺死非紅名玩家自己會變紅名！
-                        </div>
-                      )}
-
-                      {playerDuel.error && <div className="error-msg" style={{ fontSize: '0.8rem' }}>{playerDuel.error}</div>}
-                      {playerDuel.result && (
-                        <div style={{
-                          background: 'rgba(0,0,0,0.2)',
-                          borderRadius: '4px',
-                          padding: '0.5rem',
-                          marginTop: '0.3rem',
-                          fontSize: '0.8rem',
-                          whiteSpace: 'pre-wrap',
-                        }}>
-                          {playerDuel.result.battleLog}
-                        </div>
-                      )}
-                    </div>
+                    <DuelPanel
+                      duel={playerDuel}
+                      weapons={weapons}
+                      targetLabel={player.name}
+                      onSubmit={handleDuel}
+                      isNpc={false}
+                      cooldownActive={cooldownActive}
+                    />
                   )}
 
                   {/* NPC List panel */}
@@ -600,79 +493,14 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
 
                           {/* NPC Duel config */}
                           {npcDuel.target?.npcId === npc.npcId && (
-                            <div style={{
-                              background: 'rgba(59,130,246,0.05)',
-                              border: '1px solid rgba(59,130,246,0.2)',
-                              borderRadius: '6px',
-                              padding: '0.6rem 0.8rem',
-                              marginTop: '0.3rem',
-                            }}>
-                              <div style={{ fontSize: '0.82rem', marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-                                挑戰 <strong>{npc.name}</strong>（{npcOwnerName || player.name} 的 NPC）
-                              </div>
-                              <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
-                                {Object.entries(MODE_LABELS).map(([key, label]) => (
-                                  <button
-                                    key={key}
-                                    className={npcDuel.mode === key ? 'btn-primary' : 'btn-secondary'}
-                                    style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
-                                    onClick={() => npcDuel.setMode(key)}
-                                  >
-                                    {label}
-                                  </button>
-                                ))}
-                              </div>
-                              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                                {MODE_DESCS[npcDuel.mode]}
-                              </div>
-                              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.4rem' }}>
-                                <WeaponSelect
-                                  weapons={weapons}
-                                  value={npcDuel.weapon}
-                                  onChange={(e) => npcDuel.setWeapon(e.target.value)}
-                                  placeholder="— 武器（預設#0）—"
-                                  showAtk
-                                  style={{ fontSize: '0.8rem' }}
-                                />
-                                {npcDuel.mode !== 'total_loss' && (
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    max="5000"
-                                    placeholder="賭注 Col"
-                                    value={npcDuel.wager}
-                                    onChange={(e) => npcDuel.setWager(e.target.value)}
-                                    style={{ width: '80px', fontSize: '0.8rem' }}
-                                  />
-                                )}
-                                <button
-                                  className="btn-danger"
-                                  disabled={npcDuel.busy || cooldownActive}
-                                  onClick={handleNpcDuel}
-                                  style={{ padding: '0.25rem 0.6rem', fontSize: '0.8rem' }}
-                                >
-                                  {npcDuel.busy ? '決鬥中...' : cooldownActive ? '冷卻中...' : '確認決鬥'}
-                                </button>
-                              </div>
-                              {npcDuel.mode === 'total_loss' && (
-                                <div style={{ fontSize: '0.72rem', color: '#f87171', marginBottom: '0.3rem' }}>
-                                  &#x26A0;&#xFE0F; 全損決着：敗者可能死亡（你或 NPC），勝方搶走 50% Col。
-                                </div>
-                              )}
-                              {npcDuel.error && <div className="error-msg" style={{ fontSize: '0.8rem' }}>{npcDuel.error}</div>}
-                              {npcDuel.result && (
-                                <div style={{
-                                  background: 'rgba(0,0,0,0.2)',
-                                  borderRadius: '4px',
-                                  padding: '0.5rem',
-                                  marginTop: '0.3rem',
-                                  fontSize: '0.8rem',
-                                  whiteSpace: 'pre-wrap',
-                                }}>
-                                  {npcDuel.result.battleLog}
-                                </div>
-                              )}
-                            </div>
+                            <DuelPanel
+                              duel={npcDuel}
+                              weapons={weapons}
+                              targetLabel={`${npc.name}（${npcOwnerName || player.name} 的 NPC）`}
+                              onSubmit={handleNpcDuel}
+                              isNpc={true}
+                              cooldownActive={cooldownActive}
+                            />
                           )}
                         </div>
                       ))}
@@ -711,46 +539,7 @@ export default function LeaderboardPanel({ user, onAction, cooldownActive }) {
       )}
 
       {/* Graveyard view */}
-      {!loading && view === 'graveyard' && (
-        <>
-          {graves.length === 0 ? (
-            <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem 0' }}>
-              目前沒有陣亡紀錄。
-            </div>
-          ) : (
-            graves.map((grave, i) => (
-              <div
-                key={i}
-                style={{
-                  background: 'var(--bg-secondary, #1a1a2e)',
-                  border: '1px solid #374151',
-                  borderRadius: '8px',
-                  padding: '0.8rem 1rem',
-                  marginBottom: '0.6rem',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>
-                    <span style={{ color: '#6b7280', marginRight: '0.3rem' }}>&#x1FAA6;</span>
-                    {grave.title && (
-                      <span className="player-title" style={{ color: '#9ca3af' }}>「{grave.title}」</span>
-                    )}
-                    <span style={{ color: '#e5e7eb' }}>{grave.name}</span>
-                  </span>
-                  <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-                    {formatDate(grave.diedAt)}
-                  </span>
-                </div>
-                <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.3rem' }}>
-                  {grave.cause && <span style={{ color: '#ef4444' }}>{grave.cause} | </span>}
-                  {grave.currentFloor > 1 ? `第 ${grave.currentFloor} 層 | ` : ''}
-                  鍛造 Lv.{grave.forgeLevel} | 武器 {grave.weaponCount} 把 | {grave.finalCol} Col
-                </div>
-              </div>
-            ))
-          )}
-        </>
-      )}
+      {!loading && view === 'graveyard' && <GraveyardView graves={graves} />}
     </div>
   );
 }

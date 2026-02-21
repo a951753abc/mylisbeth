@@ -3,15 +3,15 @@ const db = require("../../db.js");
 const config = require("../config.js");
 const roll = require("../roll.js");
 const { getFloor, getFloorBoss } = require("./floorData.js");
-const { awardCol } = require("../economy/col.js");
 const { increment } = require("../progression/statsTracker.js");
-const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { getEffectiveStats, getCombinedBattleStats } = require("../npc/npcStats.js");
 const { resolveNpcBattle } = require("../npc/npcManager.js");
 const { getCombinedModifier } = require("../title/titleModifier.js");
 const bossCounterAttack = require("./bossCounterAttack.js");
 const { awardAdvExp } = require("../progression/adventureLevel.js");
+const { distributeBossDrops, processLastAttackRelic, distributeBossColRewards } = require("./bossRewards.js");
+const { advanceFloor } = require("./floorAdvancement.js");
 
 function calcDamage(atk, cri, def) {
   let atkDam = 0;
@@ -133,23 +133,14 @@ function getLatestWeapon(bossData, activatedPhases, newPhases) {
   return bossData.initialWeapon || null;
 }
 
-async function distributeBossDrops(drops, participants, mvpUserId, totalDamage) {
-  if (!drops?.length) return [];
-  const results = [];
-  for (const p of participants) {
-    const isMvp = p.userId === mvpUserId;
-    const ratio = totalDamage > 0 ? p.damage / totalDamage : 0;
-    const chance = isMvp ? 100 : Math.min(90, Math.round(ratio * 200));
-    if (roll.d100Check(chance)) {
-      const drop = drops[Math.floor(Math.random() * drops.length)];
-      const itemId = `boss_drop_${drop.name}`;
-      const itemLevel = drop.rarity || 1;
-      await db.atomicIncItem(p.userId, itemId, itemLevel, drop.name, 1);
-      results.push({ userId: p.userId, playerName: p.name,
-                     itemName: drop.name, itemLevel, isMvp });
-    }
-  }
-  return results;
+function buildNpcResultPayload(npcResult) {
+  return {
+    survived: !npcResult.died,
+    died: !!npcResult.died,
+    levelUp: !!npcResult.levelUp,
+    newCondition: npcResult.newCondition,
+    newLevel: npcResult.newLevel,
+  };
 }
 
 module.exports = async function bossAttack(cmd, rawUser) {
@@ -182,7 +173,6 @@ module.exports = async function bossAttack(cmd, rawUser) {
     // Boss 是全伺服器共享的，使用伺服器前線樓層
     let state = await getOrInitServerState(1, getFloorBoss(1));
     const currentFloor = state.currentFloor || 1;
-    const floorData = getFloor(currentFloor);
     const bossData = getFloorBoss(currentFloor);
 
     // 玩家樓層落後前線 → 自動同步到前線
@@ -373,7 +363,6 @@ module.exports = async function bossAttack(cmd, rawUser) {
       );
 
       if (clearResult && clearResult.bossStatus.active) {
-        // 使用 clearResult（returnDocument: "before"）的 participants，避免額外查詢和資料過時
         const participants = clearResult.bossStatus.participants || [];
 
         // 計算 MVP
@@ -386,105 +375,24 @@ module.exports = async function bossAttack(cmd, rawUser) {
           }
         }
 
-        // Last Attacker = 當前攻擊者（打出致命一擊的玩家）
+        // Last Attacker = 當前攻擊者
         const lastAttacker = { userId: user.userId, name: user.name };
 
         // LA 聖遺物獎勵
-        let lastAttackDrop = null;
-        let lastAttackAlreadyOwned = false;
-        if (bossData.lastAttackDrop) {
-          const relicDef = bossData.lastAttackDrop;
-          const existingRelics = user.bossRelics || [];
-          const alreadyHas = existingRelics.some((r) => r.id === relicDef.id);
+        const { lastAttackDrop, lastAttackAlreadyOwned } = await processLastAttackRelic(user, bossData);
 
-          if (!alreadyHas) {
-            const relicObj = {
-              id: relicDef.id,
-              name: relicDef.name,
-              nameCn: relicDef.nameCn,
-              bossFloor: relicDef.bossFloor,
-              effects: { ...relicDef.effects },
-              obtainedAt: new Date(),
-            };
-            await db.update(
-              "user",
-              { userId: user.userId },
-              { $push: { bossRelics: relicObj } },
-            );
-            lastAttackDrop = relicObj;
-          } else {
-            lastAttackAlreadyOwned = true;
-          }
-
-          // LA Col 獎勵（每次 Last Attack 都給予）
-          await awardCol(user.userId, config.COL_BOSS_LA_BONUS);
-
-          // 追蹤 LA 次數
-          await db.update(
-            "user",
-            { userId: user.userId },
-            { $inc: { "bossContribution.lastAttackCount": 1 } },
-          );
-        }
-
-        // 給獎勵：按傷害比例計算 Col
+        // 按傷害比例計算 Col 獎勵
         const totalDamage = participants.reduce((sum, p) => sum + p.damage, 0);
-        for (const p of participants) {
-          const ratio = totalDamage > 0 ? p.damage / totalDamage : 0;
-          const colReward = Math.round(200 + ratio * 800);
-          const isMvp = mvp && p.userId === mvp.userId;
-          const mvpBonus = isMvp ? config.COL_BOSS_MVP_BONUS : 0;
-
-          await awardCol(p.userId, colReward + mvpBonus);
-          await db.update(
-            "user",
-            { userId: p.userId },
-            {
-              $inc: {
-                "bossContribution.totalDamage": p.damage,
-                "bossContribution.bossesDefeated": 1,
-                ...(isMvp ? { "bossContribution.mvpCount": 1 } : {}),
-              },
-            },
-          );
-          await checkAndAward(p.userId);
-        }
+        await distributeBossColRewards(participants, mvp, totalDamage);
 
         const dropResults = await distributeBossDrops(
           bossData.drops || [], participants, mvp?.userId, totalDamage,
         );
 
-        const nextFloor = currentFloor + 1;
-        const clearedAt = new Date();
+        // 推進樓層
+        const advancement = await advanceFloor(currentFloor, participants, mvp, lastAttacker, lastAttackDrop);
 
-        await db.update(
-          "server_state",
-          { _id: "aincrad" },
-          {
-            $set: {
-              currentFloor: nextFloor,
-              "bossStatus.floorNumber": nextFloor,
-              "bossStatus.currentHp": 0,
-              "bossStatus.totalHp": 0,
-              "bossStatus.participants": [],
-              "bossStatus.startedAt": null,
-              "bossStatus.expiresAt": null,
-              "bossStatus.activatedPhases": [],
-              "bossStatus.currentWeapon": null,
-            },
-            $push: {
-              floorHistory: {
-                floorNumber: currentFloor,
-                clearedAt,
-                mvp: mvp ? { userId: mvp.userId, name: mvp.name, damage: mvp.damage } : null,
-                lastAttacker: { userId: lastAttacker.userId, name: lastAttacker.name },
-                lastAttackDrop: lastAttackDrop ? { id: lastAttackDrop.id, name: lastAttackDrop.name, nameCn: lastAttackDrop.nameCn } : null,
-              },
-            },
-          },
-        );
-
-        // Boss 擊敗廣播（所有樓層都廣播）
+        // Boss 擊敗廣播
         socketEvents.push({
           event: "boss:defeated",
           data: {
@@ -504,32 +412,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
           },
         });
 
-        // 解鎖全體玩家的下一層
-        if (nextFloor <= 20) {
-          const nextFloorData = getFloor(nextFloor);
-          await db.updateMany(
-            "user",
-            { currentFloor: currentFloor },
-            {
-              $set: {
-                currentFloor: nextFloor,
-                [`floorProgress.${nextFloor}`]: {
-                  explored: 0,
-                  maxExplore: config.FLOOR_MAX_EXPLORE,
-                },
-              },
-            },
-          );
-
-          socketEvents.push({
-            event: "floor:unlocked",
-            data: {
-              floorNumber: nextFloor,
-              name: nextFloorData.name,
-              nameCn: nextFloorData.nameCn,
-            },
-          });
-        }
+        socketEvents.push(...advancement.socketEvents);
 
         return {
           success: true,
@@ -550,13 +433,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
           npcName: hiredNpc.name,
           npcEventText,
           counterAttack: counterAttackData,
-          npcResult: {
-            survived: !npcResult.died,
-            died: !!npcResult.died,
-            levelUp: !!npcResult.levelUp,
-            newCondition: npcResult.newCondition,
-            newLevel: npcResult.newLevel,
-          },
+          npcResult: buildNpcResultPayload(npcResult),
           socketEvents,
         };
       }
@@ -572,13 +449,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
         npcName: hiredNpc.name,
         npcEventText,
         counterAttack: counterAttackData,
-        npcResult: {
-          survived: npcResult.survived !== false,
-          died: !!npcResult.died,
-          levelUp: !!npcResult.levelUp,
-          newCondition: npcResult.newCondition,
-          newLevel: npcResult.newLevel,
-        },
+        npcResult: buildNpcResultPayload(npcResult),
         socketEvents,
       };
     }
@@ -594,13 +465,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
       npcName: hiredNpc.name,
       npcEventText,
       counterAttack: counterAttackData,
-      npcResult: {
-        survived: npcResult.survived !== false,
-        died: !!npcResult.died,
-        levelUp: !!npcResult.levelUp,
-        newCondition: npcResult.newCondition,
-        newLevel: npcResult.newLevel,
-      },
+      npcResult: buildNpcResultPayload(npcResult),
       socketEvents,
     };
   } catch (err) {
