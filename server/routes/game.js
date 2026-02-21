@@ -342,7 +342,7 @@ router.get("/floor/history", ensureAuth, async (req, res) => {
 router.post("/daily", ensureAuth, ensureNotPaused, async (req, res) => {
   await handleRoute(res, async () => {
     const result = await claimDaily(req.user.discordId);
-    if (!result?.error) logAction(req.user.discordId, null, "daily", {});
+    if (!result?.error) logAction(req.user.discordId, req.gameUser?.name, "daily", {});
     return result;
   }, "每日獎勵失敗");
 });
@@ -447,7 +447,7 @@ router.post("/sell-item", ensureAuth, ensureNotPaused, async (req, res) => {
       parseInt(itemIndex, 10),
       parseInt(quantity, 10) || 1,
     );
-    if (!result?.error) logAction(req.user.discordId, null, "sell_item", { itemIndex, quantity });
+    if (!result?.error) logAction(req.user.discordId, req.gameUser?.name, "sell_item", { itemIndex, quantity });
     return result;
   }, "出售素材失敗");
 });
@@ -458,7 +458,7 @@ router.post("/sell-weapon", ensureAuth, ensureNotPaused, async (req, res) => {
     const { weaponIndex } = req.body;
     if (weaponIndex === undefined || weaponIndex === null) return { error: "缺少武器索引" };
     const result = await sellWeapon(req.user.discordId, parseInt(weaponIndex, 10));
-    if (!result?.error) logAction(req.user.discordId, null, "sell_weapon", { weaponIndex });
+    if (!result?.error) logAction(req.user.discordId, req.gameUser?.name, "sell_weapon", { weaponIndex });
     return result;
   }, "出售武器失敗");
 });

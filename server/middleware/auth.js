@@ -46,6 +46,7 @@ function ensureNotPaused(req, res, next) {
             if (user.businessPaused) {
                 return res.status(400).json({ error: '你的店已暫停營業，請先恢復營業才能進行操作。' });
             }
+            req.gameUser = user;
             next();
         })
         .catch((err) => {
