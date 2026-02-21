@@ -276,6 +276,7 @@ module.exports = async function (cmd, rawAttacker) {
   socketEvents.push({
     event: "battle:result",
     data: {
+      userId: attacker.userId,
       type: "pvp",
       attacker: attacker.name,
       defender: defender.name,

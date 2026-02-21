@@ -124,6 +124,7 @@ router.post("/adventure", ensureAuth, async (req, res) => {
     const io = req.app.get("io");
     if (io) {
       io.emit("battle:result", {
+        userId: req.user.discordId,
         playerName: result.battleResult?.npcName,
         result: result.battleResult,
       });
@@ -493,6 +494,7 @@ router.post("/solo-adventure", ensureAuth, async (req, res) => {
     const io = req.app.get("io");
     if (io) {
       io.emit("battle:result", {
+        userId: req.user.discordId,
         type: "soloAdv",
         playerName: result.battleResult?.npcName,
         result: result.battleResult,
