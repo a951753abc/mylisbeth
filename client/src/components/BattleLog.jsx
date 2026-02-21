@@ -5,8 +5,11 @@ function getActionLabel(action) {
   if (action === 'mine') return '挖礦結果';
   if (action === 'forge') return '鍛造結果';
   if (action === 'upgrade') return '強化結果';
+  if (action === 'repair') return '修復結果';
   if (action === 'adventure') return '冒險日誌';
+  if (action === 'solo-adventure') return '獨自出擊';
   if (action === 'pvp') return 'PVP 戰鬥';
+  if (action === 'pvp-npc') return 'NPC 決鬥';
   if (action === 'boss-attack') return '⚔️ Boss 攻擊';
   if (action === 'boss:damage') return '🗡️ Boss 受到傷害';
   if (action === 'boss:phase') return '⚡ Boss 進入新階段';
