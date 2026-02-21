@@ -2,7 +2,7 @@ const db = require("../db.js");
 const config = require("./config.js");
 const { getNextSettlementTime } = require("./time/gameTime.js");
 
-module.exports = async function (name, userId) {
+module.exports = async function (name, userId, provider = "discord") {
   if (!name) {
     return { error: "必須輸入角色姓名" };
   }
@@ -19,6 +19,7 @@ module.exports = async function (name, userId) {
   await db.insertOne("user", {
     userId,
     name,
+    provider,
     col: 0,
     currentFloor: frontierFloor,
     floorProgress: {

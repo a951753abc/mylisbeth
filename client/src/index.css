@@ -119,6 +119,38 @@ button:disabled {
   background: #4752c4;
 }
 
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.btn-google {
+  background: #fff;
+  color: #3c4043;
+  font-size: 1.1rem;
+  padding: 0.8rem 2rem;
+  border: 1px solid #dadce0;
+  font-weight: 500;
+}
+
+.btn-google:hover {
+  background: #f8f9fa;
+  border-color: #4285f4;
+  color: #4285f4;
+}
+
 input, select {
   background: var(--bg-secondary);
   border: 1px solid var(--border);

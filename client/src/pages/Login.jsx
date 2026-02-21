@@ -1,8 +1,12 @@
 import React from 'react';
 
 export default function Login() {
-  const handleLogin = () => {
+  const handleDiscordLogin = () => {
     window.location.href = '/api/auth/discord';
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = '/api/auth/google';
   };
 
   return (
@@ -25,8 +29,14 @@ export default function Login() {
           拿起鍛造錘，在這座死亡遊戲中活下去吧。
         </p>
       </div>
-      <button className="btn-discord" onClick={handleLogin}>
+      <button className="btn-discord" onClick={handleDiscordLogin}>
         使用 Discord 登入
+      </button>
+      <div className="login-divider">
+        <span>或</span>
+      </div>
+      <button className="btn-google" onClick={handleGoogleLogin}>
+        使用 Google 登入
       </button>
     </div>
   );

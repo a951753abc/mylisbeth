@@ -12,7 +12,7 @@ router.post("/create", ensureAuth, async (req, res) => {
   await handleRoute(res, async () => {
     const nameCheck = validateName(req.body.name, "角色名稱");
     if (!nameCheck.valid) return { error: nameCheck.error };
-    return await create(nameCheck.value, req.user.discordId);
+    return await create(nameCheck.value, req.user.discordId, req.user.provider || "discord");
   }, "建立角色失敗");
 });
 

@@ -98,6 +98,8 @@ const DEFAULT_FIELDS = {
   uniqueSkills: [],
   // Season 10: 樓層往返
   activeFloor: null, // null = 在前線（= currentFloor）
+  // Season 11: 多登入管道
+  provider: "discord",
 };
 
 module.exports = async function ensureUserFields(user) {

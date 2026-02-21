@@ -1,5 +1,6 @@
 const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 passport.serializeUser((user, done) => {
     done(null, user);
@@ -20,6 +21,23 @@ if (process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET) {
             discordId: profile.id,
             username: profile.username,
             avatar: profile.avatar,
+            provider: 'discord',
+        };
+        return done(null, user);
+    }));
+}
+
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    passport.use(new GoogleStrategy({
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/api/auth/google/callback',
+    }, (accessToken, refreshToken, profile, done) => {
+        const user = {
+            discordId: 'g_' + profile.id,
+            username: profile.displayName,
+            avatar: profile.photos?.[0]?.value || null,
+            provider: 'google',
         };
         return done(null, user);
     }));
@@ -29,7 +47,7 @@ function ensureAuth(req, res, next) {
     if (req.isAuthenticated()) {
         return next();
     }
-    res.status(401).json({ error: '未登入，請先進行 Discord 認證。' });
+    res.status(401).json({ error: '未登入，請先進行認證。' });
 }
 
 /**
