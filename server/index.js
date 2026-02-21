@@ -23,6 +23,7 @@ const emitter = require("./socket/emitter.js");
 const { runNpcPurchases } = require("./game/economy/market.js");
 const config = require("./game/config.js");
 const configManager = require("./game/configManager.js");
+const textManager = require("./game/textManager.js");
 const { getDashboardStats } = require("./routes/admin/dashboard.js");
 
 // Session Secret 安全檢查
@@ -114,6 +115,7 @@ async function start() {
   await db.connect();
   await itemCache.load();
   await configManager.loadOverrides();
+  await textManager.loadOverrides();
 
   // Season 6: NPC 自動購買（每遊戲日 = 5 分鐘）
   const npcPurchaseTimer = setInterval(() => {
