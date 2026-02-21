@@ -1,6 +1,7 @@
 const config = require("../../config.js");
 const db = require("../../../db.js");
 const { increment } = require("../../progression/statsTracker.js");
+const { formatText, getText } = require("../../textManager.js");
 
 const NPC_CFG = config.NPC;
 const QUALITY_ORDER = config.RANDOM_EVENTS.QUALITY_ORDER;
@@ -80,13 +81,12 @@ async function npcAwakening(user, actionType, actionResult) {
 
   return {
     eventId: "npc_awakening",
-    eventName: "NPC 覺醒",
+    eventName: getText("EVENTS.AWAKEN_NAME"),
     outcome: "win",
-    text: `戰鬥中，${npc.name} 的眼神突然變了——一股強大的氣息爆發而出！\n「我...感覺到了...更強大的力量！」\n\n` +
-      `${npc.name} 覺醒了！\n` +
-      `品質提升：${oldQuality} → ${newQuality}\n` +
+    text: formatText("EVENTS.AWAKEN_TEXT", { npcName: npc.name }) + "\n\n" +
+      formatText("EVENTS.AWAKEN_RESULT", { npcName: npc.name, oldQuality, newQuality }) + "\n" +
       statChanges +
-      `\n（月薪調整為 ${newMonthlyCost} Col）`,
+      "\n" + formatText("EVENTS.AWAKEN_WAGE", { wage: newMonthlyCost }),
     battleResult: null,
     rewards: {
       npcUpgrade: {

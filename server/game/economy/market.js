@@ -1,5 +1,6 @@
 const db = require("../../db.js");
 const config = require("../config.js");
+const { formatText, getText } = require("../textManager.js");
 const { awardCol, deductCol } = require("./col.js");
 const { calculateRarity } = require("../weapon/rarity.js");
 const { destroyWeapon } = require("../weapon/weapon.js");
@@ -18,21 +19,21 @@ function generateListingId() {
  * 掛賣素材
  */
 async function listMaterial(userId, itemIndex, quantity, pricePerUnit) {
-  if (!Number.isInteger(itemIndex) || itemIndex < 0) return { error: "無效的素材索引" };
-  if (!Number.isInteger(quantity) || quantity <= 0) return { error: "數量必須為正整數" };
-  if (!Number.isInteger(pricePerUnit) || pricePerUnit <= 0) return { error: "單價必須為正整數" };
+  if (!Number.isInteger(itemIndex) || itemIndex < 0) return { error: getText("ECONOMY.MARKET_INVALID_ITEM") };
+  if (!Number.isInteger(quantity) || quantity <= 0) return { error: getText("ECONOMY.MARKET_INVALID_QTY") };
+  if (!Number.isInteger(pricePerUnit) || pricePerUnit <= 0) return { error: getText("ECONOMY.MARKET_INVALID_PRICE") };
 
   const user = await db.findOne("user", { userId });
-  if (!user) return { error: "角色不存在" };
-  if (user.isPK) return { error: "你是紅名玩家，無法使用佈告板交易。" };
+  if (!user) return { error: getText("ECONOMY.CHAR_NOT_FOUND") };
+  if (user.isPK) return { error: getText("ECONOMY.MARKET_PK_BLOCKED") };
 
   // 檢查掛賣上限
   const myListings = await db.count("market_listing", { sellerId: userId, status: "active" });
-  if (myListings >= MARKET.MAX_LISTINGS) return { error: `最多掛賣 ${MARKET.MAX_LISTINGS} 件` };
+  if (myListings >= MARKET.MAX_LISTINGS) return { error: formatText("ECONOMY.MARKET_MAX_LISTINGS", { max: MARKET.MAX_LISTINGS }) };
 
   const item = (user.itemStock || [])[itemIndex];
-  if (!item) return { error: "找不到該素材" };
-  if (item.itemNum < quantity) return { error: `素材數量不足（擁有 ${item.itemNum}）` };
+  if (!item) return { error: getText("ECONOMY.MARKET_ITEM_NOT_FOUND") };
+  if (item.itemNum < quantity) return { error: formatText("ECONOMY.MARKET_ITEM_INSUFFICIENT", { num: item.itemNum }) };
 
   const totalPrice = pricePerUnit * quantity;
 
@@ -43,13 +44,13 @@ async function listMaterial(userId, itemIndex, quantity, pricePerUnit) {
 
   // 扣手續費
   const paid = await deductCol(userId, fee);
-  if (!paid) return { error: `Col 不足，手續費 ${fee} Col` };
+  if (!paid) return { error: formatText("ECONOMY.MARKET_COL_INSUFFICIENT", { fee }) };
 
   // 扣素材
   const removed = await db.atomicIncItem(userId, item.itemId, item.itemLevel, item.itemName, -quantity);
   if (!removed) {
     await awardCol(userId, fee); // 回退手續費
-    return { error: "素材扣除失敗" };
+    return { error: getText("ECONOMY.MARKET_DEDUCTION_FAILED") };
   }
 
   const listing = {
@@ -73,22 +74,22 @@ async function listMaterial(userId, itemIndex, quantity, pricePerUnit) {
  * 掛賣武器
  */
 async function listWeapon(userId, weaponIndex, totalPrice) {
-  if (!Number.isInteger(weaponIndex) || weaponIndex < 0) return { error: "無效的武器索引" };
-  if (!Number.isInteger(totalPrice) || totalPrice <= 0) return { error: "價格必須為正整數" };
+  if (!Number.isInteger(weaponIndex) || weaponIndex < 0) return { error: getText("ECONOMY.MARKET_INVALID_WEAPON") };
+  if (!Number.isInteger(totalPrice) || totalPrice <= 0) return { error: getText("ECONOMY.MARKET_INVALID_WEAPON_PRICE") };
 
   const user = await db.findOne("user", { userId });
-  if (!user) return { error: "角色不存在" };
-  if (user.isPK) return { error: "你是紅名玩家，無法使用佈告板交易。" };
+  if (!user) return { error: getText("ECONOMY.CHAR_NOT_FOUND") };
+  if (user.isPK) return { error: getText("ECONOMY.MARKET_PK_BLOCKED") };
 
   const myListings = await db.count("market_listing", { sellerId: userId, status: "active" });
-  if (myListings >= MARKET.MAX_LISTINGS) return { error: `最多掛賣 ${MARKET.MAX_LISTINGS} 件` };
+  if (myListings >= MARKET.MAX_LISTINGS) return { error: formatText("ECONOMY.MARKET_MAX_LISTINGS", { max: MARKET.MAX_LISTINGS }) };
 
   const weapon = (user.weaponStock || [])[weaponIndex];
-  if (!weapon) return { error: "找不到該武器" };
+  if (!weapon) return { error: getText("ECONOMY.MARKET_WEAPON_NOT_FOUND") };
 
   // 檢查 NPC 是否裝備此武器
   const isEquipped = (user.hiredNpcs || []).some((n) => n.equippedWeaponIndex === weaponIndex);
-  if (isEquipped) return { error: "該武器正被 NPC 裝備中，請先卸除" };
+  if (isEquipped) return { error: getText("ECONOMY.MARKET_WEAPON_NPC_EQUIPPED") };
 
   // 手續費
   const feeMod = getModifier(user.title || null, "marketListingFee");
@@ -96,7 +97,7 @@ async function listWeapon(userId, weaponIndex, totalPrice) {
   const fee = Math.max(1, Math.floor(totalPrice * feeRate));
 
   const paid = await deductCol(userId, fee);
-  if (!paid) return { error: `Col 不足，手續費 ${fee} Col` };
+  if (!paid) return { error: formatText("ECONOMY.MARKET_COL_INSUFFICIENT", { fee }) };
 
   // 銷毀武器（從 weaponStock 移除）
   const rarity = calculateRarity(weapon);

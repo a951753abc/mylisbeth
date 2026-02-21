@@ -1,6 +1,7 @@
 const config = require("../../config.js");
 const db = require("../../../db.js");
 const roll = require("../../roll.js");
+const { getText } = require("../../textManager.js");
 const { awardCol } = require("../../economy/col.js");
 const { increment } = require("../../progression/statsTracker.js");
 
@@ -37,12 +38,12 @@ async function processInspiration(user) {
 
   return {
     eventId: "wandering_blacksmith",
-    eventName: "流浪鍛冶師",
+    eventName: getText("EVENTS.WB_NAME"),
     outcome: "win",
-    text: "一位白髮蒼蒼的老鍛冶師從霧中走來...\n「年輕人，讓我教你一個秘訣。」\n他指點了鍛造的要領——你感覺靈感湧現！\n（下次鍛造將保證觸發大成功）",
+    text: getText("EVENTS.WB_INSPIRATION"),
     battleResult: null,
     rewards: {
-      buff: "鍛造靈感",
+      buff: getText("EVENTS.WB_BUFF_NAME"),
     },
     losses: {},
   };
@@ -57,9 +58,9 @@ async function processChat(user) {
 
   return {
     eventId: "wandering_blacksmith",
-    eventName: "流浪鍛冶師",
+    eventName: getText("EVENTS.WB_NAME"),
     outcome: "draw",
-    text: "一位白髮蒼蒼的老鍛冶師從霧中走來...\n你們聊了一會兒關於鍛造的往事，老人留下一些零錢便離去了。",
+    text: getText("EVENTS.WB_CHAT"),
     battleResult: null,
     rewards: { col: colReward },
     losses: {},

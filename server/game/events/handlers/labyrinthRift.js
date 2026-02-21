@@ -1,6 +1,7 @@
 const config = require("../../config.js");
 const db = require("../../../db.js");
 const roll = require("../../roll.js");
+const { formatText, getText } = require("../../textManager.js");
 const grantFloorMaterial = require("../helpers/grantFloorMaterial.js");
 
 const { getActiveFloor } = require("../../floor/activeFloor.js");
@@ -48,9 +49,9 @@ async function processWin(user, targetFloor) {
 
   return {
     eventId: "labyrinth_rift",
-    eventName: "迷宮裂隙",
+    eventName: getText("EVENTS.RIFT_NAME"),
     outcome: "win",
-    text: `冒險途中，空間突然扭曲——一道次元裂隙在眼前撕開！\nNPC 勇敢地踏入裂隙，在第 ${targetFloor} 層的秘境中發現了珍貴的素材！`,
+    text: formatText("EVENTS.RIFT_WIN", { floor: targetFloor }),
     battleResult: null,
     rewards: {
       material: material ? { name: material.name, level: material.level } : null,
@@ -84,9 +85,9 @@ async function processLose(user, actionResult) {
 
   return {
     eventId: "labyrinth_rift",
-    eventName: "迷宮裂隙",
+    eventName: getText("EVENTS.RIFT_NAME"),
     outcome: "lose",
-    text: `冒險途中，空間突然扭曲——一道次元裂隙在眼前撕開！\n${npcName} 踏入裂隙後遭遇了強大的異界生物！\n勉強逃出時已是遍體鱗傷。（體力 -${LR.LOSE_CONDITION}）`,
+    text: formatText("EVENTS.RIFT_LOSE", { npcName, condLoss: LR.LOSE_CONDITION }),
     battleResult: null,
     rewards: {},
     losses: {

@@ -1,6 +1,7 @@
 const config = require("../../config.js");
 const db = require("../../../db.js");
 const roll = require("../../roll.js");
+const { formatText, getText } = require("../../textManager.js");
 const { awardCol } = require("../../economy/col.js");
 const { increment } = require("../../progression/statsTracker.js");
 const grantFloorMaterial = require("../helpers/grantFloorMaterial.js");
@@ -41,9 +42,9 @@ async function processWin(user, floor) {
 
   return {
     eventId: "mysterious_chest",
-    eventName: "神秘寶箱",
+    eventName: getText("EVENTS.CHEST_NAME"),
     outcome: "win",
-    text: "你發現了一個被苔蘚覆蓋的古老寶箱...\n小心翼翼地打開後，裡面竟然藏著珍貴的寶物！",
+    text: getText("EVENTS.CHEST_WIN"),
     battleResult: null,
     rewards: {
       col: colReward,
@@ -59,9 +60,9 @@ async function processWin(user, floor) {
 function processDraw() {
   return {
     eventId: "mysterious_chest",
-    eventName: "神秘寶箱",
+    eventName: getText("EVENTS.CHEST_NAME"),
     outcome: "draw",
-    text: "你發現了一個被苔蘚覆蓋的古老寶箱...\n打開後只看到一堆灰塵和蜘蛛網。看來有人捷足先登了。",
+    text: getText("EVENTS.CHEST_DRAW"),
     battleResult: null,
     rewards: {},
     losses: {},
@@ -73,7 +74,7 @@ function processDraw() {
  */
 async function processLose(user) {
   const losses = { col: 0, material: null };
-  const textParts = ["你發現了一個被苔蘚覆蓋的古老寶箱...\n打開的瞬間觸發了陷阱！一股毒氣噴出！"];
+  const textParts = [getText("EVENTS.CHEST_LOSE")];
 
   // 扣 Col（原子操作）
   const freshUser = await db.findOne("user", { userId: user.userId });
@@ -89,7 +90,7 @@ async function processLose(user) {
     );
     if (result !== null) {
       losses.col = actualLoss;
-      textParts.push(`慌亂中掉落了 ${actualLoss} Col`);
+      textParts.push(formatText("EVENTS.CHEST_COL_LOSS", { amount: actualLoss }));
     }
   }
 
@@ -99,12 +100,12 @@ async function processLose(user) {
     const stolen = items[Math.floor(Math.random() * items.length)];
     await db.atomicIncItem(user.userId, stolen.itemId, stolen.itemLevel, stolen.itemName, -1);
     losses.material = { name: stolen.itemName, level: stolen.itemLevel };
-    textParts.push(`${stolen.itemName} 在混亂中遺失了`);
+    textParts.push(formatText("EVENTS.CHEST_MATERIAL_LOSS", { name: stolen.itemName }));
   }
 
   return {
     eventId: "mysterious_chest",
-    eventName: "神秘寶箱",
+    eventName: getText("EVENTS.CHEST_NAME"),
     outcome: "lose",
     text: textParts.join("\n"),
     battleResult: null,

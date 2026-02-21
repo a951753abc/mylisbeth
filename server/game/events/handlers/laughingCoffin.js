@@ -1,6 +1,7 @@
 const config = require("../../config.js");
 const db = require("../../../db.js");
 const roll = require("../../roll.js");
+const { formatText, getText } = require("../../textManager.js");
 const { pveBattleDirect } = require("../../battle.js");
 const { awardCol } = require("../../economy/col.js");
 const { executeBankruptcy } = require("../../economy/bankruptcy.js");
@@ -43,7 +44,7 @@ async function laughingCoffin(user, actionType, actionResult) {
     return await processLose(user, actionType, actionResult, null, {
       autoLose: true,
       enemy: enemyData,
-      text: "微笑棺木的殺手從暗處現身！你手無寸鐵，毫無抵抗之力...",
+      text: getText("EVENTS.LC_LOSE_UNARMED"),
     });
   }
 
@@ -162,11 +163,9 @@ async function processWin(user, battleResult, enemy) {
 
   return {
     eventId: "laughing_coffin",
-    eventName: "微笑棺木襲擊",
+    eventName: getText("EVENTS.LC_NAME"),
     outcome: "win",
-    text:
-      "微笑棺木的殺手從暗處現身！經過激烈交戰，你成功擊退了殺手。" +
-      `\n獲得賞金 ${colReward} Col`,
+    text: formatText("EVENTS.LC_WIN", { col: colReward }),
     battleResult: formatBattleResult(battleResult, enemy),
     rewards: { col: colReward },
     losses: {},
@@ -197,11 +196,11 @@ async function processDraw(user, battleResult, enemy) {
 
   return {
     eventId: "laughing_coffin",
-    eventName: "微笑棺木襲擊",
+    eventName: getText("EVENTS.LC_NAME"),
     outcome: "draw",
     text:
-      "微笑棺木的殺手從暗處現身！雙方僵持不下，殺手趁亂搶走了部分金幣後撤退。" +
-      (actualLoss > 0 ? `\n損失 ${actualLoss} Col` : ""),
+      getText("EVENTS.LC_DRAW") +
+      (actualLoss > 0 ? "\n" + formatText("EVENTS.LC_COL_LOSS", { amount: actualLoss }) : ""),
     battleResult: formatBattleResult(battleResult, enemy),
     rewards: {},
     losses: { col: actualLoss },
@@ -218,7 +217,7 @@ async function processLose(user, actionType, actionResult, battleResult, opts) {
   if (opts.autoLose) {
     textParts.push(opts.text);
   } else {
-    textParts.push("微笑棺木的殺手從暗處現身！你在激戰中落敗...");
+    textParts.push(getText("EVENTS.LC_LOSE"));
   }
 
   // 1. 搶走 50% Col（至少 50，但不超過玩家持有量）
@@ -242,7 +241,7 @@ async function processLose(user, actionType, actionResult, battleResult, opts) {
     );
     if (result !== null) {
       losses.col = colToSteal;
-      textParts.push(`被搶走了 ${colToSteal} Col`);
+      textParts.push(formatText("EVENTS.LC_STOLEN_COL", { amount: colToSteal }));
     }
   }
 
@@ -263,7 +262,7 @@ async function processLose(user, actionType, actionResult, battleResult, opts) {
       -1,
     );
     losses.material = { name: stolen.itemName, level: stolen.itemLevel };
-    textParts.push(`被搶走了 ${stolen.itemName}`);
+    textParts.push(formatText("EVENTS.LC_STOLEN_MATERIAL", { name: stolen.itemName }));
   }
 
   // 3. 10% 搶武器（需 2+ 把）
@@ -274,7 +273,7 @@ async function processLose(user, actionType, actionResult, battleResult, opts) {
     if (stolenWeapon) {
       await destroyWeapon(user.userId, stolenIdx);
       losses.weapon = { name: stolenWeapon.weaponName, index: stolenIdx };
-      textParts.push(`${stolenWeapon.weaponName} 被奪走了！`);
+      textParts.push(formatText("EVENTS.LC_STOLEN_WEAPON", { name: stolenWeapon.weaponName }));
     }
   }
 
@@ -300,7 +299,7 @@ async function processLose(user, actionType, actionResult, battleResult, opts) {
         await killNpc(user.userId, targetNpc.npcId, "微笑棺木襲擊");
         await increment(user.userId, "npcDeaths");
         losses.npcDeath = { name: targetNpc.name, npcId: targetNpc.npcId };
-        textParts.push(`${targetNpc.name} 為了保護你而犧牲了...`);
+        textParts.push(formatText("EVENTS.LC_NPC_DEATH", { name: targetNpc.name }));
       }
     }
   } else {
@@ -311,7 +310,7 @@ async function processLose(user, actionType, actionResult, battleResult, opts) {
         actionType === "mine"
           ? "laughing_coffin_mine"
           : "laughing_coffin_solo";
-      textParts.push("你被微笑棺木的殺手殺害了...");
+      textParts.push(getText("EVENTS.LC_PLAYER_DEATH"));
 
       const bankruptcyInfo = await executeBankruptcy(user.userId, 0, 0, {
         cause,
@@ -335,7 +334,7 @@ function formatBattleResult(battleResult, enemy) {
 function buildLoseResult(battleResult, enemy, textParts, losses) {
   return {
     eventId: "laughing_coffin",
-    eventName: "微笑棺木襲擊",
+    eventName: getText("EVENTS.LC_NAME"),
     outcome: "lose",
     text: textParts.join("\n"),
     battleResult: battleResult
