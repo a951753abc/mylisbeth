@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSocket } from "../hooks/useSocket";
 import GamePanel from "../components/GamePanel";
 import InventoryPanel from "../components/InventoryPanel";
@@ -17,6 +17,56 @@ import ShopPanel from "../components/ShopPanel";
 import MarketPanel from "../components/MarketPanel";
 import SkillPanel from "../components/SkillPanel";
 
+const MOVE_COOLDOWN_SECONDS = 5;
+
+const HEADER_COL_STYLE = { fontSize: '0.8rem', color: 'var(--gold)' };
+const FLOOR_SECONDARY_STYLE = { color: 'var(--text-secondary)' };
+const PK_BADGE_STYLE = { color: '#ef4444', marginLeft: '0.3rem', fontWeight: 'bold' };
+const HEADER_ACTIONS_STYLE = { display: "flex", gap: "0.5rem", alignItems: "center" };
+const USERNAME_STYLE = { color: "var(--text-secondary)", fontSize: "0.85rem" };
+const COMPACT_BTN_STYLE = { padding: "0.4rem 0.8rem", fontSize: "0.8rem" };
+const PAUSE_BANNER_STYLE = {
+  background: "#92400e33",
+  border: "1px solid #f59e0b",
+  borderRadius: "6px",
+  padding: "0.5rem 0.8rem",
+  marginBottom: "0.5rem",
+  color: "#fbbf24",
+  textAlign: "center",
+  fontSize: "0.85rem",
+};
+
+const TAB_GROUPS = [
+  {
+    label: "行動",
+    tabs: [
+      { key: "game", text: "遊戲" },
+      { key: "floor", text: "樓層" },
+      { key: "inventory", text: "物品" },
+      { key: "shop", text: "商店" },
+      { key: "market", text: "佈告板" },
+    ],
+  },
+  {
+    label: "NPC",
+    tabs: [
+      { key: "tavern", text: "酒館" },
+      { key: "npc", text: "NPC", badge: true },
+      { key: "skill", text: "劍技" },
+      { key: "settlement", text: "帳單", debtBadge: true },
+    ],
+  },
+  {
+    label: "紀錄",
+    tabs: [
+      { key: "daily", text: "每日" },
+      { key: "achievement", text: "成就" },
+      { key: "log", text: "日誌" },
+      { key: "players", text: "排行榜" },
+    ],
+  },
+];
+
 export default function Game({ user, onLogout }) {
   const [gameUser, setGameUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +78,6 @@ export default function Game({ user, onLogout }) {
   const [isPauseLoading, setIsPauseLoading] = useState(false);
   const { events } = useSocket(gameUser?.userId);
 
-  const MOVE_COOLDOWN_SECONDS = 5;
   const handleCooldownExpire = useCallback(() => setCooldown(0), []);
   const isCooldownActive = cooldown > 0;
 
@@ -104,7 +153,7 @@ export default function Game({ user, onLogout }) {
     }
   }, [events, fetchUser]);
 
-  const handleCreate = async (name) => {
+  const handleCreate = useCallback(async (name) => {
     const res = await fetch("/api/game/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -117,9 +166,9 @@ export default function Game({ user, onLogout }) {
     }
     await fetchUser();
     return null;
-  };
+  }, [fetchUser]);
 
-  const handleAction = async (action, body = {}) => {
+  const handleAction = useCallback(async (action, body = {}) => {
     const res = await fetch(`/api/game/${action}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -143,13 +192,13 @@ export default function Game({ user, onLogout }) {
     setCooldown(MOVE_COOLDOWN_SECONDS);
     await fetchUser();
     return data;
-  };
+  }, [fetchUser]);
 
-  const handleTitleChange = (newTitle) => {
+  const handleTitleChange = useCallback((newTitle) => {
     setGameUser((prev) => prev ? { ...prev, title: newTitle } : prev);
-  };
+  }, []);
 
-  const handleSetTitle = async (title) => {
+  const handleSetTitle = useCallback(async (title) => {
     try {
       const res = await fetch("/api/game/title", {
         method: "POST",
@@ -166,9 +215,9 @@ export default function Game({ user, onLogout }) {
     } catch {
       return { error: "更換失敗" };
     }
-  };
+  }, [handleTitleChange]);
 
-  const handleTogglePause = async () => {
+  const handleTogglePause = useCallback(async () => {
     if (isPauseLoading) return;
     const nextPaused = !gameUser.businessPaused;
     const msg = nextPaused
@@ -194,7 +243,26 @@ export default function Game({ user, onLogout }) {
     } finally {
       setIsPauseLoading(false);
     }
-  };
+  }, [isPauseLoading, gameUser?.businessPaused, fetchUser]);
+
+  const handleBankruptcy = useCallback((info) => {
+    setBankruptcy(info);
+    setGameUser(null);
+  }, []);
+
+  const handleBankruptcyDismiss = useCallback(() => {
+    setBankruptcy(null);
+    setLoading(true);
+    fetchUser();
+  }, [fetchUser]);
+
+  const handleTabClick = useCallback((e) => {
+    const key = e.currentTarget.dataset.tab;
+    if (key) setTab(key);
+  }, []);
+
+  // NPC tab 動態文字
+  const npcCount = gameUser?.hiredNpcs?.length || 0;
 
   if (loading) {
     return <div className="loading">載入遊戲資料中...</div>;
@@ -204,11 +272,7 @@ export default function Game({ user, onLogout }) {
     return (
       <BankruptcyScreen
         info={bankruptcy}
-        onDismiss={() => {
-          setBankruptcy(null);
-          setLoading(true);
-          fetchUser();
-        }}
+        onDismiss={handleBankruptcyDismiss}
       />
     );
   }
@@ -234,30 +298,30 @@ export default function Game({ user, onLogout }) {
               <span className="header-title">「{gameUser.title}」</span>
             )}
           </h1>
-          <div style={{ fontSize: '0.8rem', color: 'var(--gold)' }}>
+          <div style={HEADER_COL_STYLE}>
             {(gameUser.col || 0).toLocaleString()} Col ｜ {gameUser.activeFloor != null && gameUser.activeFloor !== (gameUser.currentFloor || 1)
-              ? <>{gameUser.activeFloor}F <span style={{ color: 'var(--text-secondary)' }}>/ {gameUser.currentFloor || 1}F</span></>
+              ? <>{gameUser.activeFloor}F <span style={FLOOR_SECONDARY_STYLE}>/ {gameUser.currentFloor || 1}F</span></>
               : <>{gameUser.currentFloor || 1}F</>
             } ｜ 冒險Lv.{gameUser.adventureLevel || 1}
-            {gameUser.isPK && <span style={{ color: '#ef4444', marginLeft: '0.3rem', fontWeight: 'bold' }}>[紅名]</span>}
+            {gameUser.isPK && <span style={PK_BADGE_STYLE}>[紅名]</span>}
           </div>
         </div>
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-          <span style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>
+        <div style={HEADER_ACTIONS_STYLE}>
+          <span style={USERNAME_STYLE}>
             {user.username}
           </span>
           <button
             className={gameUser.businessPaused ? "btn-primary" : "btn-warning"}
             onClick={handleTogglePause}
             disabled={isPauseLoading}
-            style={{ padding: "0.4rem 0.8rem", fontSize: "0.8rem" }}
+            style={COMPACT_BTN_STYLE}
           >
             {isPauseLoading ? "處理中..." : gameUser.businessPaused ? "恢復營業" : "暫停營業"}
           </button>
           <button
             className="btn-danger"
             onClick={onLogout}
-            style={{ padding: "0.4rem 0.8rem", fontSize: "0.8rem" }}
+            style={COMPACT_BTN_STYLE}
           >
             登出
           </button>
@@ -266,61 +330,45 @@ export default function Game({ user, onLogout }) {
 
       <div className="container">
         {gameUser.businessPaused && (
-          <div style={{
-            background: "#92400e33",
-            border: "1px solid #f59e0b",
-            borderRadius: "6px",
-            padding: "0.5rem 0.8rem",
-            marginBottom: "0.5rem",
-            color: "#fbbf24",
-            textAlign: "center",
-            fontSize: "0.85rem",
-          }}>
+          <div style={PAUSE_BANNER_STYLE}>
             店鋪已暫停營業 — 所有行動已凍結，帳單暫停計算。點擊「恢復營業」繼續遊戲。
           </div>
         )}
         <CooldownTimer cooldown={cooldown} onExpire={handleCooldownExpire} />
 
         <div className="nav-tabs-grouped">
-          <div className="nav-group">
-            <span className="nav-group-label">行動</span>
-            <div className="nav-group-buttons">
-              <button className={tab === "game" ? "active" : ""} onClick={() => setTab("game")}>遊戲</button>
-              <button className={tab === "floor" ? "active" : ""} onClick={() => setTab("floor")}>樓層</button>
-              <button className={tab === "inventory" ? "active" : ""} onClick={() => setTab("inventory")}>物品</button>
-              <button className={tab === "shop" ? "active" : ""} onClick={() => setTab("shop")}>商店</button>
-              <button className={tab === "market" ? "active" : ""} onClick={() => setTab("market")}>佈告板</button>
+          {TAB_GROUPS.map((group) => (
+            <div className="nav-group" key={group.label}>
+              <span className="nav-group-label">{group.label}</span>
+              <div className="nav-group-buttons">
+                {group.tabs.map((t) => {
+                  let className = tab === t.key ? "active" : "";
+                  let text = t.text;
+                  let style = undefined;
+                  if (t.badge && npcCount > 0) {
+                    className += " npc-tab-badge";
+                    text = `NPC(${npcCount})`;
+                  }
+                  if (t.debtBadge && gameUser.isInDebt) {
+                    className += " debt-tab-badge";
+                    text = "帳單⚠";
+                    style = { color: "#f87171" };
+                  }
+                  return (
+                    <button
+                      key={t.key}
+                      className={className}
+                      data-tab={t.key}
+                      onClick={handleTabClick}
+                      style={style}
+                    >
+                      {text}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-          <div className="nav-group">
-            <span className="nav-group-label">NPC</span>
-            <div className="nav-group-buttons">
-              <button className={tab === "tavern" ? "active" : ""} onClick={() => setTab("tavern")}>酒館</button>
-              <button
-                className={`${tab === "npc" ? "active" : ""}${(gameUser.hiredNpcs || []).length > 0 ? " npc-tab-badge" : ""}`}
-                onClick={() => setTab("npc")}
-              >
-                NPC{(gameUser.hiredNpcs || []).length > 0 ? `(${gameUser.hiredNpcs.length})` : ""}
-              </button>
-              <button className={tab === "skill" ? "active" : ""} onClick={() => setTab("skill")}>劍技</button>
-              <button
-                className={`${tab === "settlement" ? "active" : ""}${gameUser.isInDebt ? " debt-tab-badge" : ""}`}
-                onClick={() => setTab("settlement")}
-                style={gameUser.isInDebt ? { color: "#f87171" } : {}}
-              >
-                帳單{gameUser.isInDebt ? "⚠" : ""}
-              </button>
-            </div>
-          </div>
-          <div className="nav-group">
-            <span className="nav-group-label">紀錄</span>
-            <div className="nav-group-buttons">
-              <button className={tab === "daily" ? "active" : ""} onClick={() => setTab("daily")}>每日</button>
-              <button className={tab === "achievement" ? "active" : ""} onClick={() => setTab("achievement")}>成就</button>
-              <button className={tab === "log" ? "active" : ""} onClick={() => setTab("log")}>日誌</button>
-              <button className={tab === "players" ? "active" : ""} onClick={() => setTab("players")}>排行榜</button>
-            </div>
-          </div>
+          ))}
         </div>
 
         {tab === "game" && (
@@ -370,10 +418,7 @@ export default function Game({ user, onLogout }) {
           <SettlementPanel
             user={gameUser}
             onRefresh={fetchUser}
-            onBankruptcy={(info) => {
-              setBankruptcy(info);
-              setGameUser(null);
-            }}
+            onBankruptcy={handleBankruptcy}
           />
         )}
         {tab === "shop" && (
