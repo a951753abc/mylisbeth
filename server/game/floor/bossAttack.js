@@ -1,4 +1,3 @@
-const _ = require("lodash");
 const db = require("../../db.js");
 const config = require("../config.js");
 const roll = require("../roll.js");
@@ -11,6 +10,7 @@ const { getCombinedModifier } = require("../title/titleModifier.js");
 const bossCounterAttack = require("./bossCounterAttack.js");
 const { awardAdvExp } = require("../progression/adventureLevel.js");
 const { awardProficiency, awardNpcProficiency } = require("../skill/skillProficiency.js");
+const { isAtFrontier } = require("./activeFloor.js");
 const { distributeBossDrops, processLastAttackRelic, distributeBossColRewards } = require("./bossRewards.js");
 const { advanceFloor } = require("./floorAdvancement.js");
 
@@ -171,29 +171,17 @@ module.exports = async function bossAttack(cmd, rawUser) {
       return { error: `${hiredNpc.name} 體力過低（< 10%），無法出戰！請先治療。` };
     }
 
+    // 必須在前線樓層才能挑戰 Boss
+    if (!isAtFrontier(user)) {
+      return { error: "必須先回到前線才能挑戰 Boss！" };
+    }
+
     // Boss 是全伺服器共享的，使用伺服器前線樓層
     let state = await getOrInitServerState(1, getFloorBoss(1));
     const currentFloor = state.currentFloor || 1;
     const bossData = getFloorBoss(currentFloor);
 
-    // 玩家樓層落後前線 → 自動同步到前線
-    const userFloor = user.currentFloor || 1;
-    if (userFloor < currentFloor) {
-      await db.update(
-        "user",
-        { userId: user.userId },
-        {
-          $set: {
-            currentFloor,
-            [`floorProgress.${currentFloor}`]: { explored: 0, maxExplore: config.FLOOR_MAX_EXPLORE },
-          },
-        },
-      );
-      user.currentFloor = currentFloor;
-      _.set(user, `floorProgress.${currentFloor}`, { explored: 0, maxExplore: config.FLOOR_MAX_EXPLORE });
-    }
-
-    const floorProgress = _.get(user, `floorProgress.${currentFloor}`, { explored: 0, maxExplore: config.FLOOR_MAX_EXPLORE });
+    const floorProgress = (user.floorProgress || {})[String(currentFloor)] || { explored: 0, maxExplore: config.FLOOR_MAX_EXPLORE };
     if (floorProgress.explored < floorProgress.maxExplore) {
       const remaining = floorProgress.maxExplore - floorProgress.explored;
       return {

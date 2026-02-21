@@ -84,12 +84,13 @@ async function startMission(userId, npcId, missionType) {
   const now = Date.now();
   const endsAt = now + missionDef.duration * config.TIME_SCALE;
 
+  const { getActiveFloor } = require("../floor/activeFloor.js");
   const mission = {
     type: missionType,
     name: missionDef.name,
     startedAt: now,
     endsAt,
-    floor: user.currentFloor || 1,
+    floor: getActiveFloor(user),
   };
 
   // 原子性寫入：同時驗證該 NPC 未在任務中 + 活躍任務數未超上限

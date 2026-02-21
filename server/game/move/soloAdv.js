@@ -36,8 +36,9 @@ module.exports = async function (cmd, rawUser) {
       return { error: `武器 #${weaponIndex} 不存在` };
     }
 
+    const { getActiveFloor } = require("../floor/activeFloor.js");
     const thisWeapon = user.weaponStock[weaponIndex];
-    const currentFloor = user.currentFloor || 1;
+    const currentFloor = getActiveFloor(user);
 
     // 組裝鍛造師戰鬥數值（含 battleLevel 加成）
     const lvBonus = getBattleLevelBonus(user.battleLevel || 1);
@@ -136,9 +137,11 @@ module.exports = async function (cmd, rawUser) {
     // 更新探索進度
     await incrementFloorExploration(user.userId, user, currentFloor);
 
-    // 發放武器熟練度
+    // 發放武器熟練度（低樓層衰減）
+    const { getProficiencyMultiplier } = require("../floor/activeFloor.js");
+    const profMult = getProficiencyMultiplier(user);
     const profGainKey = getProfGainKey(outcomeKey, "solo");
-    const profResult = await awardProficiency(user.userId, thisWeapon, profGainKey);
+    const profResult = await awardProficiency(user.userId, thisWeapon, profGainKey, profMult);
     let skillText = "";
     if (profResult && profResult.profGained > 0) {
       skillText += `\n你的 ${profResult.weaponType} 熟練度 +${profResult.profGained}`;

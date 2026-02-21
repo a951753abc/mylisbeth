@@ -10,14 +10,18 @@ const SKILL_CFG = config.SKILL;
  * @param {string} userId
  * @param {object} weapon - 使用的武器
  * @param {string} gainKey - PROF_GAIN 的 key，如 "ADV_WIN", "BOSS"
+ * @param {number} [multiplier=1] - 熟練度倍率（樓層往返衰減用）
  * @returns {{ profGained: number, weaponType: string, newSkills: string[] } | null}
  */
-async function awardProficiency(userId, weapon, gainKey) {
+async function awardProficiency(userId, weapon, gainKey, multiplier = 1) {
   const weaponType = resolveWeaponType(weapon);
   if (!weaponType) return null;
 
-  const gain = SKILL_CFG.PROF_GAIN[gainKey];
-  if (!gain || gain <= 0) return null;
+  const rawGain = SKILL_CFG.PROF_GAIN[gainKey];
+  if (!rawGain || rawGain <= 0) return null;
+
+  const gain = Math.max(0, Math.round(rawGain * multiplier));
+  if (gain <= 0) return { profGained: 0, weaponType, newSkills: [] };
 
   const profPath = `weaponProficiency.${weaponType}`;
 
@@ -74,14 +78,18 @@ async function awardProficiency(userId, weapon, gainKey) {
  * @param {number} npcIdx - hiredNpcs 中的索引
  * @param {object} weapon - NPC 使用的武器
  * @param {string} gainKey
+ * @param {number} [multiplier=1] - 熟練度倍率（樓層往返衰減用）
  * @returns {{ profGained: number, weaponType: string } | null}
  */
-async function awardNpcProficiency(userId, npcIdx, weapon, gainKey) {
+async function awardNpcProficiency(userId, npcIdx, weapon, gainKey, multiplier = 1) {
   const weaponType = resolveWeaponType(weapon);
   if (!weaponType) return null;
 
-  const gain = SKILL_CFG.PROF_GAIN[gainKey];
-  if (!gain || gain <= 0) return null;
+  const rawGain = SKILL_CFG.PROF_GAIN[gainKey];
+  if (!rawGain || rawGain <= 0) return null;
+
+  const gain = Math.max(0, Math.round(rawGain * multiplier));
+  if (gain <= 0) return { profGained: 0, weaponType };
 
   const profPath = `hiredNpcs.${npcIdx}.weaponProficiency`;
 

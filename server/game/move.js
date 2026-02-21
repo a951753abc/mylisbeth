@@ -5,6 +5,7 @@ const { checkSettlement } = require("./economy/debtCheck.js");
 const { checkAndConsumeStamina } = require("./stamina/staminaCheck.js");
 const { checkEvent } = require("./events/eventTrigger.js");
 const { logAction } = require("./logging/actionLogger.js");
+const { getActiveFloor } = require("./floor/activeFloor.js");
 
 const mine = require("./move/mine.js");
 const forge = require("./move/forge.js");
@@ -105,7 +106,7 @@ module.exports = async function (cmd, userOrId) {
   // 操作日誌（fire-and-forget）
   const logDetails = {
     cmd: cmd.slice(1),
-    floor: user.currentFloor,
+    floor: getActiveFloor(user),
     staminaCost: actionResult?.staminaCost,
     randomEvent: actionResult?.randomEvent?.type || null,
   };

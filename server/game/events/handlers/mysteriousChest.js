@@ -16,7 +16,8 @@ const MC = config.RANDOM_EVENTS.MYSTERIOUS_CHEST;
  * @returns {object} eventResult
  */
 async function mysteriousChest(user, actionType, actionResult) {
-  const floor = user.currentFloor || 1;
+  const { getActiveFloor } = require("../../floor/activeFloor.js");
+  const floor = getActiveFloor(user);
   const outcome = roll.d100();
 
   if (outcome <= 55) {

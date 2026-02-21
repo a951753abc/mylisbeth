@@ -22,7 +22,8 @@ const SOLO = config.SOLO_ADV;
  * @returns {object} eventResult
  */
 async function laughingCoffin(user, actionType, actionResult) {
-  const floor = user.currentFloor || 1;
+  const { getActiveFloor } = require("../../floor/activeFloor.js");
+  const floor = getActiveFloor(user);
   const scale = 1 + floor * 0.15;
 
   // 生成敵方：微笑棺木成員

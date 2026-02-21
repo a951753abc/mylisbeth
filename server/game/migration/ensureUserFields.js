@@ -96,6 +96,8 @@ const DEFAULT_FIELDS = {
   equippedSkills: [],
   extraSkills: [],
   uniqueSkills: [],
+  // Season 10: 樓層往返
+  activeFloor: null, // null = 在前線（= currentFloor）
 };
 
 module.exports = async function ensureUserFields(user) {

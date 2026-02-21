@@ -95,7 +95,8 @@ module.exports = async function (cmd, rawUser) {
     };
   }
 
-  const currentFloor = user.currentFloor || 1;
+  const { getActiveFloor } = require("../floor/activeFloor.js");
+  const currentFloor = getActiveFloor(user);
   const allItems = itemCache.getAll();
   const minePool = getFloorMinePool(allItems, currentFloor);
 

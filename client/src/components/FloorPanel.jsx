@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import BossHealthBar from './BossHealthBar';
 
-export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive }) {
+export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive, onUserRefresh }) {
   const [floorInfo, setFloorInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [changingFloor, setChangingFloor] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState('');
   const [weaponId, setWeaponId] = useState('0');
@@ -36,6 +37,30 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive 
       fetchFloor();
     }
   }, [bossUpdate, fetchFloor]);
+
+  const handleChangeFloor = async (floor) => {
+    setChangingFloor(true);
+    setError('');
+    try {
+      const res = await fetch('/api/game/change-floor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ floor }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+      } else {
+        await fetchFloor();
+        if (onUserRefresh) onUserRefresh();
+      }
+    } catch {
+      setError('切換樓層失敗');
+    } finally {
+      setChangingFloor(false);
+    }
+  };
 
   const handleBossAttack = async () => {
     setBusy(true);
@@ -116,13 +141,53 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive 
   if (loading) return <div className="loading">載入樓層資訊...</div>;
   if (!floorInfo) return <div className="card"><p style={{ color: 'var(--text-secondary)' }}>無法取得樓層資訊</p></div>;
 
-  const { floor, progress, bossStatus, canAttackBoss } = floorInfo;
+  const { floor, progress, bossStatus, canAttackBoss, activeFloor, maxFloor, availableFloors } = floorInfo;
   const maxExplore = progress.maxExplore || floor.maxExplore || 5;
   const explored = progress.explored ?? 0;
   const exploreProgress = Math.min(explored, maxExplore);
+  const isAtFrontier = activeFloor === maxFloor;
+  const floorDiff = (maxFloor || 1) - (activeFloor || 1);
+  const profMult = Math.max(0, 1 - floorDiff * 0.25);
 
   return (
     <div>
+      {/* 樓層選擇器 */}
+      {maxFloor > 1 && (
+        <div className="card">
+          <h2>🗺️ 樓層移動</h2>
+          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+            {(availableFloors || []).map((f) => (
+              <button
+                key={f.floor}
+                className={f.floor === activeFloor ? 'btn-primary' : 'btn-secondary'}
+                style={{
+                  padding: '0.3rem 0.6rem',
+                  fontSize: '0.8rem',
+                  minWidth: '3rem',
+                  position: 'relative',
+                }}
+                disabled={changingFloor || f.floor === activeFloor}
+                onClick={() => handleChangeFloor(f.floor === maxFloor ? null : f.floor)}
+              >
+                {f.floor}F{f.floor === maxFloor ? ' ⚔' : ''}
+              </button>
+            ))}
+          </div>
+          {!isAtFrontier && (
+            <div style={{ fontSize: '0.8rem', padding: '0.4rem 0.6rem', background: 'var(--bg-tertiary)', borderRadius: '4px' }}>
+              <span style={{ color: 'var(--warning)' }}>⚠ 非前線樓層</span>
+              <span style={{ color: 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                熟練度獲取：{Math.round(profMult * 100)}%
+                {profMult === 0 && '（無法獲得）'}
+              </span>
+              <span style={{ color: 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                ・無法挑戰 Boss
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 樓層資訊 */}
       <div className="card">
         <h2>⚔️ Aincrad 第 {floor.floorNumber} 層</h2>

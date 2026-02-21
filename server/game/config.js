@@ -159,6 +159,12 @@ module.exports = {
   COL_ADVENTURE_FEE_BASE: 30,
   COL_ADVENTURE_FEE_PER_FLOOR: 10,
 
+  // Season 10: 樓層往返
+  FLOOR_TRAVEL: {
+    PROF_DECAY_PER_FLOOR: 0.25, // 每差 1 層，熟練度衰減 25%
+    PROF_MIN_MULT: 0,           // 最低倍率（差 4 層以上 = 0%）
+  },
+
   // Season 2: 樓層素材分組 (每 2 層一組新素材)
   FLOOR_MATERIAL_GROUPS: [
     { floors: [1, 2], itemIds: ["mat_floor1_ore", "mat_floor1_crystal"] },

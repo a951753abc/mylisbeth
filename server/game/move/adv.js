@@ -72,8 +72,9 @@ module.exports = async function (cmd, rawUser) {
       return { error: `${hiredNpc.name} 正在執行任務中，無法出戰。` };
     }
 
+    const { getActiveFloor } = require("../floor/activeFloor.js");
     const thisWeapon = user.weaponStock[cmd[2]];
-    const currentFloor = user.currentFloor || 1;
+    const currentFloor = getActiveFloor(user);
 
     // Season 6: 委託費改為勝利時從獎勵扣 10%，不再預先扣費
     // 負債時獎勵減半
@@ -201,11 +202,13 @@ module.exports = async function (cmd, rawUser) {
     await incrementFloorExploration(user.userId, user, currentFloor);
 
     // NPC 熟練度（NPC 冒險只增加 NPC 的熟練度，不增加玩家的）
+    const { getProficiencyMultiplier } = require("../floor/activeFloor.js");
+    const profMult = getProficiencyMultiplier(user);
     const profGainKey = getProfGainKey(outcomeKey, "adv");
     let skillText = "";
     const npcIdx = hired.findIndex((n) => n.npcId === npcId);
     if (npcIdx >= 0) {
-      await awardNpcProficiency(user.userId, npcIdx, thisWeapon, profGainKey);
+      await awardNpcProficiency(user.userId, npcIdx, thisWeapon, profGainKey, profMult);
     }
 
     // NPC 自動學技

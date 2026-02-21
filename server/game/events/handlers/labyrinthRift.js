@@ -14,7 +14,8 @@ const LR = config.RANDOM_EVENTS.LABYRINTH_RIFT;
  * @returns {object} eventResult
  */
 async function labyrinthRift(user, actionType, actionResult) {
-  const floor = user.currentFloor || 1;
+  const { getActiveFloor } = require("../../floor/activeFloor.js");
+  const floor = getActiveFloor(user);
   const targetFloor = Math.min(floor + LR.FLOOR_BONUS, 20);
 
   // 確認冒險 NPC 體力足夠（eventDefs 條件檢查的是「任一 NPC」，這裡再精確確認）
