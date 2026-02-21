@@ -1,40 +1,68 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useCallback } from "react";
+
+const MAX_MATERIALS = 4;
+const MIN_MATERIALS = 2;
 
 export default function ForgeSection({ user, doAction, isDisabled, displayStamina }) {
-  const [forgeMat1, setForgeMat1] = useState("");
-  const [forgeMat2, setForgeMat2] = useState("");
+  const [matSlots, setMatSlots] = useState(["", ""]);
 
-  const availableForMat1 = useMemo(() => {
-    return (user.items || []).filter((item) => {
-      if (item.num <= 0) return false;
-      if (String(item.index) === forgeMat2 && item.num < 2) return false;
-      return true;
+  const slotCount = matSlots.length;
+
+  // 計算每個欄位的可選素材（扣除其他欄位已佔用的數量）
+  const getAvailableItems = useCallback(
+    (slotIndex) => {
+      const usedCounts = {};
+      for (let i = 0; i < matSlots.length; i++) {
+        if (i !== slotIndex && matSlots[i] !== "") {
+          usedCounts[matSlots[i]] = (usedCounts[matSlots[i]] || 0) + 1;
+        }
+      }
+
+      return (user.items || []).filter((item) => {
+        if (item.num <= 0) return false;
+        const key = String(item.index);
+        const used = usedCounts[key] || 0;
+        return item.num > used;
+      });
+    },
+    [matSlots, user.items],
+  );
+
+  const getDisplayNum = useCallback(
+    (item, slotIndex) => {
+      const key = String(item.index);
+      let used = 0;
+      for (let i = 0; i < matSlots.length; i++) {
+        if (i !== slotIndex && matSlots[i] === key) used++;
+      }
+      return item.num - used;
+    },
+    [matSlots],
+  );
+
+  const handleSlotChange = useCallback((index, value) => {
+    setMatSlots((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
     });
-  }, [user.items, forgeMat2]);
+  }, []);
 
-  const availableForMat2 = useMemo(() => {
-    return (user.items || []).filter((item) => {
-      if (item.num <= 0) return false;
-      if (String(item.index) === forgeMat1 && item.num < 2) return false;
-      return true;
+  const handleAddSlot = useCallback(() => {
+    setMatSlots((prev) => (prev.length < MAX_MATERIALS ? [...prev, ""] : prev));
+  }, []);
+
+  const handleRemoveSlot = useCallback((index) => {
+    setMatSlots((prev) => {
+      if (prev.length <= MIN_MATERIALS) return prev;
+      return prev.filter((_, i) => i !== index);
     });
-  }, [user.items, forgeMat1]);
+  }, []);
 
-  const handleMat1Change = (newVal) => {
-    setForgeMat1(newVal);
-    if (newVal && newVal === forgeMat2) {
-      const item = (user.items || []).find((i) => String(i.index) === newVal);
-      if (item && item.num < 2) setForgeMat2("");
-    }
-  };
-
-  const handleMat2Change = (newVal) => {
-    setForgeMat2(newVal);
-    if (newVal && newVal === forgeMat1) {
-      const item = (user.items || []).find((i) => String(i.index) === newVal);
-      if (item && item.num < 2) setForgeMat1("");
-    }
-  };
+  const allSelected = matSlots.every((s) => s !== "");
+  const extraStaminaCost = Math.max(0, (slotCount - 2) * 2);
+  const minStamina = 3 + extraStaminaCost;
+  const maxStamina = 8 + extraStaminaCost;
 
   return (
     <div className="card">
@@ -50,45 +78,68 @@ export default function ForgeSection({ user, doAction, isDisabled, displayStamin
           gap: "0.5rem",
           flexWrap: "wrap",
           marginBottom: "0.5rem",
+          alignItems: "center",
         }}
       >
-        <select
-          value={forgeMat1}
-          onChange={(e) => handleMat1Change(e.target.value)}
-        >
-          <option value="">— 素材1 —</option>
-          {availableForMat1.map((item) => {
-            const displayNum =
-              String(item.index) === forgeMat2 ? item.num - 1 : item.num;
-            return (
-              <option key={item.index} value={String(item.index)}>
-                #{item.index} [{item.levelText}] {item.name} x{displayNum}
-              </option>
-            );
-          })}
-        </select>
-        <select
-          value={forgeMat2}
-          onChange={(e) => handleMat2Change(e.target.value)}
-        >
-          <option value="">— 素材2 —</option>
-          {availableForMat2.map((item) => {
-            const displayNum =
-              String(item.index) === forgeMat1 ? item.num - 1 : item.num;
-            return (
-              <option key={item.index} value={String(item.index)}>
-                #{item.index} [{item.levelText}] {item.name} x{displayNum}
-              </option>
-            );
-          })}
-        </select>
+        {matSlots.map((val, i) => {
+          const available = getAvailableItems(i);
+          return (
+            <div key={i} style={{ display: "flex", gap: "0.25rem", alignItems: "center" }}>
+              <select
+                value={val}
+                onChange={(e) => handleSlotChange(i, e.target.value)}
+              >
+                <option value="">— 素材{i + 1} —</option>
+                {available.map((item) => {
+                  const displayNum = getDisplayNum(item, i);
+                  return (
+                    <option key={item.index} value={String(item.index)}>
+                      #{item.index} [{item.levelText}] {item.name} x{displayNum}
+                    </option>
+                  );
+                })}
+              </select>
+              {i >= MIN_MATERIALS && (
+                <button
+                  style={{
+                    padding: "0.15rem 0.4rem",
+                    fontSize: "0.75rem",
+                    background: "var(--danger)",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => handleRemoveSlot(i)}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          );
+        })}
+        {slotCount < MAX_MATERIALS && (
+          <button
+            style={{
+              padding: "0.25rem 0.5rem",
+              fontSize: "0.75rem",
+              background: "var(--bg-hover)",
+              color: "var(--text-primary)",
+              border: "1px solid var(--border)",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+            onClick={handleAddSlot}
+          >
+            + 追加素材
+          </button>
+        )}
         <button
           className="btn-warning"
-          disabled={isDisabled || !forgeMat1 || !forgeMat2 || displayStamina < 3}
+          disabled={isDisabled || !allSelected || displayStamina < minStamina}
           onClick={() =>
             doAction("forge", {
-              material1: forgeMat1,
-              material2: forgeMat2,
+              materials: matSlots,
             })
           }
         >
@@ -96,8 +147,13 @@ export default function ForgeSection({ user, doAction, isDisabled, displayStamin
         </button>
       </div>
       <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", marginTop: "0.3rem" }}>
-        消耗體力：3～8 點
-        {displayStamina < 3 && <span style={{ color: "#f87171", marginLeft: "0.4rem" }}>體力不足！</span>}
+        消耗體力：{minStamina}～{maxStamina} 點
+        {slotCount > 2 && (
+          <span style={{ color: "#a855f7", marginLeft: "0.3rem" }}>
+            (+{extraStaminaCost} 追加素材)
+          </span>
+        )}
+        {displayStamina < minStamina && <span style={{ color: "#f87171", marginLeft: "0.4rem" }}>體力不足！</span>}
       </div>
     </div>
   );

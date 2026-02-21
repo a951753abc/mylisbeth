@@ -21,17 +21,27 @@ router.post("/mine", ensureAuth, async (req, res) => {
   await handleRoute(res, () => move([null, "mine"], req.user.discordId), "挖礦失敗");
 });
 
-// Forge
+// Forge (支援 2~4 素材)
 router.post("/forge", ensureAuth, async (req, res) => {
   await handleRoute(res, async () => {
-    const { material1, material2 } = req.body;
+    // 向後相容：支援舊格式 material1/material2 及新格式 materials[]
+    let materials;
+    if (Array.isArray(req.body.materials)) {
+      materials = req.body.materials;
+    } else {
+      const { material1, material2 } = req.body;
+      materials = [material1, material2];
+    }
+    if (materials.length < 2 || materials.length > 4) {
+      return { error: "鍛造需要 2~4 個素材" };
+    }
     let weaponName = null;
     if (req.body.weaponName && String(req.body.weaponName).trim().length > 0) {
       const nameCheck = validateName(req.body.weaponName, "武器名稱");
       if (!nameCheck.valid) return { error: nameCheck.error };
       weaponName = nameCheck.value;
     }
-    return await move([null, "forge", material1, material2, weaponName], req.user.discordId);
+    return await move([null, "forge", materials, weaponName], req.user.discordId);
   }, "鍛造失敗");
 });
 

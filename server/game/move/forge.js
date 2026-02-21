@@ -36,76 +36,71 @@ module.exports = async function (cmd, rawUser) {
     }
   }
 
-  if (!user.itemStock || !user.itemStock[cmd[2]]) {
-    return { error: "錯誤！素材" + cmd[2] + " 不存在" };
+  // cmd[2] = materials array (indices), cmd[3] = weaponName
+  const materialIndices = Array.isArray(cmd[2]) ? cmd[2] : [cmd[2], cmd[3]];
+  const weaponName = Array.isArray(cmd[2]) ? cmd[3] : cmd[4];
+
+  if (materialIndices.length < 2 || materialIndices.length > 4) {
+    return { error: "鍛造需要 2~4 個素材" };
   }
-  if (!user.itemStock[cmd[3]]) {
-    return { error: "錯誤！素材" + cmd[3] + " 不存在" };
-  }
-  if (cmd[2] === cmd[3]) {
-    if (user.itemStock[cmd[2]].itemNum < 2) {
-      return { error: "錯誤！素材" + cmd[2] + " 數量不足" };
+
+  // 驗證所有素材索引
+  for (const idx of materialIndices) {
+    if (!user.itemStock || !user.itemStock[idx]) {
+      return { error: "錯誤！素材 " + idx + " 不存在" };
     }
   }
-  if (user.itemStock[cmd[2]].itemNum < 1) {
-    return { error: "錯誤！素材" + cmd[2] + " 數量不足" };
+
+  // 統計每個索引使用次數
+  const usageCounts = {};
+  for (const idx of materialIndices) {
+    usageCounts[idx] = (usageCounts[idx] || 0) + 1;
   }
-  if (user.itemStock[cmd[3]].itemNum < 1) {
-    return { error: "錯誤！素材" + cmd[3] + " 數量不足" };
+
+  // 檢查數量是否足夠
+  for (const [idx, count] of Object.entries(usageCounts)) {
+    if (user.itemStock[idx].itemNum < count) {
+      return { error: "錯誤！素材 " + idx + " 數量不足（需要 " + count + " 個）" };
+    }
   }
-  // 武器名稱為選填，鍛造後可改名一次
-  if (cmd[4] !== undefined && cmd[4] !== null && String(cmd[4]).trim().length > 0) {
-    if (String(cmd[4]).length > 20) {
+
+  // 武器名稱驗證
+  if (weaponName !== undefined && weaponName !== null && String(weaponName).trim().length > 0) {
+    if (String(weaponName).length > 20) {
       return { error: "武器名稱不得超過 20 個字" };
     }
   }
 
-  // 先扣素材（原子操作），確認成功後再使用靈感 buff
-  const item1 = user.itemStock[cmd[2]];
-  const item2 = user.itemStock[cmd[3]];
-  let decOk;
-  if (cmd[2] === cmd[3]) {
-    decOk = await db.atomicIncItem(
-      user.userId,
-      item1.itemId,
-      item1.itemLevel,
-      item1.itemName,
-      -2,
+  // 原子扣除素材（逐一扣除，失敗時回滾已扣除的）
+  const deducted = [];
+  let decOk = true;
+  for (const [idx, count] of Object.entries(usageCounts)) {
+    const item = user.itemStock[idx];
+    const result = await db.atomicIncItem(
+      user.userId, item.itemId, item.itemLevel, item.itemName, -count,
     );
-  } else {
-    decOk = await db.atomicIncItem(
-      user.userId,
-      item1.itemId,
-      item1.itemLevel,
-      item1.itemName,
-      -1,
-    );
-    if (decOk) {
-      decOk = await db.atomicIncItem(
-        user.userId,
-        item2.itemId,
-        item2.itemLevel,
-        item2.itemName,
-        -1,
-      );
-      if (!decOk) {
-        await db.atomicIncItem(
-          user.userId,
-          item1.itemId,
-          item1.itemLevel,
-          item1.itemName,
-          1,
-        );
-      }
+    if (result) {
+      deducted.push({ idx, count, item });
+    } else {
+      decOk = false;
+      break;
     }
   }
+
+  // 扣除失敗：回滾所有已扣除的素材
   if (!decOk) {
+    for (const d of deducted) {
+      await db.atomicIncItem(user.userId, d.item.itemId, d.item.itemLevel, d.item.itemName, d.count);
+    }
     return { error: "素材已不足，無法鍛造。" };
   }
 
+  // 組裝 materials 物件陣列（傳給 createWeapon）
+  const materials = materialIndices.map((idx) => user.itemStock[idx]);
+
   // 鍛造靈感 buff（流浪鍛冶師事件）— 素材扣除成功後才消耗
   const hasInspiration = user.forgeInspiration || false;
-  const thisWeapon = await weapon.createWeapon(cmd, user, { forgeInspiration: hasInspiration });
+  const thisWeapon = await weapon.createWeapon(materials, weaponName, user, { forgeInspiration: hasInspiration });
   if (hasInspiration) {
     await db.update("user", { userId: user.userId }, { $set: { forgeInspiration: false } });
   }

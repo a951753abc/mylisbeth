@@ -114,28 +114,27 @@ module.exports.buffWeapon = function (cmd, user) {
   return thisWeapon;
 };
 
-module.exports.createWeapon = async function (cmd, user, options = {}) {
+module.exports.createWeapon = async function (materials, weaponName, user, options = {}) {
   const forgeLevel = user.forgeLevel ?? 1;
   const title = user.title || null;
   const critFailExtra = getRawModifier(title, "forgeCritFailExtra") * 100; // 0.05 → 5
   const critSuccessAdj = getRawModifier(title, "forgeCritSuccessAdj"); // integer
+
+  // 配方查找限前 2 個素材
   const query = {
-    forge1: user.itemStock[cmd[2]].itemId,
-    forge2: user.itemStock[cmd[3]].itemId,
+    forge1: materials[0].itemId,
+    forge2: materials[1].itemId,
   };
   let weapon = await db.findOne("weapon", query);
   if (!weapon) {
-    // 素材屬性加權武器類型選取
-    const matStats = [
-      getStatName(user.itemStock[cmd[2]].itemId),
-      getStatName(user.itemStock[cmd[3]].itemId),
-    ];
+    // 素材屬性加權武器類型選取（所有素材參與）
+    const matStats = materials.map((m) => getStatName(m.itemId));
     const weights = calcWeaponTypeWeights(matStats);
     const selectedType = selectWeaponType(weights);
     const matched = randWeapon.find((w) => w.type === selectedType);
     weapon = { ...(matched || randWeapon[Math.floor(Math.random() * randWeapon.length)]) };
   }
-  weapon.weaponName = cmd[4] || weapon.name;
+  weapon.weaponName = weaponName || weapon.name;
   weapon.renameCount = 0;
   weapon.hp = 0;
   const baseDurability = roll.d66();
@@ -143,43 +142,60 @@ module.exports.createWeapon = async function (cmd, user, options = {}) {
   weapon.durability = Math.max(1, Math.round(baseDurability * durMod));
   weapon.maxDurability = weapon.durability;
   weapon.text = "";
-  weapon.text +=
-    "使用" +
-    user.itemStock[cmd[2]].itemName +
-    "和" +
-    user.itemStock[cmd[3]].itemName +
-    "製作完成\n";
+  const matNames = materials.map((m) => m.itemName).join("、");
+  weapon.text += "使用" + matNames + "製作完成\n";
 
-  if (cmd[2] === cmd[3]) {
-    const per =
-      20 +
-      (user.itemStock[cmd[2]].itemLevel + user.itemStock[cmd[3]].itemLevel) * 5;
-    if (roll.d100Check(per)) {
-      const perName = getStatName(user.itemStock[cmd[2]].itemId);
-      weapon.text += "強化成功！\n";
-      weapon.text += getStatBoostText(perName, forgeLevel);
-      applyStatBoost(weapon, perName, forgeLevel);
+  // 每個素材獨立判定 stat boost
+  const processed = new Set();
+  for (let i = 0; i < materials.length; i++) {
+    const matKey = `${materials[i].itemId}:${materials[i].itemLevel}`;
+    if (processed.has(matKey)) {
+      // 相同素材重複時，合併判定一次（使用疊加星級）
+      continue;
     }
-  } else {
-    let per = 20 + user.itemStock[cmd[2]].itemLevel * 5;
-    if (roll.d100Check(per)) {
-      const perName = getStatName(user.itemStock[cmd[2]].itemId);
-      weapon.text += "強化成功！\n";
-      weapon.text += getStatBoostText(perName, forgeLevel);
-      applyStatBoost(weapon, perName, forgeLevel);
+    // 找出所有相同素材
+    const sameIndices = [];
+    for (let j = i; j < materials.length; j++) {
+      if (materials[j].itemId === materials[i].itemId && materials[j].itemLevel === materials[i].itemLevel) {
+        sameIndices.push(j);
+      }
     }
-    per = 20 + user.itemStock[cmd[3]].itemLevel * 5;
-    if (roll.d100Check(per)) {
-      const perName = getStatName(user.itemStock[cmd[3]].itemId);
-      weapon.text += "強化成功！\n";
-      weapon.text += getStatBoostText(perName, forgeLevel);
-      applyStatBoost(weapon, perName, forgeLevel);
+    processed.add(matKey);
+
+    if (sameIndices.length > 1) {
+      // 同素材多個：合計星級判定
+      const totalLevel = sameIndices.reduce((sum, idx) => sum + materials[idx].itemLevel, 0);
+      const per = 20 + totalLevel * 5;
+      if (roll.d100Check(per)) {
+        const perName = getStatName(materials[i].itemId);
+        weapon.text += "強化成功！\n";
+        weapon.text += getStatBoostText(perName, forgeLevel);
+        applyStatBoost(weapon, perName, forgeLevel);
+      }
+    } else {
+      const per = 20 + materials[i].itemLevel * 5;
+      if (roll.d100Check(per)) {
+        const perName = getStatName(materials[i].itemId);
+        weapon.text += "強化成功！\n";
+        weapon.text += getStatBoostText(perName, forgeLevel);
+        applyStatBoost(weapon, perName, forgeLevel);
+      }
+    }
+  }
+
+  // 3+ 素材額外加成：每多 1 個素材 +1 隨機屬性 × floor(forgeLevel/2)
+  if (materials.length > 2) {
+    const extraCount = materials.length - 2;
+    const bonusPerExtra = Math.max(1, Math.floor(forgeLevel / 2));
+    for (let e = 0; e < extraCount; e++) {
+      const randomStat = weaponPer[Math.floor(Math.random() * weaponPer.length)];
+      applyStatBoost(weapon, randomStat, bonusPerExtra);
+      weapon.text += `追加素材加成：${randomStat} +${bonusPerExtra}\n`;
     }
   }
 
   // 素材組合加成
-  const forgeMaterials = [user.itemStock[cmd[2]], user.itemStock[cmd[3]]];
-  const comboResult = checkForgeBonuses(forgeMaterials);
+  const comboResult = checkForgeBonuses(materials);
   if (comboResult.bonuses.length > 0) {
     for (const b of comboResult.bonuses) {
       applyStatBoost(weapon, b.stat, b.value);

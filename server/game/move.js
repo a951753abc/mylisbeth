@@ -74,7 +74,12 @@ module.exports = async function (cmd, userOrId) {
   }
 
   // 體力檢查：挖礦/鍛造/修復才消耗（傳入稱號以套用修正）
-  const staminaResult = await checkAndConsumeStamina(userId, cmd[1], user.title || null);
+  // 多素材鍛造：每多 1 個素材 +2 體力消耗
+  let extraStaminaCost = 0;
+  if (cmd[1] === "forge" && Array.isArray(cmd[2]) && cmd[2].length > 2) {
+    extraStaminaCost = (cmd[2].length - 2) * 2;
+  }
+  const staminaResult = await checkAndConsumeStamina(userId, cmd[1], user.title || null, extraStaminaCost);
   if (!staminaResult.ok) {
     return { error: staminaResult.error };
   }

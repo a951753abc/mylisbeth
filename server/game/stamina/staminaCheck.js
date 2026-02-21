@@ -88,7 +88,7 @@ async function regenStamina(userId) {
  * @param {string} action
  * @returns {Promise<{ ok: boolean, cost?: number, stamina?: number, error?: string }>}
  */
-async function checkAndConsumeStamina(userId, action, userTitle = null) {
+async function checkAndConsumeStamina(userId, action, userTitle = null, extraCost = 0) {
   if (!STAMINA_ACTIONS.has(action)) {
     return { ok: true };
   }
@@ -98,7 +98,7 @@ async function checkAndConsumeStamina(userId, action, userTitle = null) {
 
   const baseCost = rollStaminaCost(action);
   const staminaMod = getModifier(userTitle, "staminaCost");
-  const cost = Math.max(1, Math.round(baseCost * staminaMod));
+  const cost = Math.max(1, Math.round(baseCost * staminaMod)) + extraCost;
   const maxStamina = config.STAMINA.MAX;
 
   // 原子扣除：只有體力足夠才成功
