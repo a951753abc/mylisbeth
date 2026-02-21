@@ -59,7 +59,7 @@ function getSkillsByCategory(category) {
  * @returns {object[]}
  */
 function getAllSkills() {
-  return skillDefs;
+  return skillDefs.map(({ unlockCondition, ...rest }) => rest);
 }
 
 /**

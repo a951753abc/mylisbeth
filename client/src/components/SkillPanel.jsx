@@ -242,7 +242,7 @@ export default function SkillPanel({ user }) {
           {extraSkills.length > 0 && (
             <div style={{ marginBottom: "1rem" }}>
               <h3 style={{ fontSize: "0.95rem", color: "var(--gold)", marginBottom: "0.5rem" }}>
-                額外技能（隱藏解鎖）
+                額外技能
               </h3>
               {extraSkills.map((skill) => (
                 <SkillCard

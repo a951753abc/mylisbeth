@@ -883,7 +883,7 @@
       { "type": "multi_hit", "value": 3 },
       { "type": "damage_mult", "value": 0.6 }
     ],
-    "description": "隱藏技能：徒手格鬥三連擊。需累計 50 場冒險解鎖。"
+    "description": "徒手格鬥三連擊。"
   },
   {
     "id": "meditation",
@@ -900,7 +900,7 @@
     "color": "#06b6d4",
     "postMotionDelay": 0,
     "effects": [{ "type": "heal_per_round", "value": 5 }],
-    "description": "隱藏技能：每回合回復 5% 最大 HP。需存活 100 遊戲日解鎖。"
+    "description": "每回合回復 5% 最大 HP。"
   },
   {
     "id": "katana_mastery",
@@ -920,7 +920,7 @@
       { "type": "katana_trigger_bonus", "value": 10 },
       { "type": "katana_damage_bonus", "value": 0.2 }
     ],
-    "description": "隱藏技能：刀類技能觸發率 +10%，傷害 +20%。需刀類熟練度 500 解鎖。"
+    "description": "刀類技能觸發率 +10%，傷害 +20%。"
   },
   {
     "id": "tracking",
@@ -937,6 +937,6 @@
     "color": "#22c55e",
     "postMotionDelay": 0,
     "effects": [{ "type": "rare_encounter_bonus", "value": 5 }],
-    "description": "隱藏技能：Hell/優樹遭遇率 +5%。需累計 200 次冒險解鎖。"
+    "description": "Hell/優樹遭遇率 +5%。"
   }
 ]
