@@ -7,6 +7,7 @@ const { checkAndAward } = require("../progression/achievement.js");
 const { getModifier } = require("../title/titleModifier.js");
 const roll = require("../roll.js");
 const { awardAdvExp } = require("../progression/adventureLevel.js");
+const { getActiveFloor } = require("../floor/activeFloor.js");
 
 const MISSIONS = config.NPC_MISSIONS;
 
@@ -84,7 +85,6 @@ async function startMission(userId, npcId, missionType) {
   const now = Date.now();
   const endsAt = now + missionDef.duration * config.TIME_SCALE;
 
-  const { getActiveFloor } = require("../floor/activeFloor.js");
   const mission = {
     type: missionType,
     name: missionDef.name,

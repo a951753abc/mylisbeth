@@ -10,6 +10,7 @@ const { increment } = require("../../progression/statsTracker.js");
 const { getEffectiveStats } = require("../../npc/npcStats.js");
 const { getBattleLevelBonus, awardBattleExp } = require("../../battleLevel.js");
 const { getModifier } = require("../../title/titleModifier.js");
+const { getActiveFloor } = require("../../floor/activeFloor.js");
 
 const LC = config.RANDOM_EVENTS.LAUGHING_COFFIN;
 const SOLO = config.SOLO_ADV;
@@ -22,7 +23,6 @@ const SOLO = config.SOLO_ADV;
  * @returns {object} eventResult
  */
 async function laughingCoffin(user, actionType, actionResult) {
-  const { getActiveFloor } = require("../../floor/activeFloor.js");
   const floor = getActiveFloor(user);
   const scale = 1 + floor * 0.15;
 

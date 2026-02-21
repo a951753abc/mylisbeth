@@ -5,6 +5,8 @@ const { awardCol } = require("../../economy/col.js");
 const { increment } = require("../../progression/statsTracker.js");
 const grantFloorMaterial = require("../helpers/grantFloorMaterial.js");
 
+const { getActiveFloor } = require("../../floor/activeFloor.js");
+
 const MC = config.RANDOM_EVENTS.MYSTERIOUS_CHEST;
 
 /**
@@ -16,7 +18,6 @@ const MC = config.RANDOM_EVENTS.MYSTERIOUS_CHEST;
  * @returns {object} eventResult
  */
 async function mysteriousChest(user, actionType, actionResult) {
-  const { getActiveFloor } = require("../../floor/activeFloor.js");
   const floor = getActiveFloor(user);
   const outcome = roll.d100();
 

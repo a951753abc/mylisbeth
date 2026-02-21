@@ -97,7 +97,8 @@ function damCheck(atk, atkCri, def) {
   for (let i = 1; i <= def; i++) {
     defSum += roll.d66();
   }
-  while (roll.d66() >= atkCri) {
+  const MAX_CRIT_ROUNDS = 999;
+  for (let c = 0; c < MAX_CRIT_ROUNDS && roll.d66() >= atkCri; c++) {
     const criDam = roll.d66();
     text += `會心一擊！追加 ${criDam} 點傷害！`;
     atkDam += criDam;

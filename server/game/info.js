@@ -1,4 +1,3 @@
-const _ = require("lodash");
 const type = require("./type.js");
 const { calculateRarity } = require("./weapon/rarity.js");
 const config = require("./config.js");
@@ -8,12 +7,9 @@ const { getExpForNextLevel: getBattleExpForNextLevel } = require("./battleLevel.
 const { getHireLimit } = require("./npc/npcManager.js");
 
 module.exports = function (user) {
-  const lose = _.get(user, "lost", 0);
-  const name = _.get(user, "name", "");
-
   const items = [];
-  if (_.get(user, "itemStock", 0) !== 0) {
-    _.forEach(user.itemStock, function (value, key) {
+  if (user.itemStock) {
+    user.itemStock.forEach((value, key) => {
       if (value && value.itemNum > 0) {
         items.push({
           index: key,
@@ -27,10 +23,10 @@ module.exports = function (user) {
   }
 
   const weapons = [];
-  if (_.get(user, "weaponStock", 0) !== 0) {
-    _.forEach(user.weaponStock, function (value, key) {
+  if (user.weaponStock) {
+    user.weaponStock.forEach((value, key) => {
       let weaponName = value.weaponName;
-      if (_.get(value, "buff", false)) {
+      if (value.buff) {
         weaponName = weaponName + "+" + value.buff;
       }
       const rarity = value.rarity
@@ -75,14 +71,14 @@ module.exports = function (user) {
     "[Easy]Win",
   ];
   winCategories.forEach((cat) => {
-    const val = _.get(user, cat, 0);
+    const val = user[cat] ?? 0;
     if (val > 0) {
       wins[cat] = val;
     }
   });
 
   // Season 3: NPC 資料（前端只需要展示用的精簡版）
-  const hiredNpcs = (_.get(user, "hiredNpcs", [])).map((npc) => ({
+  const hiredNpcs = (user.hiredNpcs || []).map((npc) => ({
     npcId: npc.npcId,
     name: npc.name,
     class: npc.class,
@@ -100,49 +96,52 @@ module.exports = function (user) {
     } : null,
   }));
 
+  const mineLevel = user.mineLevel ?? 1;
+  const forgeLevel = user.forgeLevel ?? 1;
+  const battleLevel = user.battleLevel ?? 1;
+  const adventureLevel = user.adventureLevel ?? 1;
+
   return {
-    userId: _.get(user, "userId", ""),
-    name,
-    lost: lose,
-    mineLevel: _.get(user, "mineLevel", 1),
-    forgeLevel: _.get(user, "forgeLevel", 1),
-    mineExp: _.get(user, "mine", 0),
-    mineExpNext: getExpForNextLevel("mine", _.get(user, "mineLevel", 1)),
-    forgeExp: _.get(user, "forge", 0),
-    forgeExpNext: getExpForNextLevel("forge", _.get(user, "forgeLevel", 1)),
+    userId: user.userId ?? "",
+    name: user.name ?? "",
+    lost: user.lost ?? 0,
+    mineLevel,
+    forgeLevel,
+    mineExp: user.mine ?? 0,
+    mineExpNext: getExpForNextLevel("mine", mineLevel),
+    forgeExp: user.forge ?? 0,
+    forgeExpNext: getExpForNextLevel("forge", forgeLevel),
     items,
     weapons,
     wins,
     // Season 2 fields
-    col: _.get(user, "col", 0),
-    currentFloor: _.get(user, "currentFloor", 1),
-    floorProgress: _.get(user, "floorProgress", {
-      1: { explored: 0, maxExplore: 5 },
-    }),
-    title: _.get(user, "title", null),
-    availableTitles: _.get(user, "availableTitles", []),
-    achievements: _.get(user, "achievements", []),
-    stats: _.get(user, "stats", {}),
-    bossContribution: _.get(user, "bossContribution", {
+    col: user.col ?? 0,
+    currentFloor: user.currentFloor ?? 1,
+    floorProgress: user.floorProgress ?? { 1: { explored: 0, maxExplore: 5 } },
+    title: user.title ?? null,
+    availableTitles: user.availableTitles ?? [],
+    achievements: user.achievements ?? [],
+    stats: user.stats ?? {},
+    bossContribution: user.bossContribution ?? {
       totalDamage: 0,
       bossesDefeated: 0,
       mvpCount: 0,
-    }),
-    dailyLoginStreak: _.get(user, "dailyLoginStreak", 0),
-    lastDailyClaimAt: _.get(user, "lastDailyClaimAt", null),
+    },
+    dailyLoginStreak: user.dailyLoginStreak ?? 0,
+    lastDailyClaimAt: user.lastDailyClaimAt ?? null,
     // Season 3 fields
     hiredNpcs,
-    debt: _.get(user, "debt", 0),
-    isInDebt: _.get(user, "isInDebt", false),
-    debtCycleCount: _.get(user, "debtCycleCount", 0),
-    nextSettlementAt: _.get(user, "nextSettlementAt", null),
-    gameCreatedAt: _.get(user, "gameCreatedAt", null),
+    debt: user.debt ?? 0,
+    isInDebt: user.isInDebt ?? false,
+    debtCycleCount: user.debtCycleCount ?? 0,
+    nextSettlementAt: user.nextSettlementAt ?? null,
+    gameCreatedAt: user.gameCreatedAt ?? null,
     // Season 3: 玩家體力值
-    stamina: _.get(user, "stamina", config.STAMINA.MAX),
-    maxStamina: _.get(user, "maxStamina", config.STAMINA.MAX),
-    lastStaminaRegenAt: _.get(user, "lastStaminaRegenAt", null),
+    stamina: user.stamina ?? config.STAMINA.MAX,
+    maxStamina: user.maxStamina ?? config.STAMINA.MAX,
+    lastStaminaRegenAt: user.lastStaminaRegenAt ?? null,
     // Season 4: Boss 聖遺物
-    bossRelics: (_.get(user, "bossRelics", [])).map((r) => ({
+    bossRelics: (user.bossRelics || []).map((r) => ({
       id: r.id,
       name: r.name,
       nameCn: r.nameCn,
@@ -151,24 +150,24 @@ module.exports = function (user) {
       obtainedAt: r.obtainedAt,
     })),
     // Season 5: 戰鬥等級 & PVP
-    battleLevel: _.get(user, "battleLevel", 1),
-    battleExp: _.get(user, "battleExp", 0),
-    battleExpNext: getBattleExpForNextLevel(_.get(user, "battleLevel", 1)),
-    isPK: _.get(user, "isPK", false),
-    pkKills: _.get(user, "pkKills", 0),
-    defenseWeaponIndex: _.get(user, "defenseWeaponIndex", 0),
+    battleLevel,
+    battleExp: user.battleExp ?? 0,
+    battleExpNext: getBattleExpForNextLevel(battleLevel),
+    isPK: user.isPK ?? false,
+    pkKills: user.pkKills ?? 0,
+    defenseWeaponIndex: user.defenseWeaponIndex ?? 0,
     // Season 10: 樓層往返
-    activeFloor: _.get(user, "activeFloor", null),
+    activeFloor: user.activeFloor ?? null,
     // Season 7: 暫停營業
-    businessPaused: _.get(user, "businessPaused", false),
-    businessPausedAt: _.get(user, "businessPausedAt", null),
+    businessPaused: user.businessPaused ?? false,
+    businessPausedAt: user.businessPausedAt ?? null,
     // Season 7: 冒險等級
-    adventureLevel: _.get(user, "adventureLevel", 1),
-    adventureExp: _.get(user, "adventureExp", 0),
-    adventureExpNext: getAdvExpToNextLevel(_.get(user, "adventureLevel", 1)),
-    hireLimit: getHireLimit(_.get(user, "adventureLevel", 1)),
+    adventureLevel,
+    adventureExp: user.adventureExp ?? 0,
+    adventureExpNext: getAdvExpToNextLevel(adventureLevel),
+    hireLimit: getHireLimit(adventureLevel),
     // Season 8: 封印武器
-    sealedWeapons: (_.get(user, "sealedWeapons", [])).map((w, idx) => {
+    sealedWeapons: (user.sealedWeapons || []).map((w, idx) => {
       const rarity = w.rarity
         ? { id: w.rarity, label: w.rarityLabel, color: w.rarityColor }
         : calculateRarity(w);

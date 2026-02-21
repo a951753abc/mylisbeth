@@ -3,6 +3,8 @@ const db = require("../../../db.js");
 const roll = require("../../roll.js");
 const grantFloorMaterial = require("../helpers/grantFloorMaterial.js");
 
+const { getActiveFloor } = require("../../floor/activeFloor.js");
+
 const LR = config.RANDOM_EVENTS.LABYRINTH_RIFT;
 
 /**
@@ -14,7 +16,6 @@ const LR = config.RANDOM_EVENTS.LABYRINTH_RIFT;
  * @returns {object} eventResult
  */
 async function labyrinthRift(user, actionType, actionResult) {
-  const { getActiveFloor } = require("../../floor/activeFloor.js");
   const floor = getActiveFloor(user);
   const targetFloor = Math.min(floor + LR.FLOOR_BONUS, 20);
 

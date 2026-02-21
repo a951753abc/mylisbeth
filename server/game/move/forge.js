@@ -1,4 +1,3 @@
-const _ = require("lodash");
 const weapon = require("../weapon/weapon.js");
 const db = require("../../db.js");
 const level = require("../level");
@@ -18,8 +17,8 @@ module.exports = async function (cmd, rawUser) {
     return { error: "你目前有未清還的負債，無法進行鍛造！請先至帳單頁面還清負債。" };
   }
 
-  const weaponLevel = _.get(user, "forgeLevel", 1);
-  if (_.get(user, "weaponStock", false)) {
+  const weaponLevel = user.forgeLevel ?? 1;
+  if (user.weaponStock) {
     const filter = [
       { $match: { userId: user.userId } },
       { $project: { values: { $size: "$weaponStock" }, name: 1 } },
@@ -121,13 +120,12 @@ module.exports = async function (cmd, rawUser) {
     thisWeapon.text += thisWeapon.weaponName + " 爆發四散了。";
     await increment(user.userId, "weaponsBroken");
   } else {
-    await db.update(
+    const updated = await db.findOneAndUpdate(
       "user",
       { userId: user.userId },
       { $push: { weaponStock: thisWeapon } },
+      { returnDocument: "after" },
     );
-    // 取得新武器在 weaponStock 中的 index
-    const updated = await db.findOne("user", { userId: user.userId });
     if (updated && updated.weaponStock) {
       weaponIndex = updated.weaponStock.length - 1;
     }

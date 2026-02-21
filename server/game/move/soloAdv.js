@@ -19,6 +19,7 @@ const { awardProficiency, getProfGainKey } = require("../skill/skillProficiency.
 const { resolveWeaponType } = require("../weapon/weaponType.js");
 const { checkExtraSkills } = require("../skill/extraSkillChecker.js");
 const roll = require("../roll.js");
+const { getActiveFloor, getProficiencyMultiplier } = require("../floor/activeFloor.js");
 
 const SOLO = config.SOLO_ADV;
 
@@ -36,7 +37,6 @@ module.exports = async function (cmd, rawUser) {
       return { error: `武器 #${weaponIndex} 不存在` };
     }
 
-    const { getActiveFloor } = require("../floor/activeFloor.js");
     const thisWeapon = user.weaponStock[weaponIndex];
     const currentFloor = getActiveFloor(user);
 
@@ -138,7 +138,6 @@ module.exports = async function (cmd, rawUser) {
     await incrementFloorExploration(user.userId, user, currentFloor);
 
     // 發放武器熟練度（低樓層衰減）
-    const { getProficiencyMultiplier } = require("../floor/activeFloor.js");
     const profMult = getProficiencyMultiplier(user);
     const profGainKey = getProfGainKey(outcomeKey, "solo");
     const profResult = await awardProficiency(user.userId, thisWeapon, profGainKey, profMult);

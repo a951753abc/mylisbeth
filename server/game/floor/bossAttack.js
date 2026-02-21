@@ -23,7 +23,8 @@ function calcDamage(atk, cri, def) {
   for (let i = 0; i < def; i++) {
     defSum += roll.d66();
   }
-  while (roll.d66() >= cri) {
+  const MAX_CRIT_ROUNDS = 999;
+  for (let c = 0; c < MAX_CRIT_ROUNDS && roll.d66() >= cri; c++) {
     atkDam += roll.d66();
   }
   const final = Math.max(1, atkDam - defSum);

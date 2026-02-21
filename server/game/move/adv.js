@@ -24,6 +24,7 @@ const { awardProficiency, awardNpcProficiency, getProfGainKey } = require("../sk
 const { resolveWeaponType } = require("../weapon/weaponType.js");
 const { tryNpcLearnSkill } = require("../skill/npcSkillLearning.js");
 const { checkExtraSkills } = require("../skill/extraSkillChecker.js");
+const { getActiveFloor, getProficiencyMultiplier } = require("../floor/activeFloor.js");
 
 // 冒險結果對應 NPC 經驗值
 const NPC_EXP_GAIN = {
@@ -72,7 +73,6 @@ module.exports = async function (cmd, rawUser) {
       return { error: `${hiredNpc.name} 正在執行任務中，無法出戰。` };
     }
 
-    const { getActiveFloor } = require("../floor/activeFloor.js");
     const thisWeapon = user.weaponStock[cmd[2]];
     const currentFloor = getActiveFloor(user);
 
@@ -202,7 +202,6 @@ module.exports = async function (cmd, rawUser) {
     await incrementFloorExploration(user.userId, user, currentFloor);
 
     // NPC 熟練度（NPC 冒險只增加 NPC 的熟練度，不增加玩家的）
-    const { getProficiencyMultiplier } = require("../floor/activeFloor.js");
     const profMult = getProficiencyMultiplier(user);
     const profGainKey = getProfGainKey(outcomeKey, "adv");
     let skillText = "";
