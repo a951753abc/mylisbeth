@@ -103,12 +103,53 @@ module.exports = async function (cmd, userOrId) {
   }
 
   // 操作日誌（fire-and-forget）
-  logAction(userId, user.name, cmd[1], {
+  const logDetails = {
     cmd: cmd.slice(1),
     floor: user.currentFloor,
     staminaCost: actionResult?.staminaCost,
     randomEvent: actionResult?.randomEvent?.type || null,
-  }, !actionResult?.error, actionResult?.error || null);
+  };
+
+  // 戰鬥類動作：提取完整戰鬥過程
+  if (actionResult && !actionResult.error) {
+    const action = cmd[1];
+    if ((action === "adv" || action === "soloAdv") && actionResult.battleResult) {
+      const br = actionResult.battleResult;
+      logDetails.battle = {
+        outcome: br.win ? "win" : br.dead ? "lose" : "draw",
+        enemyName: br.enemyName,
+        category: br.category,
+        npcName: br.npcName,
+        initialHp: br.initialHp,
+        finalHp: br.finalHp,
+        log: br.log,
+        skillEvents: actionResult.skillEvents,
+      };
+      if (actionResult.colEarned) logDetails.colEarned = actionResult.colEarned;
+      if (actionResult.colSpent) logDetails.colSpent = actionResult.colSpent;
+    } else if (action === "pvp" && actionResult.battleLog !== undefined) {
+      logDetails.battle = {
+        outcome: actionResult.winner,
+        attackerName: actionResult.attackerName,
+        defenderName: actionResult.defenderName,
+        duelMode: actionResult.duelMode,
+        wagerCol: actionResult.wagerCol,
+        detailLog: actionResult.detailLog,
+        skillEvents: actionResult.skillEvents,
+      };
+    } else if (action === "boss" && actionResult.damage !== undefined) {
+      logDetails.battle = {
+        damage: actionResult.damage,
+        bossName: actionResult.bossName,
+        bossHpRemaining: actionResult.bossHpRemaining,
+        bossHpTotal: actionResult.bossHpTotal,
+        bossDefeated: actionResult.bossDefeated,
+        counterAttack: actionResult.counterAttack,
+      };
+    }
+  }
+
+  logAction(userId, user.name, cmd[1], logDetails, !actionResult?.error, actionResult?.error || null);
 
   return actionResult;
 };

@@ -324,5 +324,6 @@ module.exports = async function (cmd, rawAttacker) {
     socketEvents,
     battleLevelUp: expResult.leveled ? expResult.newLevel : null,
     skillEvents: battleResult.skillEvents || [],
+    detailLog: battleResult.detailLog || [],
   };
 };

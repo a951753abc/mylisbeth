@@ -72,14 +72,16 @@ function getEneFromFloor(floorEnemies) {
 }
 
 function hitCheck(atkAgi, defAgi) {
-  const atkAct = roll.d66() + atkAgi;
-  const defAct = roll.d66() + defAgi;
+  const atkRoll = roll.d66();
+  const defRoll = roll.d66();
+  const atkAct = atkRoll + atkAgi;
+  const defAct = defRoll + defAgi;
   if (atkAct === 12) {
-    return { success: true, text: "擲出了大成功！" };
+    return { success: true, text: "擲出了大成功！", atkRoll, defRoll, atkAct, defAct };
   } else if (atkAct >= defAct) {
-    return { success: true, text: "成功命中。" };
+    return { success: true, text: "成功命中。", atkRoll, defRoll, atkAct, defAct };
   } else {
-    return { success: false, text: "攻擊被閃過了。" };
+    return { success: false, text: "攻擊被閃過了。", atkRoll, defRoll, atkAct, defAct };
   }
 }
 
@@ -87,6 +89,7 @@ function damCheck(atk, atkCri, def) {
   let atkDam = 0;
   let defSum = 0;
   let isCrit = false;
+  let critCount = 0;
   let text = "";
   for (let i = 1; i <= atk; i++) {
     atkDam += roll.d66();
@@ -99,13 +102,14 @@ function damCheck(atk, atkCri, def) {
     text += `會心一擊！追加 ${criDam} 點傷害！`;
     atkDam += criDam;
     isCrit = true;
+    critCount++;
   }
   let finalDamage = atkDam - defSum;
   if (finalDamage <= 0) {
     finalDamage = 1;
   }
   text += `最終造成 ${finalDamage} 點傷害。`;
-  return { damage: finalDamage, isCrit, text };
+  return { damage: finalDamage, isCrit, critCount, atkTotal: atkDam, defTotal: defSum, text };
 }
 
 function processAttack(attacker, defender, battleLog) {
@@ -118,6 +122,12 @@ function processAttack(attacker, defender, battleLog) {
     isCrit: false,
     damage: 0,
     rollText: hitCheckResult.text,
+    hitDetail: {
+      atkRoll: hitCheckResult.atkRoll,
+      defRoll: hitCheckResult.defRoll,
+      atkAct: hitCheckResult.atkAct,
+      defAct: hitCheckResult.defAct,
+    },
   };
 
   if (hitCheckResult.success) {
@@ -132,6 +142,11 @@ function processAttack(attacker, defender, battleLog) {
     attackLog.isCrit = damageResult.isCrit;
     attackLog.damage = damageDealt;
     attackLog.rollText += ` ${damageResult.text}`;
+    attackLog.damDetail = {
+      atkTotal: damageResult.atkTotal,
+      defTotal: damageResult.defTotal,
+      critCount: damageResult.critCount,
+    };
   }
 
   battleLog.push(attackLog);
@@ -218,9 +233,14 @@ function runPveCombatLoop(playerSide, enemySide) {
   };
 
   while (playerSide.hp > 0 && enemySide.hp > 0 && round <= ROUND_LIMIT) {
-    battleResult.log.push({ type: "round", number: round });
-    const npcAct = roll.d66() + playerSide.stats.agi;
-    const eneAct = roll.d66() + enemySide.stats.agi;
+    const npcInitRoll = roll.d66();
+    const eneInitRoll = roll.d66();
+    const npcAct = npcInitRoll + playerSide.stats.agi;
+    const eneAct = eneInitRoll + enemySide.stats.agi;
+    battleResult.log.push({
+      type: "round", number: round,
+      initiative: { npcRoll: npcInitRoll, eneRoll: eneInitRoll, npcAct, eneAct },
+    });
 
     if (npcAct >= eneAct) {
       if (processAttack(playerSide, enemySide, battleResult.log) <= 0) {
@@ -262,12 +282,19 @@ function runPveCombatLoop(playerSide, enemySide) {
 function runPvpCombatLoop(attacker, defender, duelMode) {
   let round = 1;
   const battleLog = [];
+  const detailLog = [];
   let winnerSide = null;
 
   while (attacker.hp > 0 && defender.hp > 0 && round <= ROUND_LIMIT) {
+    const atkInitRoll = roll.d66();
+    const defInitRoll = roll.d66();
+    const atkAct = atkInitRoll + attacker.stats.agi;
+    const defAct = defInitRoll + defender.stats.agi;
     battleLog.push(`\n**第 ${round} 回合**`);
-    const atkAct = roll.d66() + attacker.stats.agi;
-    const defAct = roll.d66() + defender.stats.agi;
+    detailLog.push({
+      type: "round", number: round,
+      initiative: { atkRoll: atkInitRoll, defRoll: defInitRoll, atkAct, defAct },
+    });
 
     const firstSide = atkAct >= defAct ? "attacker" : "defender";
     const order = firstSide === "attacker"
@@ -281,6 +308,11 @@ function runPvpCombatLoop(attacker, defender, duelMode) {
       const dmgResult = damCheck(src.stats.atk, src.stats.cri, dst.stats.def);
       dst.hp -= dmgResult.damage;
       battleLog.push(`${src.name} 對 ${dst.name} 造成了 ${dmgResult.damage} 點傷害。`);
+      detailLog.push({
+        attacker: src.name, defender: dst.name,
+        damage: dmgResult.damage, isCrit: dmgResult.isCrit,
+        damDetail: { atkTotal: dmgResult.atkTotal, defTotal: dmgResult.defTotal, critCount: dmgResult.critCount },
+      });
 
       if (duelMode === "first_strike" && dmgResult.damage >= dst.maxHp * 0.10) {
         winnerSide = srcKey;
@@ -304,7 +336,7 @@ function runPvpCombatLoop(attacker, defender, duelMode) {
     winnerSide = attacker.hp >= defender.hp ? "attacker" : "defender";
   }
 
-  return { battleLog, winnerSide };
+  return { battleLog, detailLog, winnerSide };
 }
 
 // --- Skill-enhanced combat ---
@@ -353,8 +385,6 @@ function runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx) {
   let connectChain = 0;
 
   while (playerSide.hp > 0 && enemySide.hp > 0 && round <= ROUND_LIMIT) {
-    battleResult.log.push({ type: "round", number: round });
-
     // 條件觸發檢查
     checkConditionalSkills(playerSide, skillCtx);
 
@@ -363,18 +393,24 @@ function runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx) {
 
     // 先手判定
     let playerFirst;
+    let initData = null;
     if (triggeredEntry) {
       const { parseSkillEffects } = require("./skill/skillCombat.js");
       const effects = parseSkillEffects(triggeredEntry.skill, triggeredEntry.mods);
       if (effects.initiative) {
         playerFirst = true;
+        initData = { forced: true, skill: triggeredEntry.skill.nameCn };
       }
     }
     if (playerFirst === undefined) {
-      const npcAct = roll.d66() + playerSide.stats.agi;
-      const eneAct = roll.d66() + enemySide.stats.agi;
+      const npcInitRoll = roll.d66();
+      const eneInitRoll = roll.d66();
+      const npcAct = npcInitRoll + playerSide.stats.agi;
+      const eneAct = eneInitRoll + enemySide.stats.agi;
       playerFirst = npcAct >= eneAct;
+      initData = { npcRoll: npcInitRoll, eneRoll: eneInitRoll, npcAct, eneAct };
     }
+    battleResult.log.push({ type: "round", number: round, initiative: initData });
 
     if (playerFirst) {
       // 玩家方先攻
@@ -505,6 +541,7 @@ function runPvpCombatLoopWithSkills(attacker, defender, duelMode, atkSkillCtx, d
 
   let round = 1;
   const battleLog = [];
+  const detailLog = [];
   const skillEvents = [];
   let winnerSide = null;
 
@@ -515,8 +552,14 @@ function runPvpCombatLoopWithSkills(attacker, defender, duelMode, atkSkillCtx, d
     if (atkSkillCtx) checkConditionalSkills(attacker, atkSkillCtx);
     if (defSkillCtx) checkConditionalSkills(defender, defSkillCtx);
 
-    const atkAct = roll.d66() + attacker.stats.agi;
-    const defAct = roll.d66() + defender.stats.agi;
+    const atkInitRoll = roll.d66();
+    const defInitRoll = roll.d66();
+    const atkAct = atkInitRoll + attacker.stats.agi;
+    const defAct = defInitRoll + defender.stats.agi;
+    detailLog.push({
+      type: "round", number: round,
+      initiative: { atkRoll: atkInitRoll, defRoll: defInitRoll, atkAct, defAct },
+    });
     const firstSide = atkAct >= defAct ? "attacker" : "defender";
 
     const sides = firstSide === "attacker"
@@ -540,10 +583,20 @@ function runPvpCombatLoopWithSkills(attacker, defender, duelMode, atkSkillCtx, d
         );
         battleLog.push(`⚔️ ${src.name} 發動劍技【${triggered.skill.nameCn}】對 ${dst.name} 造成 ${result.totalDamage} 點傷害！`);
         skillEvents.push(result.log);
+        detailLog.push({
+          attacker: src.name, defender: dst.name,
+          skill: triggered.skill.nameCn, damage: result.totalDamage,
+          isCrit: result.log.isCrit || false,
+        });
       } else {
         const dmgResult = damCheck(src.stats.atk, src.stats.cri, dst.stats.def);
         dst.hp -= dmgResult.damage;
         battleLog.push(`${src.name} 對 ${dst.name} 造成了 ${dmgResult.damage} 點傷害。`);
+        detailLog.push({
+          attacker: src.name, defender: dst.name,
+          damage: dmgResult.damage, isCrit: dmgResult.isCrit,
+          damDetail: { atkTotal: dmgResult.atkTotal, defTotal: dmgResult.defTotal, critCount: dmgResult.critCount },
+        });
       }
 
       if (duelMode === "first_strike" && dst.maxHp && (dst.maxHp - dst.hp) >= dst.maxHp * 0.10) {
@@ -573,7 +626,7 @@ function runPvpCombatLoopWithSkills(attacker, defender, duelMode, atkSkillCtx, d
     winnerSide = attacker.hp >= defender.hp ? "attacker" : "defender";
   }
 
-  return { battleLog, winnerSide, skillEvents };
+  return { battleLog, detailLog, winnerSide, skillEvents };
 }
 
 // --- Battle module ---
@@ -624,13 +677,14 @@ battleModule.pvpBattle = async function (
   const defLvBonus = getBattleLevelBonus(defenderData.battleLevel || 1);
   const defender = buildPvpFighter(defenderData.name, defenderWeapon, defLvBonus, defenderMods);
 
-  const { battleLog, winnerSide } = runPvpCombatLoop(attacker, defender, duelMode);
+  const { battleLog, detailLog, winnerSide } = runPvpCombatLoop(attacker, defender, duelMode);
 
   const winner = winnerSide === "attacker" ? attackerData : defenderData;
   const loser = winnerSide === "attacker" ? defenderData : attackerData;
 
   return {
     log: battleLog,
+    detailLog,
     winner,
     loser,
     duelMode,
@@ -671,10 +725,11 @@ battleModule.pvpRawBattle = function (atkFighter, defFighter, duelMode = "half_l
     },
   };
 
-  const { battleLog, winnerSide } = runPvpCombatLoop(attacker, defender, duelMode);
+  const { battleLog, detailLog, winnerSide } = runPvpCombatLoop(attacker, defender, duelMode);
 
   return {
     log: battleLog,
+    detailLog,
     winnerSide,
     attackerHp: attacker.hp,
     defenderHp: defender.hp,
@@ -749,7 +804,7 @@ battleModule.pvpBattleWithSkills = async function (
   const defLvBonus = getBattleLevelBonus(defenderData.battleLevel || 1);
   const defender = buildPvpFighter(defenderData.name, defenderWeapon, defLvBonus, defenderMods);
 
-  const { battleLog, winnerSide, skillEvents } = runPvpCombatLoopWithSkills(
+  const { battleLog, detailLog, winnerSide, skillEvents } = runPvpCombatLoopWithSkills(
     attacker, defender, duelMode, atkSkillCtx, defSkillCtx,
   );
 
@@ -758,6 +813,7 @@ battleModule.pvpBattleWithSkills = async function (
 
   return {
     log: battleLog,
+    detailLog,
     winner,
     loser,
     duelMode,
