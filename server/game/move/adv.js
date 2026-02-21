@@ -202,19 +202,20 @@ module.exports = async function (cmd, rawUser) {
     // 更新探索進度
     await incrementFloorExploration(user.userId, user, currentFloor);
 
-    // NPC 熟練度（NPC 冒險只增加 NPC 的熟練度，不增加玩家的）
-    const profMult = getProficiencyMultiplier(user);
-    const profGainKey = getProfGainKey(outcomeKey, "adv");
+    // NPC 熟練度 + 自動學技（死亡時跳過，避免寫入已 $pull 的舊索引產生幽靈元素）
     let skillText = "";
-    const npcIdx = hired.findIndex((n) => n.npcId === npcId);
-    if (npcIdx >= 0) {
-      await awardNpcProficiency(user.userId, npcIdx, thisWeapon, profGainKey, profMult);
-    }
+    if (!npcResult.died) {
+      const profMult = getProficiencyMultiplier(user);
+      const profGainKey = getProfGainKey(outcomeKey, "adv");
+      const npcIdx = hired.findIndex((n) => n.npcId === npcId);
+      if (npcIdx >= 0) {
+        await awardNpcProficiency(user.userId, npcIdx, thisWeapon, profGainKey, profMult);
+      }
 
-    // NPC 自動學技
-    const npcLearnResult = await tryNpcLearnSkill(user.userId, npcIdx, hiredNpc, thisWeapon);
-    if (npcLearnResult && npcLearnResult.learned) {
-      skillText += `\n🗡️ ${hiredNpc.name} 學會了新劍技：【${npcLearnResult.skillName}】！`;
+      const npcLearnResult = await tryNpcLearnSkill(user.userId, npcIdx, hiredNpc, thisWeapon);
+      if (npcLearnResult && npcLearnResult.learned) {
+        skillText += `\n🗡️ ${hiredNpc.name} 學會了新劍技：【${npcLearnResult.skillName}】！`;
+      }
     }
 
     await increment(user.userId, "totalAdventures");

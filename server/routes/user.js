@@ -49,6 +49,17 @@ router.get('/me', ensureAuth, async (req, res) => {
         user = await db.findOne("user", { userId: req.user.discordId });
         if (!user) return res.json({ exists: false });
 
+        // 清理幽靈 NPC（死亡競態條件殘留的不完整條目）
+        if (user.hiredNpcs && user.hiredNpcs.some((n) => !n.npcId || !n.name)) {
+            await db.update(
+                "user",
+                { userId: user.userId },
+                { $pull: { hiredNpcs: { $or: [{ npcId: { $exists: false } }, { npcId: null }, { name: { $exists: false } }, { name: null }] } } },
+            );
+            user = await db.findOne("user", { userId: req.user.discordId });
+            if (!user) return res.json({ exists: false });
+        }
+
         const userInfo = info(user);
         res.json({ exists: true, ...userInfo });
     } catch (err) {

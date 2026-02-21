@@ -28,7 +28,7 @@ export default function AdventureSection({ user, doAction, isDisabled, busy, coo
           onChange={(e) => setAdvNpc(e.target.value)}
         >
           <option value="">— 選擇冒險者（必填）—</option>
-          {(user.hiredNpcs || []).map((npc) => {
+          {(user.hiredNpcs || []).filter((n) => n.npcId && n.name).map((npc) => {
             const cond = npc.condition ?? 100;
             const onMission = !!npc.mission;
             const disabled = cond < 10 || onMission;

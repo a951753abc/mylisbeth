@@ -40,7 +40,8 @@ export default function NpcPanel({ user, onRefresh }) {
   const [concurrentLimit, setConcurrentLimit] = useState(2);
   const [skillMap, setSkillMap] = useState({});
 
-  const npcs = user.hiredNpcs || [];
+  // 過濾幽靈 NPC（死亡後因競態條件殘留的不完整條目）
+  const npcs = (user.hiredNpcs || []).filter((n) => n.npcId && n.name);
   const weapons = user.weapons || [];
 
   // 讀取技能定義（建立 ID→技能 查詢表）
