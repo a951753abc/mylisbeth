@@ -64,11 +64,15 @@ module.exports = async function (cmd, rawUser) {
     }
   }
 
-  // 武器名稱驗證
+  // 武器名稱驗證（含 XSS 消毒）
+  let cleanedWeaponName = weaponName;
   if (weaponName !== undefined && weaponName !== null && String(weaponName).trim().length > 0) {
-    if (String(weaponName).length > 20) {
-      return { error: "武器名稱不得超過 20 個字" };
+    const { validateName } = require("../../utils/sanitize.js");
+    const nameCheck = validateName(String(weaponName), "武器名稱");
+    if (!nameCheck.valid) {
+      return { error: nameCheck.error };
     }
+    cleanedWeaponName = nameCheck.value;
   }
 
   // 原子扣除素材（逐一扣除，失敗時回滾已扣除的）
@@ -100,7 +104,7 @@ module.exports = async function (cmd, rawUser) {
 
   // 鍛造靈感 buff（流浪鍛冶師事件）— 素材扣除成功後才消耗
   const hasInspiration = user.forgeInspiration || false;
-  const thisWeapon = await weapon.createWeapon(materials, weaponName, user, { forgeInspiration: hasInspiration });
+  const thisWeapon = await weapon.createWeapon(materials, cleanedWeaponName, user, { forgeInspiration: hasInspiration });
   if (hasInspiration) {
     await db.update("user", { userId: user.userId }, { $set: { forgeInspiration: false } });
   }

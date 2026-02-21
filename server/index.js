@@ -25,6 +25,14 @@ const config = require("./game/config.js");
 const configManager = require("./game/configManager.js");
 const { getDashboardStats } = require("./routes/admin/dashboard.js");
 
+// Session Secret 安全檢查
+if (process.env.NODE_ENV === "production" && !process.env.SESSION_SECRET) {
+  console.error("CRITICAL: SESSION_SECRET 未設定，生產環境禁止使用預設值！");
+  process.exit(1);
+} else if (!process.env.SESSION_SECRET) {
+  console.warn("WARNING: SESSION_SECRET 未設定，使用開發預設值。請勿在生產環境使用。");
+}
+
 const app = express();
 app.set("trust proxy", 1);
 const server = http.createServer(app);
@@ -57,7 +65,9 @@ const sessionMiddleware = session({
     ttl: 24 * 60 * 60,
   }),
   cookie: {
-    secure: false,
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    sameSite: "lax",
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   },
 });

@@ -10,25 +10,36 @@ const config = require("../config.js");
 module.exports = async function (cmd, rawUser) {
   const user = await ensureUserFields(rawUser);
 
-  if (!user.weaponStock || !user.weaponStock[cmd[2]]) {
-    return { error: "錯誤！武器" + cmd[2] + " 不存在" };
+  // 索引型別安全檢查
+  const weaponIdx = parseInt(cmd[2], 10);
+  const materialIdx = parseInt(cmd[3], 10);
+  if (!Number.isInteger(weaponIdx) || weaponIdx < 0) {
+    return { error: "無效的武器索引" };
   }
-  if (!user.itemStock || !user.itemStock[cmd[3]]) {
-    return { error: "錯誤！素材" + cmd[3] + " 不存在" };
+  if (!Number.isInteger(materialIdx) || materialIdx < 0) {
+    return { error: "無效的素材索引" };
   }
-  if (user.itemStock[cmd[3]].itemNum < 1) {
-    return { error: "錯誤！素材" + cmd[3] + " 數量不足" };
+
+  if (!user.weaponStock || !user.weaponStock[weaponIdx]) {
+    return { error: "錯誤！武器" + weaponIdx + " 不存在" };
+  }
+  if (!user.itemStock || !user.itemStock[materialIdx]) {
+    return { error: "錯誤！素材" + materialIdx + " 不存在" };
+  }
+  if (user.itemStock[materialIdx].itemNum < 1) {
+    return { error: "錯誤！素材" + materialIdx + " 數量不足" };
   }
 
   // 強化上限前置檢查（避免消耗素材後才發現已達上限）
-  const currentBuff = user.weaponStock[cmd[2]]?.buff ?? 0;
+  const currentBuff = user.weaponStock[weaponIdx]?.buff ?? 0;
   if (currentBuff >= config.BUFF_MAX) {
     return { error: "這把武器已達強化上限（+" + config.BUFF_MAX + "），無法繼續強化。" };
   }
 
-  const thisWeapon = weapon.buffWeapon(cmd, user);
+  const safeCmd = [cmd[0], cmd[1], weaponIdx, materialIdx];
+  const thisWeapon = weapon.buffWeapon(safeCmd, user);
 
-  const material = user.itemStock[cmd[3]];
+  const material = user.itemStock[materialIdx];
   const decOk = await db.atomicIncItem(
     user.userId,
     material.itemId,
@@ -53,10 +64,10 @@ module.exports = async function (cmd, rawUser) {
 
   if (thisWeapon.durability <= 0) {
     thisWeapon.text += thisWeapon.weaponName + " 爆發四散了。";
-    await weapon.destroyWeapon(user.userId, cmd[2]);
+    await weapon.destroyWeapon(user.userId, weaponIdx);
     await increment(user.userId, "weaponsBroken");
   } else {
-    const weaponUnset = "weaponStock." + cmd[2];
+    const weaponUnset = "weaponStock." + weaponIdx;
     const mod = { $set: {} };
     mod["$set"][weaponUnset] = thisWeapon;
     await db.update("user", { userId: user.userId }, mod);
@@ -75,7 +86,7 @@ module.exports = async function (cmd, rawUser) {
     weapon: {
       weaponName,
       name: thisWeapon.name,
-      weaponIndex: cmd[2],
+      weaponIndex: weaponIdx,
       atk: thisWeapon.atk,
       def: thisWeapon.def,
       agi: thisWeapon.agi,

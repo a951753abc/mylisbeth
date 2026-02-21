@@ -9,6 +9,10 @@ function setupGameEvents(io) {
     });
 
     socket.on(E.JOIN_USER, (userId) => {
+      const sessionUser = socket.request?.session?.passport?.user;
+      if (!sessionUser || sessionUser.discordId !== userId) {
+        return; // 拒絕未認證或冒充他人的 join 請求
+      }
       socket.join(`user:${userId}`);
     });
 

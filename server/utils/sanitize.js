@@ -39,4 +39,4 @@ function validateName(str, fieldName = "名稱") {
   return { valid: true, value: cleaned };
 }
 
-module.exports = { validateName };
+module.exports = { stripHtml, sanitizeString, validateName };
