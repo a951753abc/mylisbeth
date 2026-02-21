@@ -16,7 +16,7 @@ function getActionLabel(action) {
   if (action === 'boss:defeated') return '🏆 Boss 被擊敗！';
   if (action === 'floor:unlocked') return '🎉 新樓層解鎖';
   if (action === 'pvp:attacked') return 'PVP 被攻擊';
-  return `事件(${action || 'unknown'})`;
+  return action ? `事件(${action})` : '事件';
 }
 
 export default function BattleLog({ logs }) {

@@ -59,7 +59,9 @@ export default function Game({ user, onLogout }) {
       const latest = events[events.length - 1];
 
       if (latest.type === "battle") {
-        setBattleLogs((prev) => [...prev, latest.data]);
+        const actionMap = { soloAdv: "solo-adventure", "pvp-npc": "pvp-npc", pvp: "pvp" };
+        const action = actionMap[latest.data.type] || "adventure";
+        setBattleLogs((prev) => [...prev, { action, ...latest.data, time: Date.now() }]);
       }
       if (latest.type === "pvp:attacked") {
         setBattleLogs((prev) => [
