@@ -54,6 +54,3 @@ module.exports.getExpForNextLevel = function (type, level) {
   return thresholds[level - 1];
 };
 
-module.exports.getMaxLevel = function (type) {
-  return (levelList[type]?.level.length || 0) + 1;
-};

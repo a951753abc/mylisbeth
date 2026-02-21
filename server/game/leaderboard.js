@@ -513,4 +513,4 @@ async function getMyRank(category, sub, userId) {
   return cat.getMyRank(userId, resolvedSub);
 }
 
-module.exports = { getLeaderboard, getMyRank, CATEGORIES };
+module.exports = { getLeaderboard, getMyRank };

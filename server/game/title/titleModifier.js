@@ -92,4 +92,4 @@ function getCombinedModifier(title, relics, key) {
   return getModifier(title, key) * getRelicModifier(relics, key);
 }
 
-module.exports = { getModifier, getRawModifier, applyModifier, applyChanceModifier, getRelicModifier, getCombinedModifier };
+module.exports = { getModifier, getRawModifier, getCombinedModifier };

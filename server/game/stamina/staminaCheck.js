@@ -127,4 +127,4 @@ async function checkAndConsumeStamina(userId, action, userTitle = null) {
   };
 }
 
-module.exports = { rollStaminaCost, regenStamina, checkAndConsumeStamina };
+module.exports = { regenStamina, checkAndConsumeStamina };
