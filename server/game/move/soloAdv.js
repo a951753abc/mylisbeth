@@ -18,6 +18,7 @@ const { buildSkillContext } = require("../skill/skillCombat.js");
 const { awardProficiency, getProfGainKey } = require("../skill/skillProficiency.js");
 const { resolveWeaponType } = require("../weapon/weaponType.js");
 const { checkExtraSkills } = require("../skill/extraSkillChecker.js");
+const roll = require("../roll.js");
 
 const SOLO = config.SOLO_ADV;
 
