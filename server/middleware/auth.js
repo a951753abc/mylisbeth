@@ -56,7 +56,7 @@ function ensureAuth(req, res, next) {
  */
 function ensureNotPaused(req, res, next) {
     const db = require('../db.js');
-    db.findOne('user', { userId: req.user.discordId })
+    db.findOne('user', { userId: req.user.discordId }, { projection: { businessPaused: 1, name: 1 } })
         .then((user) => {
             if (!user) {
                 return res.status(404).json({ error: '角色不存在' });

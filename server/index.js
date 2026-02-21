@@ -116,12 +116,12 @@ async function start() {
   await configManager.loadOverrides();
 
   // Season 6: NPC 自動購買（每遊戲日 = 5 分鐘）
-  setInterval(() => {
+  const npcPurchaseTimer = setInterval(() => {
     runNpcPurchases().catch((err) => console.error("NPC 自動購買失敗:", err));
   }, config.TIME_SCALE);
 
   // GM 儀表板：每 10 秒向 admin 房間推送狀態
-  setInterval(async () => {
+  const dashboardTimer = setInterval(async () => {
     const room = io.sockets.adapter.rooms.get("admin:dashboard");
     if (!room || room.size === 0) return;
     try {
@@ -135,6 +135,35 @@ async function start() {
   server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
+
+  // Graceful Shutdown
+  let shuttingDown = false;
+  const shutdown = async (signal) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`\n${signal} received — graceful shutdown...`);
+
+    clearInterval(npcPurchaseTimer);
+    clearInterval(dashboardTimer);
+
+    server.close(() => {
+      console.log("HTTP server closed.");
+    });
+
+    io.close();
+
+    try {
+      await db.close();
+      console.log("MongoDB connection closed.");
+    } catch (err) {
+      console.error("MongoDB close error:", err.message);
+    }
+
+    process.exit(0);
+  };
+
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
 }
 
 start();

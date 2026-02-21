@@ -130,9 +130,11 @@ async function listWeapon(userId, weaponIndex, totalPrice) {
 async function getListings(filter = {}) {
   const query = { status: "active" };
   if (filter.type) query.type = filter.type;
-  const listings = await db.find("market_listing", query);
-  // 按上架時間排序（新→舊）
-  listings.sort((a, b) => b.listedAt - a.listedAt);
+  const limit = filter.limit || 100;
+  const listings = await db.findWithOptions("market_listing", query, {
+    sort: { listedAt: -1 },
+    limit,
+  });
   return listings;
 }
 

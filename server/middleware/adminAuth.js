@@ -6,6 +6,16 @@ const loginAttempts = new Map();
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 5 * 60 * 1000;
 
+// 每 10 分鐘清理過期的登入嘗試紀錄，防止記憶體洩漏
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, record] of loginAttempts) {
+    if (now - record.firstAttempt > LOCKOUT_MS) {
+      loginAttempts.delete(ip);
+    }
+  }
+}, 10 * 60 * 1000).unref();
+
 function checkRateLimit(ip) {
   const record = loginAttempts.get(ip);
   if (!record) return true;
