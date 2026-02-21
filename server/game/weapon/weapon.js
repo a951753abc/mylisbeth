@@ -5,6 +5,7 @@ const { getModifier, getRawModifier } = require("../title/titleModifier.js");
 const config = require("../config.js");
 const { rollInnateEffects } = require("./innateEffect.js");
 const { resolveWeaponType } = require("./weaponType.js");
+const { calcWeaponTypeWeights, selectWeaponType } = require("./weaponTypeAffinity.js");
 
 const weaponPer = ["hp", "atk", "def", "agi", "durability"];
 
@@ -123,7 +124,15 @@ module.exports.createWeapon = async function (cmd, user, options = {}) {
   };
   let weapon = await db.findOne("weapon", query);
   if (!weapon) {
-    weapon = { ...randWeapon[Math.floor(Math.random() * randWeapon.length)] };
+    // 素材屬性加權武器類型選取
+    const matStats = [
+      getStatName(user.itemStock[cmd[2]].itemId),
+      getStatName(user.itemStock[cmd[3]].itemId),
+    ];
+    const weights = calcWeaponTypeWeights(matStats);
+    const selectedType = selectWeaponType(weights);
+    const matched = randWeapon.find((w) => w.type === selectedType);
+    weapon = { ...(matched || randWeapon[Math.floor(Math.random() * randWeapon.length)]) };
   }
   weapon.weaponName = cmd[4] || weapon.name;
   weapon.renameCount = 0;
