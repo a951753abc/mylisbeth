@@ -6,6 +6,7 @@ const config = require("../config.js");
 const { rollInnateEffects } = require("./innateEffect.js");
 const { resolveWeaponType } = require("./weaponType.js");
 const { calcWeaponTypeWeights, selectWeaponType } = require("./weaponTypeAffinity.js");
+const { checkForgeBonuses } = require("./forgeBonuses.js");
 
 const weaponPer = ["hp", "atk", "def", "agi", "durability"];
 
@@ -174,6 +175,16 @@ module.exports.createWeapon = async function (cmd, user, options = {}) {
       weapon.text += getStatBoostText(perName, forgeLevel);
       applyStatBoost(weapon, perName, forgeLevel);
     }
+  }
+
+  // 素材組合加成
+  const forgeMaterials = [user.itemStock[cmd[2]], user.itemStock[cmd[3]]];
+  const comboResult = checkForgeBonuses(forgeMaterials);
+  if (comboResult.bonuses.length > 0) {
+    for (const b of comboResult.bonuses) {
+      applyStatBoost(weapon, b.stat, b.value);
+    }
+    weapon.text += `✨ 組合加成：${comboResult.text}\n`;
   }
 
   let rollResult = roll.d66();

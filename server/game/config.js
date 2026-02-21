@@ -289,6 +289,14 @@ module.exports = {
     MAX_EFFECTS: 2,           // 每把武器最多固有效果數
   },
 
+  // 素材組合加成
+  FORGE_COMBO: {
+    FLOOR_SET: { BASE_ATK: 1, BASE_DEF: 1 },
+    IDENTICAL: { BONUS_PER_EXTRA: 1 },
+    CROSS_FLOOR: { MIN_FLOOR_GAP: 4, BONUS: 1 },
+    STAR_HARMONY: { STAR_3: 2, STAR_2: 1 },
+  },
+
   // 戰鬥通用常數
   BATTLE: {
     ROUND_LIMIT: 5,
