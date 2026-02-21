@@ -19,65 +19,54 @@ const { getNextSettlementTime } = require("../game/time/gameTime.js");
 const { increment } = require("../game/progression/statsTracker.js");
 const { getLeaderboard, getMyRank } = require("../game/leaderboard.js");
 
+// --- Route helpers ---
+
+async function handleRoute(res, fn, label) {
+  try {
+    const result = await fn();
+    if (result?.error) return res.status(400).json(result);
+    return res.json(result);
+  } catch (err) {
+    console.error(`${label}:`, err);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "伺服器錯誤" });
+    }
+  }
+}
+
+function emitSocketEvents(io, events) {
+  if (!io || !events) return;
+  for (const evt of events) {
+    io.emit(evt.event, evt.data);
+  }
+}
+
 // Create character
 router.post("/create", ensureAuth, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const nameCheck = validateName(req.body.name, "角色名稱");
-    if (!nameCheck.valid) {
-      return res.status(400).json({ error: nameCheck.error });
-    }
-    const result = await create(nameCheck.value, req.user.discordId);
-    if (result.error) {
-      return res.status(400).json(result);
-    }
-    res.json(result);
-  } catch (err) {
-    console.error("建立角色失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+    if (!nameCheck.valid) return { error: nameCheck.error };
+    return await create(nameCheck.value, req.user.discordId);
+  }, "建立角色失敗");
 });
 
 // Mine
 router.post("/mine", ensureAuth, async (req, res) => {
-  try {
-    const cmd = [null, "mine"];
-    const result = await move(cmd, req.user.discordId);
-    if (result.error) {
-      return res.status(400).json(result);
-    }
-    if (result.bankruptcy) {
-      return res.status(200).json(result);
-    }
-    res.json(result);
-  } catch (err) {
-    console.error("挖礦失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+  await handleRoute(res, () => move([null, "mine"], req.user.discordId), "挖礦失敗");
 });
 
 // Forge
 router.post("/forge", ensureAuth, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const { material1, material2 } = req.body;
-    // 武器名稱為選填，鍛造後可改名一次
     let weaponName = null;
     if (req.body.weaponName && String(req.body.weaponName).trim().length > 0) {
       const nameCheck = validateName(req.body.weaponName, "武器名稱");
-      if (!nameCheck.valid) {
-        return res.status(400).json({ error: nameCheck.error });
-      }
+      if (!nameCheck.valid) return { error: nameCheck.error };
       weaponName = nameCheck.value;
     }
-    const cmd = [null, "forge", material1, material2, weaponName];
-    const result = await move(cmd, req.user.discordId);
-    if (result.error) {
-      return res.status(400).json(result);
-    }
-    res.json(result);
-  } catch (err) {
-    console.error("鍛造失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+    return await move([null, "forge", material1, material2, weaponName], req.user.discordId);
+  }, "鍛造失敗");
 });
 
 // Rename weapon (once per weapon)
@@ -93,7 +82,6 @@ router.post("/rename-weapon", ensureAuth, async (req, res) => {
     if (isNaN(idx) || idx < 0) {
       return res.status(400).json({ error: "找不到該武器" });
     }
-    // 原子操作：確保 renameCount < 1 才允許改名，防止並發競態
     const filter = {
       userId,
       [`weaponStock.${idx}`]: { $exists: true },
@@ -116,91 +104,44 @@ router.post("/rename-weapon", ensureAuth, async (req, res) => {
 
 // Upgrade
 router.post("/upgrade", ensureAuth, async (req, res) => {
-  try {
-    const { weaponId, materialId } = req.body;
-    const cmd = [null, "up", weaponId, materialId];
-    const result = await move(cmd, req.user.discordId);
-    if (result.error) {
-      return res.status(400).json(result);
-    }
-    res.json(result);
-  } catch (err) {
-    console.error("強化失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+  const { weaponId, materialId } = req.body;
+  await handleRoute(res, () => move([null, "up", weaponId, materialId], req.user.discordId), "強化失敗");
 });
 
 // Repair
 router.post("/repair", ensureAuth, async (req, res) => {
-  try {
-    const { weaponId, materialId } = req.body;
-    const cmd = [null, "repair", weaponId, materialId];
-    const result = await move(cmd, req.user.discordId);
-    if (result.error) {
-      return res.status(400).json(result);
-    }
-    res.json(result);
-  } catch (err) {
-    console.error("修復失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+  const { weaponId, materialId } = req.body;
+  await handleRoute(res, () => move([null, "repair", weaponId, materialId], req.user.discordId), "修復失敗");
 });
 
 // Adventure
 router.post("/adventure", ensureAuth, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const { weaponId, npcId } = req.body;
-    const cmd = [null, "adv", weaponId, npcId];
-    const result = await move(cmd, req.user.discordId);
-    if (result.error) {
-      return res.status(400).json(result);
-    }
-    if (result.bankruptcy) {
-      return res.status(200).json(result);
-    }
-
+    const result = await move([null, "adv", weaponId, npcId], req.user.discordId);
+    if (result.error) return result;
     const io = req.app.get("io");
     if (io) {
       io.emit("battle:result", {
         playerName: result.battleResult?.npcName,
         result: result.battleResult,
       });
-      // 廣播 NPC 死亡事件
-      if (result.socketEvents) {
-        for (const evt of result.socketEvents) {
-          io.emit(evt.event, evt.data);
-        }
-      }
+      emitSocketEvents(io, result.socketEvents);
     }
-
-    // 不傳 socketEvents 給前端
     const { socketEvents, ...clientResult } = result;
-    res.json(clientResult);
-  } catch (err) {
-    console.error("冒險失敗:", err);
-    if (!res.headersSent) {
-      res.status(500).json({ error: "伺服器錯誤" });
-    }
-  }
+    return clientResult;
+  }, "冒險失敗");
 });
 
 // PVP (Season 5: 決鬥系統)
 router.post("/pvp", ensureAuth, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const { targetUserId, weaponId, mode, wagerCol } = req.body;
-    const cmd = [null, "pvp", targetUserId, weaponId, mode, wagerCol];
-    const result = await move(cmd, req.user.discordId);
-    if (result.error) {
-      return res.status(400).json(result);
-    }
+    const result = await move([null, "pvp", targetUserId, weaponId, mode, wagerCol], req.user.discordId);
+    if (result.error) return result;
     const io = req.app.get("io");
     if (io) {
-      // 廣播 + 私人通知
-      if (result.socketEvents) {
-        for (const evt of result.socketEvents) {
-          io.emit(evt.event, evt.data);
-        }
-      }
+      emitSocketEvents(io, result.socketEvents);
       if (result.defenderId) {
         io.to("user:" + result.defenderId).emit("pvp:attacked", {
           attacker: result.attackerName,
@@ -215,30 +156,19 @@ router.post("/pvp", ensureAuth, async (req, res) => {
       }
     }
     const { socketEvents, ...clientResult } = result;
-    res.json(clientResult);
-  } catch (err) {
-    console.error("PVP 失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+    return clientResult;
+  }, "PVP 失敗");
 });
 
 // PVP vs NPC: 挑戰其他玩家的 NPC
 router.post("/pvp-npc", ensureAuth, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const { targetNpcId, weaponId, mode, wagerCol } = req.body;
-    const cmd = [null, "pvpNpc", targetNpcId, weaponId, mode, wagerCol];
-    const result = await move(cmd, req.user.discordId);
-    if (result.error) {
-      return res.status(400).json(result);
-    }
+    const result = await move([null, "pvpNpc", targetNpcId, weaponId, mode, wagerCol], req.user.discordId);
+    if (result.error) return result;
     const io = req.app.get("io");
     if (io) {
-      if (result.socketEvents) {
-        for (const evt of result.socketEvents) {
-          io.emit(evt.event, evt.data);
-        }
-      }
-      // 通知 NPC 擁有者
+      emitSocketEvents(io, result.socketEvents);
       if (result.defenderId) {
         io.to("user:" + result.defenderId).emit("pvp:attacked", {
           attacker: result.attackerName,
@@ -256,11 +186,8 @@ router.post("/pvp-npc", ensureAuth, async (req, res) => {
       }
     }
     const { socketEvents, ...clientResult } = result;
-    res.json(clientResult);
-  } catch (err) {
-    console.error("PVP-NPC 失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+    return clientResult;
+  }, "PVP-NPC 失敗");
 });
 
 // 查詢某玩家的 NPC 列表（供 NPC 決鬥選擇用）
@@ -271,7 +198,7 @@ router.get("/players/:userId/npcs", ensureAuth, async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "找不到該玩家" });
     }
-    const npcs = (user.hiredNpcs || []).map((npc, idx) => {
+    const npcs = (user.hiredNpcs || []).map((npc) => {
       const weapon = npc.equippedWeaponIndex != null
         ? user.weaponStock?.[npc.equippedWeaponIndex]
         : null;
@@ -320,27 +247,14 @@ router.post("/pvp/set-defense-weapon", ensureAuth, async (req, res) => {
 
 // Boss Attack
 router.post("/boss-attack", ensureAuth, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const { weaponId, npcId } = req.body;
-    const cmd = [null, "boss", weaponId !== undefined ? weaponId : 0, npcId];
-    const result = await move(cmd, req.user.discordId);
-    if (result.error) {
-      return res.status(400).json(result);
-    }
-
-    const io = req.app.get("io");
-    if (io && result.socketEvents) {
-      for (const evt of result.socketEvents) {
-        io.emit(evt.event, evt.data);
-      }
-    }
-
+    const result = await move([null, "boss", weaponId !== undefined ? weaponId : 0, npcId], req.user.discordId);
+    if (result.error) return result;
+    emitSocketEvents(req.app.get("io"), result.socketEvents);
     const { socketEvents, ...clientResult } = result;
-    res.json(clientResult);
-  } catch (err) {
-    console.error("Boss 攻擊失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+    return clientResult;
+  }, "Boss 攻擊失敗");
 });
 
 // Get floor info
@@ -357,7 +271,7 @@ router.get("/floor", ensureAuth, async (req, res) => {
       maxExplore: rawProgress.maxExplore ?? (floorData.maxExplore || config.FLOOR_MAX_EXPLORE),
     };
 
-    let serverState = await db.findOne("server_state", { _id: "aincrad" });
+    const serverState = await db.findOne("server_state", { _id: "aincrad" });
     const bossStatus = serverState?.bossStatus || {
       floorNumber: currentFloor,
       active: false,
@@ -366,7 +280,6 @@ router.get("/floor", ensureAuth, async (req, res) => {
       participants: [],
     };
 
-    // Check if boss expired
     if (bossStatus.active && bossStatus.expiresAt) {
       const now = new Date();
       if (now > new Date(bossStatus.expiresAt)) {
@@ -375,7 +288,6 @@ router.get("/floor", ensureAuth, async (req, res) => {
       }
     }
 
-    // 精簡 phases 資料（只給前端需要的顯示資訊）
     const phases = (floorData.boss.phases || []).map((p) => ({
       hpThreshold: p.hpThreshold,
       weapon: p.weapon || null,
@@ -417,28 +329,15 @@ router.get("/floor", ensureAuth, async (req, res) => {
 
 // Floor history
 router.get("/floor/history", ensureAuth, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const serverState = await db.findOne("server_state", { _id: "aincrad" });
-    const history = serverState?.floorHistory || [];
-    res.json({ history });
-  } catch (err) {
-    console.error("取得樓層歷史失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+    return { history: serverState?.floorHistory || [] };
+  }, "取得樓層歷史失敗");
 });
 
 // Daily reward
 router.post("/daily", ensureAuth, ensureNotPaused, async (req, res) => {
-  try {
-    const result = await claimDaily(req.user.discordId);
-    if (result.error) {
-      return res.status(400).json(result);
-    }
-    res.json(result);
-  } catch (err) {
-    console.error("每日獎勵失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+  await handleRoute(res, () => claimDaily(req.user.discordId), "每日獎勵失敗");
 });
 
 // Achievements
@@ -461,9 +360,7 @@ router.get("/achievements", ensureAuth, async (req, res) => {
         unlocked: true,
       }));
 
-    const totalCount = allDefs.length;
-
-    res.json({ achievements: unlocked, totalCount });
+    res.json({ achievements: unlocked, totalCount: allDefs.length });
   } catch (err) {
     console.error("取得成就失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
@@ -517,86 +414,50 @@ router.get("/settlement", ensureAuth, async (req, res) => {
 
 // Pay debt
 router.post("/pay-debt", ensureAuth, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const { amount } = req.body;
-    if (!amount || amount <= 0) return res.status(400).json({ error: "還款金額無效" });
-    const result = await payDebt(req.user.discordId, amount);
-    if (result.error) return res.status(400).json(result);
-    res.json(result);
-  } catch (err) {
-    console.error("還債失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+    if (!amount || amount <= 0) return { error: "還款金額無效" };
+    return await payDebt(req.user.discordId, amount);
+  }, "還債失敗");
 });
 
 // Loan (擴大負債)
 router.post("/loan", ensureAuth, ensureNotPaused, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const { amount } = req.body;
-    if (!amount || amount <= 0) return res.status(400).json({ error: "借款金額無效" });
-    const result = await takeLoan(req.user.discordId, Math.floor(amount));
-    if (result.error) return res.status(400).json(result);
-    if (result.bankruptcy) {
-      return res.status(200).json(result);
-    }
-    res.json(result);
-  } catch (err) {
-    console.error("借款失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+    if (!amount || amount <= 0) return { error: "借款金額無效" };
+    return await takeLoan(req.user.discordId, Math.floor(amount));
+  }, "借款失敗");
 });
 
 // Sell item (回收素材，不走 move 冷卻)
 router.post("/sell-item", ensureAuth, ensureNotPaused, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const { itemIndex, quantity } = req.body;
-    if (itemIndex === undefined || itemIndex === null) {
-      return res.status(400).json({ error: "缺少素材索引" });
-    }
-    const result = await sellItem(
+    if (itemIndex === undefined || itemIndex === null) return { error: "缺少素材索引" };
+    return await sellItem(
       req.user.discordId,
       parseInt(itemIndex, 10),
       parseInt(quantity, 10) || 1,
     );
-    if (result.error) return res.status(400).json(result);
-    res.json(result);
-  } catch (err) {
-    console.error("出售素材失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+  }, "出售素材失敗");
 });
 
 // Sell weapon (回收武器，不走 move 冷卻)
 router.post("/sell-weapon", ensureAuth, ensureNotPaused, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const { weaponIndex } = req.body;
-    if (weaponIndex === undefined || weaponIndex === null) {
-      return res.status(400).json({ error: "缺少武器索引" });
-    }
-    const result = await sellWeapon(
-      req.user.discordId,
-      parseInt(weaponIndex, 10),
-    );
-    if (result.error) return res.status(400).json(result);
-    res.json(result);
-  } catch (err) {
-    console.error("出售武器失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+    if (weaponIndex === undefined || weaponIndex === null) return { error: "缺少武器索引" };
+    return await sellWeapon(req.user.discordId, parseInt(weaponIndex, 10));
+  }, "出售武器失敗");
 });
 
 // Solo adventure (鍛造師親自冒險)
 router.post("/solo-adventure", ensureAuth, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const { weaponId } = req.body;
-    const cmd = [null, "soloAdv", weaponId !== undefined ? weaponId : 0];
-    const result = await move(cmd, req.user.discordId);
-    if (result.error) {
-      return res.status(400).json(result);
-    }
-    if (result.bankruptcy) {
-      return res.status(200).json(result);
-    }
+    const result = await move([null, "soloAdv", weaponId !== undefined ? weaponId : 0], req.user.discordId);
+    if (result.error) return result;
     const io = req.app.get("io");
     if (io) {
       io.emit("battle:result", {
@@ -605,38 +466,21 @@ router.post("/solo-adventure", ensureAuth, async (req, res) => {
         result: result.battleResult,
       });
     }
-    res.json(result);
-  } catch (err) {
-    console.error("獨自出擊失敗:", err);
-    if (!res.headersSent) {
-      res.status(500).json({ error: "伺服器錯誤" });
-    }
-  }
+    return result;
+  }, "獨自出擊失敗");
 });
 
 // Player list
 router.get("/players", ensureAuth, async (req, res) => {
-  try {
-    const page = parseInt(req.query.page, 10) || 1;
-    const result = await list(page);
-    if (result.error) {
-      return res.status(400).json(result);
-    }
-    res.json(result);
-  } catch (err) {
-    console.error("取得玩家列表失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+  await handleRoute(res, () => list(parseInt(req.query.page, 10) || 1), "取得玩家列表失敗");
 });
 
 // Graveyard (墓碑紀錄)
 router.get("/graveyard", async (req, res) => {
   try {
-    const DEATH_CAUSES = config.DEATH_CAUSES;
     const logs = await db.find("bankruptcy_log", {
-      cause: { $in: DEATH_CAUSES },
+      cause: { $in: config.DEATH_CAUSES },
     });
-    // 按死亡時間降序排列（最近的在前）
     logs.sort((a, b) => (b.bankruptedAt || 0) - (a.bankruptedAt || 0));
     const CAUSE_LABELS = {
       solo_adventure_death: "冒險戰死",
@@ -706,7 +550,6 @@ router.post("/pause-business", ensureAuth, async (req, res) => {
 
     await db.update("user", { userId }, { $set: updates });
 
-    // 暫停時記錄統計並檢查成就
     if (paused) {
       await increment(userId, "totalPauses");
       await checkAndAward(userId);
@@ -721,35 +564,21 @@ router.post("/pause-business", ensureAuth, async (req, res) => {
 
 // Leaderboard
 router.get("/leaderboard", ensureAuth, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const { category, sub, page } = req.query;
-    if (!category) {
-      return res.status(400).json({ error: "缺少排行榜分類" });
-    }
-    const result = await getLeaderboard(category, sub || null, page || 1, req.user.discordId);
-    if (result.error) {
-      return res.status(400).json(result);
-    }
-    res.json(result);
-  } catch (err) {
-    console.error("取得排行榜失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+    if (!category) return { error: "缺少排行榜分類" };
+    return await getLeaderboard(category, sub || null, page || 1, req.user.discordId);
+  }, "取得排行榜失敗");
 });
 
 // Leaderboard: my rank
 router.get("/leaderboard/my-rank", ensureAuth, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const { category, sub } = req.query;
-    if (!category) {
-      return res.status(400).json({ error: "缺少排行榜分類" });
-    }
+    if (!category) return { error: "缺少排行榜分類" };
     const myRank = await getMyRank(category, sub || null, req.user.discordId);
-    res.json({ myRank });
-  } catch (err) {
-    console.error("取得我的排名失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+    return { myRank };
+  }, "取得我的排名失敗");
 });
 
 // Help

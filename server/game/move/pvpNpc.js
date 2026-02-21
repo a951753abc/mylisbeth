@@ -161,7 +161,7 @@ module.exports = async function (cmd, rawAttacker) {
   // 攻擊方（玩家）戰鬥數據
   const atkFighter = {
     name: attacker.name,
-    hp: 100 + atkLvBonus.hpBonus + (attackerWeapon.hp || 0),
+    hp: config.PVP.BASE_HP + atkLvBonus.hpBonus + (attackerWeapon.hp || 0),
     atk: Math.round((attackerWeapon.atk || 0) * atkLvBonus.atkMult * (attackerMods.battleAtk || 1)),
     def: Math.round((attackerWeapon.def || 0) * atkLvBonus.defMult * (attackerMods.battleDef || 1)),
     agi: Math.round((attackerWeapon.agi || 0) * atkLvBonus.agiMult * (attackerMods.battleAgi || 1)),

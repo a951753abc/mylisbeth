@@ -10,9 +10,9 @@ module.exports.connect = async function () {
   console.log("MongoDB connected!");
 };
 
-module.exports.findOne = async function (collectName, query) {
+module.exports.findOne = async function (collectName, query, options = {}) {
   const collection = db.collection(collectName);
-  return await collection.findOne(query);
+  return await collection.findOne(query, options);
 };
 
 module.exports.find = async function (collectName, query) {

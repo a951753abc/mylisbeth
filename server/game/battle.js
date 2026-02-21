@@ -3,6 +3,9 @@ const config = require("./config.js");
 const roll = require("./roll");
 const eneExample = require("./ene/list.json");
 
+const { ROUND_LIMIT } = config.BATTLE;
+const { BASE_HP: PVP_BASE_HP } = config.PVP;
+
 function getEneFromList(enemyList) {
   const enemyRoll = Math.floor(Math.random() * 100) + 1;
   if (enemyRoll > config.ENEMY_PROBABILITY.YUKI) {
@@ -29,7 +32,6 @@ function getEneFromFloor(floorEnemies) {
   const enemyRoll = Math.floor(Math.random() * 100) + 1;
   let category;
   if (enemyRoll > config.ENEMY_PROBABILITY.YUKI) {
-    // 優樹: use highest stats from floor or random high stats
     const hellEnemies = floorEnemies.filter((e) => e.category === "[Hell]");
     if (hellEnemies.length > 0) {
       const base = hellEnemies[Math.floor(Math.random() * hellEnemies.length)];
@@ -66,7 +68,6 @@ function getEneFromFloor(floorEnemies) {
       categoryEnemies[Math.floor(Math.random() * categoryEnemies.length)],
     );
   }
-  // Fallback to any enemy
   return _.clone(floorEnemies[Math.floor(Math.random() * floorEnemies.length)]);
 }
 
@@ -137,18 +138,21 @@ function processAttack(attacker, defender, battleLog) {
   return defender.hp;
 }
 
-const battleModule = {};
+// --- Shared helpers ---
 
-battleModule.pveBattle = async function (weapon, npc, npcNameList, floorEnemies, titleMods = {}) {
-  const roundLimit = 5;
-  let round = 1;
-
-  // 若為已雇用 NPC（含 baseStats + condition），套用素質加成
+/**
+ * 構建 PvE 玩家/NPC 側戰鬥者物件
+ * @param {object} weapon - 武器數據
+ * @param {object} npc - NPC 資料（含 isHiredNpc, effectiveStats）
+ * @param {object} titleMods - 稱號修正 { battleAtk, battleDef, battleAgi }
+ * @returns {{ name, hp, stats: { atk, def, agi, cri } }}
+ */
+function buildPvePlayerSide(weapon, npc, titleMods = {}) {
   let playerHp = (npc.hp || 0) + (weapon.hp || 0);
   let playerAtk = weapon.atk || 0;
   let playerDef = weapon.def || 0;
   let playerAgi = weapon.agi || 0;
-  let playerCri = weapon.cri || 10;
+  const playerCri = weapon.cri || 10;
 
   if (npc.isHiredNpc && npc.effectiveStats) {
     const es = npc.effectiveStats;
@@ -156,10 +160,8 @@ battleModule.pveBattle = async function (weapon, npc, npcNameList, floorEnemies,
     playerAtk = (weapon.atk || 0) + Math.floor(es.atk * 0.5);
     playerDef = (weapon.def || 0) + Math.floor(es.def * 0.5);
     playerAgi = Math.max(weapon.agi || 0, es.agi);
-    playerCri = weapon.cri || 10;
   }
 
-  // 套用稱號戰鬥屬性修正
   if (titleMods.battleAtk && titleMods.battleAtk !== 1) {
     playerAtk = Math.max(1, Math.round(playerAtk * titleMods.battleAtk));
   }
@@ -170,74 +172,71 @@ battleModule.pveBattle = async function (weapon, npc, npcNameList, floorEnemies,
     playerAgi = Math.max(1, Math.round(playerAgi * titleMods.battleAgi));
   }
 
-  const playerSide = {
+  return {
     name: npc.name,
     hp: playerHp,
+    stats: { atk: playerAtk, def: playerDef, agi: playerAgi, cri: playerCri },
+  };
+}
+
+/**
+ * 構建 PvP 戰鬥者物件
+ * @param {string} name
+ * @param {object} weapon - { hp, atk, def, agi, cri }
+ * @param {object} lvBonus - getBattleLevelBonus() 結果
+ * @param {object} mods - { battleAtk, battleDef, battleAgi }
+ * @returns {{ name, hp, maxHp, stats: { atk, def, agi, cri } }}
+ */
+function buildPvpFighter(name, weapon, lvBonus, mods) {
+  const maxHp = PVP_BASE_HP + lvBonus.hpBonus + (weapon.hp || 0);
+  return {
+    name,
+    hp: maxHp,
+    maxHp,
     stats: {
-      atk: playerAtk,
-      def: playerDef,
-      agi: playerAgi,
-      cri: playerCri,
+      atk: Math.max(1, Math.round((weapon.atk || 0) * lvBonus.atkMult * (mods.battleAtk || 1))),
+      def: Math.max(0, Math.round((weapon.def || 0) * lvBonus.defMult * (mods.battleDef || 1))),
+      agi: Math.max(1, Math.round((weapon.agi || 0) * lvBonus.agiMult * (mods.battleAgi || 1))),
+      cri: weapon.cri || 10,
     },
   };
+}
 
-  const enemyData = floorEnemies
-    ? getEneFromFloor(floorEnemies)
-    : getEneFromList(eneExample);
-  const enemyName =
-    npcNameList[Math.floor(Math.random() * npcNameList.length)].name;
-  const enemySide = {
-    name: `${enemyData.category}${enemyData.name || enemyName}`,
-    hp: enemyData.hp,
-    stats: {
-      atk: enemyData.atk,
-      def: enemyData.def,
-      agi: enemyData.agi,
-      cri: enemyData.cri,
-    },
-  };
-
+/**
+ * PvE 戰鬥迴圈（pveBattle / pveBattleDirect 共用）
+ */
+function runPveCombatLoop(playerSide, enemySide) {
+  let round = 1;
   const battleResult = {
     log: [],
     win: 0,
     dead: 0,
-    category: enemyData.category,
     enemyName: enemySide.name,
     npcName: playerSide.name,
     initialHp: { npc: playerSide.hp, enemy: enemySide.hp },
     finalHp: {},
   };
 
-  while (playerSide.hp > 0 && enemySide.hp > 0 && round <= roundLimit) {
+  while (playerSide.hp > 0 && enemySide.hp > 0 && round <= ROUND_LIMIT) {
     battleResult.log.push({ type: "round", number: round });
     const npcAct = roll.d66() + playerSide.stats.agi;
     const eneAct = roll.d66() + enemySide.stats.agi;
 
     if (npcAct >= eneAct) {
-      if (
-        processAttack(playerSide, enemySide, battleResult.log) <= 0
-      ) {
+      if (processAttack(playerSide, enemySide, battleResult.log) <= 0) {
         battleResult.win = 1;
         break;
       }
-      if (
-        enemySide.hp > 0 &&
-        processAttack(enemySide, playerSide, battleResult.log) <= 0
-      ) {
+      if (enemySide.hp > 0 && processAttack(enemySide, playerSide, battleResult.log) <= 0) {
         battleResult.dead = 1;
         break;
       }
     } else {
-      if (
-        processAttack(enemySide, playerSide, battleResult.log) <= 0
-      ) {
+      if (processAttack(enemySide, playerSide, battleResult.log) <= 0) {
         battleResult.dead = 1;
         break;
       }
-      if (
-        playerSide.hp > 0 &&
-        processAttack(playerSide, enemySide, battleResult.log) <= 0
-      ) {
+      if (playerSide.hp > 0 && processAttack(playerSide, enemySide, battleResult.log) <= 0) {
         battleResult.win = 1;
         break;
       }
@@ -245,193 +244,37 @@ battleModule.pveBattle = async function (weapon, npc, npcNameList, floorEnemies,
     round++;
   }
 
-  if (round > roundLimit && playerSide.hp > 0 && enemySide.hp > 0) {
+  if (round > ROUND_LIMIT && playerSide.hp > 0 && enemySide.hp > 0) {
     battleResult.log.push({ type: "end", outcome: "draw" });
   } else if (battleResult.win) {
-    battleResult.log.push({
-      type: "end",
-      outcome: "win",
-      winner: playerSide.name,
-    });
+    battleResult.log.push({ type: "end", outcome: "win", winner: playerSide.name });
   } else if (battleResult.dead) {
-    battleResult.log.push({
-      type: "end",
-      outcome: "lose",
-      winner: enemySide.name,
-    });
+    battleResult.log.push({ type: "end", outcome: "lose", winner: enemySide.name });
   }
 
   battleResult.finalHp = { npc: playerSide.hp, enemy: enemySide.hp };
   return battleResult;
-};
+}
 
 /**
- * Season 5 PVP 決鬥戰鬥
- * @param {object} attackerData - 攻擊方 user document
- * @param {object} attackerWeapon - 攻擊方武器
- * @param {object} defenderData - 防守方 user document
- * @param {object} defenderWeapon - 防守方武器
- * @param {object} attackerMods - 攻擊方 { battleAtk, battleDef, battleAgi } 乘數
- * @param {object} defenderMods - 防守方 { battleAtk, battleDef, battleAgi } 乘數
- * @param {string} duelMode - "first_strike" | "half_loss" | "total_loss"
+ * PvP 戰鬥迴圈（pvpBattle / pvpRawBattle 共用）
  */
-battleModule.pvpBattle = async function (
-  attackerData,
-  attackerWeapon,
-  defenderData,
-  defenderWeapon,
-  attackerMods = {},
-  defenderMods = {},
-  duelMode = "half_loss",
-) {
-  const roundLimit = 5;
+function runPvpCombatLoop(attacker, defender, duelMode) {
   let round = 1;
   const battleLog = [];
-
-  const { getBattleLevelBonus } = require("./battleLevel.js");
-
-  // 攻擊方數值
-  const atkLvBonus = getBattleLevelBonus(attackerData.battleLevel || 1);
-  const atkMaxHp = 100 + atkLvBonus.hpBonus + (attackerWeapon.hp || 0);
-  const attacker = {
-    name: attackerData.name,
-    hp: atkMaxHp,
-    maxHp: atkMaxHp,
-    stats: {
-      atk: Math.max(1, Math.round((attackerWeapon.atk || 0) * atkLvBonus.atkMult * (attackerMods.battleAtk || 1))),
-      def: Math.max(0, Math.round((attackerWeapon.def || 0) * atkLvBonus.defMult * (attackerMods.battleDef || 1))),
-      agi: Math.max(1, Math.round((attackerWeapon.agi || 0) * atkLvBonus.agiMult * (attackerMods.battleAgi || 1))),
-      cri: attackerWeapon.cri || 10,
-    },
-  };
-
-  // 防守方數值（對稱）
-  const defLvBonus = getBattleLevelBonus(defenderData.battleLevel || 1);
-  const defMaxHp = 100 + defLvBonus.hpBonus + (defenderWeapon.hp || 0);
-  const defender = {
-    name: defenderData.name,
-    hp: defMaxHp,
-    maxHp: defMaxHp,
-    stats: {
-      atk: Math.max(1, Math.round((defenderWeapon.atk || 0) * defLvBonus.atkMult * (defenderMods.battleAtk || 1))),
-      def: Math.max(0, Math.round((defenderWeapon.def || 0) * defLvBonus.defMult * (defenderMods.battleDef || 1))),
-      agi: Math.max(1, Math.round((defenderWeapon.agi || 0) * defLvBonus.agiMult * (defenderMods.battleAgi || 1))),
-      cri: defenderWeapon.cri || 10,
-    },
-  };
-
-  let winnerSide = null; // "attacker" | "defender"
-
-  while (attacker.hp > 0 && defender.hp > 0 && round <= roundLimit) {
-    battleLog.push(`\n**第 ${round} 回合**`);
-    const atkAct = roll.d66() + attacker.stats.agi;
-    const defAct = roll.d66() + defender.stats.agi;
-
-    const firstSide = atkAct >= defAct ? "attacker" : "defender";
-    const order = firstSide === "attacker"
-      ? [{ src: attacker, dst: defender, srcKey: "attacker", dstKey: "defender" },
-         { src: defender, dst: attacker, srcKey: "defender", dstKey: "attacker" }]
-      : [{ src: defender, dst: attacker, srcKey: "defender", dstKey: "attacker" },
-         { src: attacker, dst: defender, srcKey: "attacker", dstKey: "defender" }];
-
-    for (const { src, dst, srcKey, dstKey } of order) {
-      if (dst.hp <= 0) break;
-      const dmgResult = damCheck(src.stats.atk, src.stats.cri, dst.stats.def);
-      dst.hp -= dmgResult.damage;
-      battleLog.push(`${src.name} 對 ${dst.name} 造成了 ${dmgResult.damage} 點傷害。`);
-
-      // First Strike 模式：單擊造成 >= 10% maxHP 即勝
-      if (duelMode === "first_strike" && dmgResult.damage >= dst.maxHp * 0.10) {
-        winnerSide = srcKey;
-        break;
-      }
-      // Half Loss 模式：對方 HP ≤ 50% maxHP
-      if (duelMode === "half_loss" && dst.hp <= dst.maxHp * 0.50) {
-        winnerSide = srcKey;
-        break;
-      }
-      // Total Loss：HP ≤ 0
-      if (dst.hp <= 0) {
-        winnerSide = srcKey;
-        break;
-      }
-    }
-
-    if (winnerSide) break;
-    round++;
-  }
-
-  // 超過回合上限：HP 較高者勝
-  if (!winnerSide) {
-    winnerSide = attacker.hp >= defender.hp ? "attacker" : "defender";
-  }
-
-  const winner = winnerSide === "attacker" ? attackerData : defenderData;
-  const loser = winnerSide === "attacker" ? defenderData : attackerData;
-
-  return {
-    log: battleLog,
-    winner,
-    loser,
-    duelMode,
-    winnerHpRemaining: winnerSide === "attacker" ? attacker.hp : defender.hp,
-    loserHpRemaining: winnerSide === "attacker" ? defender.hp : attacker.hp,
-    attackerHp: attacker.hp,
-    defenderHp: defender.hp,
-    attackerMaxHp: attacker.maxHp,
-    defenderMaxHp: defender.maxHp,
-  };
-};
-
-/**
- * 通用 PVP 戰鬥（接受預計算的雙方數據，適用於玩家 vs NPC 等場景）
- * @param {object} atkFighter - { name, hp, atk, def, agi, cri }
- * @param {object} defFighter - { name, hp, atk, def, agi, cri }
- * @param {string} duelMode - "first_strike" | "half_loss" | "total_loss"
- * @returns {{ log, winnerSide, attackerHp, defenderHp, attackerMaxHp, defenderMaxHp }}
- */
-battleModule.pvpRawBattle = function (atkFighter, defFighter, duelMode = "half_loss") {
-  const roundLimit = 5;
-  let round = 1;
-  const battleLog = [];
-
-  const attacker = {
-    name: atkFighter.name,
-    hp: atkFighter.hp,
-    maxHp: atkFighter.hp,
-    stats: {
-      atk: Math.max(1, atkFighter.atk),
-      def: Math.max(0, atkFighter.def),
-      agi: Math.max(1, atkFighter.agi),
-      cri: atkFighter.cri || 10,
-    },
-  };
-
-  const defender = {
-    name: defFighter.name,
-    hp: defFighter.hp,
-    maxHp: defFighter.hp,
-    stats: {
-      atk: Math.max(1, defFighter.atk),
-      def: Math.max(0, defFighter.def),
-      agi: Math.max(1, defFighter.agi),
-      cri: defFighter.cri || 10,
-    },
-  };
-
   let winnerSide = null;
 
-  while (attacker.hp > 0 && defender.hp > 0 && round <= roundLimit) {
+  while (attacker.hp > 0 && defender.hp > 0 && round <= ROUND_LIMIT) {
     battleLog.push(`\n**第 ${round} 回合**`);
     const atkAct = roll.d66() + attacker.stats.agi;
     const defAct = roll.d66() + defender.stats.agi;
 
     const firstSide = atkAct >= defAct ? "attacker" : "defender";
     const order = firstSide === "attacker"
-      ? [{ src: attacker, dst: defender, srcKey: "attacker", dstKey: "defender" },
-         { src: defender, dst: attacker, srcKey: "defender", dstKey: "attacker" }]
-      : [{ src: defender, dst: attacker, srcKey: "defender", dstKey: "attacker" },
-         { src: attacker, dst: defender, srcKey: "attacker", dstKey: "defender" }];
+      ? [{ src: attacker, dst: defender, srcKey: "attacker" },
+         { src: defender, dst: attacker, srcKey: "defender" }]
+      : [{ src: defender, dst: attacker, srcKey: "defender" },
+         { src: attacker, dst: defender, srcKey: "attacker" }];
 
     for (const { src, dst, srcKey } of order) {
       if (dst.hp <= 0) break;
@@ -461,6 +304,106 @@ battleModule.pvpRawBattle = function (atkFighter, defFighter, duelMode = "half_l
     winnerSide = attacker.hp >= defender.hp ? "attacker" : "defender";
   }
 
+  return { battleLog, winnerSide };
+}
+
+// --- Battle module ---
+
+const battleModule = {};
+
+battleModule.pveBattle = async function (weapon, npc, npcNameList, floorEnemies, titleMods = {}) {
+  const playerSide = buildPvePlayerSide(weapon, npc, titleMods);
+
+  const enemyData = floorEnemies
+    ? getEneFromFloor(floorEnemies)
+    : getEneFromList(eneExample);
+  const enemyName =
+    npcNameList[Math.floor(Math.random() * npcNameList.length)].name;
+  const enemySide = {
+    name: `${enemyData.category}${enemyData.name || enemyName}`,
+    hp: enemyData.hp,
+    stats: {
+      atk: enemyData.atk,
+      def: enemyData.def,
+      agi: enemyData.agi,
+      cri: enemyData.cri,
+    },
+  };
+
+  const battleResult = runPveCombatLoop(playerSide, enemySide);
+  battleResult.category = enemyData.category;
+  return battleResult;
+};
+
+/**
+ * Season 5 PVP 決鬥戰鬥
+ */
+battleModule.pvpBattle = async function (
+  attackerData,
+  attackerWeapon,
+  defenderData,
+  defenderWeapon,
+  attackerMods = {},
+  defenderMods = {},
+  duelMode = "half_loss",
+) {
+  const { getBattleLevelBonus } = require("./battleLevel.js");
+
+  const atkLvBonus = getBattleLevelBonus(attackerData.battleLevel || 1);
+  const attacker = buildPvpFighter(attackerData.name, attackerWeapon, atkLvBonus, attackerMods);
+
+  const defLvBonus = getBattleLevelBonus(defenderData.battleLevel || 1);
+  const defender = buildPvpFighter(defenderData.name, defenderWeapon, defLvBonus, defenderMods);
+
+  const { battleLog, winnerSide } = runPvpCombatLoop(attacker, defender, duelMode);
+
+  const winner = winnerSide === "attacker" ? attackerData : defenderData;
+  const loser = winnerSide === "attacker" ? defenderData : attackerData;
+
+  return {
+    log: battleLog,
+    winner,
+    loser,
+    duelMode,
+    winnerHpRemaining: winnerSide === "attacker" ? attacker.hp : defender.hp,
+    loserHpRemaining: winnerSide === "attacker" ? defender.hp : attacker.hp,
+    attackerHp: attacker.hp,
+    defenderHp: defender.hp,
+    attackerMaxHp: attacker.maxHp,
+    defenderMaxHp: defender.maxHp,
+  };
+};
+
+/**
+ * 通用 PVP 戰鬥（接受預計算的雙方數據，適用於玩家 vs NPC 等場景）
+ */
+battleModule.pvpRawBattle = function (atkFighter, defFighter, duelMode = "half_loss") {
+  const attacker = {
+    name: atkFighter.name,
+    hp: atkFighter.hp,
+    maxHp: atkFighter.hp,
+    stats: {
+      atk: Math.max(1, atkFighter.atk),
+      def: Math.max(0, atkFighter.def),
+      agi: Math.max(1, atkFighter.agi),
+      cri: atkFighter.cri || 10,
+    },
+  };
+
+  const defender = {
+    name: defFighter.name,
+    hp: defFighter.hp,
+    maxHp: defFighter.hp,
+    stats: {
+      atk: Math.max(1, defFighter.atk),
+      def: Math.max(0, defFighter.def),
+      agi: Math.max(1, defFighter.agi),
+      cri: defFighter.cri || 10,
+    },
+  };
+
+  const { battleLog, winnerSide } = runPvpCombatLoop(attacker, defender, duelMode);
+
   return {
     log: battleLog,
     winnerSide,
@@ -473,45 +416,9 @@ battleModule.pvpRawBattle = function (atkFighter, defFighter, duelMode = "half_l
 
 /**
  * 直接傳入敵人數據的 PvE 戰鬥（不走 getEneFromFloor 隨機選擇）
- * @param {object} weapon - 玩家武器
- * @param {object} npc - 玩家/NPC 資料（同 pveBattle 格式）
- * @param {object} enemyData - { name, hp, atk, def, agi, cri }
- * @param {object} titleMods - 稱號修正
  */
 battleModule.pveBattleDirect = async function (weapon, npc, enemyData, titleMods = {}) {
-  const roundLimit = 5;
-  let round = 1;
-
-  let playerHp = (npc.hp || 0) + (weapon.hp || 0);
-  let playerAtk = weapon.atk || 0;
-  let playerDef = weapon.def || 0;
-  let playerAgi = weapon.agi || 0;
-  let playerCri = weapon.cri || 10;
-
-  if (npc.isHiredNpc && npc.effectiveStats) {
-    const es = npc.effectiveStats;
-    playerHp = es.hp + (weapon.hp || 0);
-    playerAtk = (weapon.atk || 0) + Math.floor(es.atk * 0.5);
-    playerDef = (weapon.def || 0) + Math.floor(es.def * 0.5);
-    playerAgi = Math.max(weapon.agi || 0, es.agi);
-    playerCri = weapon.cri || 10;
-  }
-
-  if (titleMods.battleAtk && titleMods.battleAtk !== 1) {
-    playerAtk = Math.max(1, Math.round(playerAtk * titleMods.battleAtk));
-  }
-  if (titleMods.battleDef && titleMods.battleDef !== 1) {
-    playerDef = Math.max(0, Math.round(playerDef * titleMods.battleDef));
-  }
-  if (titleMods.battleAgi && titleMods.battleAgi !== 1) {
-    playerAgi = Math.max(1, Math.round(playerAgi * titleMods.battleAgi));
-  }
-
-  const playerSide = {
-    name: npc.name,
-    hp: playerHp,
-    stats: { atk: playerAtk, def: playerDef, agi: playerAgi, cri: playerCri },
-  };
+  const playerSide = buildPvePlayerSide(weapon, npc, titleMods);
 
   const enemySide = {
     name: enemyData.name,
@@ -524,57 +431,13 @@ battleModule.pveBattleDirect = async function (weapon, npc, enemyData, titleMods
     },
   };
 
-  const battleResult = {
-    log: [],
-    win: 0,
-    dead: 0,
-    category: enemyData.category || "[Event]",
-    enemyName: enemySide.name,
-    npcName: playerSide.name,
-    initialHp: { npc: playerSide.hp, enemy: enemySide.hp },
-    finalHp: {},
-  };
-
-  while (playerSide.hp > 0 && enemySide.hp > 0 && round <= roundLimit) {
-    battleResult.log.push({ type: "round", number: round });
-    const npcAct = roll.d66() + playerSide.stats.agi;
-    const eneAct = roll.d66() + enemySide.stats.agi;
-
-    if (npcAct >= eneAct) {
-      if (processAttack(playerSide, enemySide, battleResult.log) <= 0) {
-        battleResult.win = 1;
-        break;
-      }
-      if (enemySide.hp > 0 && processAttack(enemySide, playerSide, battleResult.log) <= 0) {
-        battleResult.dead = 1;
-        break;
-      }
-    } else {
-      if (processAttack(enemySide, playerSide, battleResult.log) <= 0) {
-        battleResult.dead = 1;
-        break;
-      }
-      if (playerSide.hp > 0 && processAttack(playerSide, enemySide, battleResult.log) <= 0) {
-        battleResult.win = 1;
-        break;
-      }
-    }
-    round++;
-  }
-
-  if (round > roundLimit && playerSide.hp > 0 && enemySide.hp > 0) {
-    battleResult.log.push({ type: "end", outcome: "draw" });
-  } else if (battleResult.win) {
-    battleResult.log.push({ type: "end", outcome: "win", winner: playerSide.name });
-  } else if (battleResult.dead) {
-    battleResult.log.push({ type: "end", outcome: "lose", winner: enemySide.name });
-  }
-
-  battleResult.finalHp = { npc: playerSide.hp, enemy: enemySide.hp };
+  const battleResult = runPveCombatLoop(playerSide, enemySide);
+  battleResult.category = enemyData.category || "[Event]";
   return battleResult;
 };
 
 battleModule.hitCheck = hitCheck;
 battleModule.damCheck = damCheck;
+battleModule.buildPvpFighter = buildPvpFighter;
 
 module.exports = battleModule;

@@ -202,8 +202,14 @@ module.exports = {
     },
   },
 
+  // 戰鬥通用常數
+  BATTLE: {
+    ROUND_LIMIT: 5,
+  },
+
   // Season 5: PVP 決鬥系統
   PVP: {
+    BASE_HP: 100,
     MODES: { FIRST_STRIKE: "first_strike", HALF_LOSS: "half_loss", TOTAL_LOSS: "total_loss" },
     FIRST_STRIKE_HP_THRESHOLD: 0.10,     // 單擊造成 >= 10% maxHP 即勝
     // Total Loss 死亡機率
