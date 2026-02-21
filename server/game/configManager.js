@@ -2,7 +2,18 @@ const db = require("../db.js");
 const config = require("./config.js");
 
 // 深複製原始預設值（在任何覆蓋前）
+// 注意：JSON.parse/stringify 會將 getter 展開為靜態值，
+// 已知 getter 在 resetAll() 後手動重新安裝。
 const defaults = JSON.parse(JSON.stringify(config));
+
+// 記錄需要在 resetAll 後恢復的 getter 定義
+const GETTER_DEFINITIONS = [
+  {
+    path: "NPC",
+    name: "WEEKLY_WAGE",
+    get: function () { return this.MONTHLY_WAGE; },
+  },
+];
 
 /** 依點分隔路徑取值，如 getPath(obj, "PVP.WAGER_MAX", 0) */
 function getPath(obj, path, defaultValue) {
@@ -113,6 +124,15 @@ async function resetAll(adminUsername) {
     }
   };
   deepRestore(defaults, config);
+
+  // 重新安裝 getter（JSON 深複製會破壞 getter）
+  for (const def of GETTER_DEFINITIONS) {
+    const target = getPath(config, def.path);
+    if (target && typeof target === "object") {
+      delete target[def.name];
+      Object.defineProperty(target, def.name, { get: def.get, configurable: true, enumerable: true });
+    }
+  }
 }
 
 function getDefaults() {

@@ -1,8 +1,7 @@
 const config = require("../config.js");
 
-const TIME_SCALE = config.TIME_SCALE; // ms per game day
-const SETTLEMENT_INTERVAL = config.SETTLEMENT.INTERVAL_GAME_DAYS;
-const NEWBIE_DAYS = config.NEWBIE_PROTECTION_DAYS;
+// 注意：不在模組層快取 config 的 primitive 值，
+// 以確保 GM 後台的 runtime config override 能即時生效。
 
 /**
  * 計算從 startTime 到 now 之間經過的遊戲天數
@@ -12,7 +11,7 @@ const NEWBIE_DAYS = config.NEWBIE_PROTECTION_DAYS;
  */
 function getGameDaysSince(startTime, now = Date.now()) {
   if (!startTime) return 0;
-  return Math.floor((now - startTime) / TIME_SCALE);
+  return Math.floor((now - startTime) / config.TIME_SCALE);
 }
 
 /**
@@ -22,7 +21,7 @@ function getGameDaysSince(startTime, now = Date.now()) {
  */
 function getCurrentGameDay(now = Date.now()) {
   const EPOCH = new Date("2026-01-01T00:00:00Z").getTime();
-  return Math.floor((now - EPOCH) / TIME_SCALE);
+  return Math.floor((now - EPOCH) / config.TIME_SCALE);
 }
 
 /**
@@ -42,7 +41,7 @@ function isSettlementDue(nextSettlementAt, now = Date.now()) {
  * @returns {number}
  */
 function getNextSettlementTime(lastSettlementAt) {
-  return lastSettlementAt + SETTLEMENT_INTERVAL * TIME_SCALE;
+  return lastSettlementAt + config.SETTLEMENT.INTERVAL_GAME_DAYS * config.TIME_SCALE;
 }
 
 /**
@@ -54,7 +53,7 @@ function getNextSettlementTime(lastSettlementAt) {
 function isNewbie(gameCreatedAt, now = Date.now()) {
   if (!gameCreatedAt) return false;
   const daysSinceCreation = getGameDaysSince(gameCreatedAt, now);
-  return daysSinceCreation < NEWBIE_DAYS;
+  return daysSinceCreation < config.NEWBIE_PROTECTION_DAYS;
 }
 
 module.exports = {

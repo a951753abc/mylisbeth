@@ -169,20 +169,31 @@ async function buyListing(buyerUserId, listingId) {
     return { error: `Col 不足，需要 ${listing.totalPrice} Col` };
   }
 
-  // 發賣家 Col
-  await awardCol(listing.sellerId, listing.totalPrice);
-  await increment(listing.sellerId, "totalMarketSold");
-  await increment(listing.sellerId, "totalMarketEarned", listing.totalPrice);
+  // 付款給賣家 + 轉移物品（任一步驟失敗則全面回滾）
+  try {
+    await awardCol(listing.sellerId, listing.totalPrice);
+    await increment(listing.sellerId, "totalMarketSold");
+    await increment(listing.sellerId, "totalMarketEarned", listing.totalPrice);
 
-  // 轉移物品給買家
-  if (listing.type === "material") {
-    const d = listing.itemData;
-    await db.atomicIncItem(buyerUserId, d.itemId, d.itemLevel, d.itemName, d.quantity);
-  } else if (listing.type === "weapon") {
-    await db.update("user", { userId: buyerUserId }, { $push: { weaponStock: listing.weaponData } });
+    // 轉移物品給買家
+    if (listing.type === "material") {
+      const d = listing.itemData;
+      await db.atomicIncItem(buyerUserId, d.itemId, d.itemLevel, d.itemName, d.quantity);
+    } else if (listing.type === "weapon") {
+      await db.update("user", { userId: buyerUserId }, { $push: { weaponStock: listing.weaponData } });
+    }
+
+    await checkAndAward(listing.sellerId);
+  } catch (err) {
+    // 回滾：退還買家 Col，恢復商品狀態
+    console.error("市場交易後續步驟失敗，回滾中:", err.message);
+    await awardCol(buyerUserId, listing.totalPrice).catch(() => {});
+    await db.update("market_listing", { listingId }, {
+      $set: { status: "active" }, $unset: { buyerId: "", soldAt: "" },
+    }).catch(() => {});
+    return { error: "交易過程中發生錯誤，已退還 Col，請重試。" };
   }
 
-  await checkAndAward(listing.sellerId);
   return { success: true, listing };
 }
 

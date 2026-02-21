@@ -6,7 +6,7 @@ function hitCheck(atkAgi, defAgi) {
   const defRoll = roll.d66();
   const atkAct = atkRoll + atkAgi;
   const defAct = defRoll + defAgi;
-  if (atkAct === 12) {
+  if (atkRoll === 12) {
     return { success: true, text: "擲出了大成功！", atkRoll, defRoll, atkAct, defAct };
   } else if (atkAct >= defAct) {
     return { success: true, text: "成功命中。", atkRoll, defRoll, atkAct, defAct };

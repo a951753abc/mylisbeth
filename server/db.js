@@ -4,38 +4,52 @@ const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
 let db;
 
+function ensureDb() {
+  if (!db) throw new Error("Database not connected — call db.connect() first");
+}
+
 module.exports.connect = async function () {
   await client.connect();
   db = client.db("lisbeth");
   console.log("MongoDB connected!");
 };
 
+module.exports.close = async function () {
+  await client.close();
+};
+
 module.exports.findOne = async function (collectName, query, options = {}) {
+  ensureDb();
   const collection = db.collection(collectName);
   return await collection.findOne(query, options);
 };
 
 module.exports.find = async function (collectName, query) {
+  ensureDb();
   const collection = db.collection(collectName);
   return await collection.find(query).toArray();
 };
 
 module.exports.insertOne = async function (collectName, value) {
+  ensureDb();
   const collection = db.collection(collectName);
   await collection.insertOne(value);
 };
 
 module.exports.update = async function (collectName, filter, newValue) {
+  ensureDb();
   const collection = db.collection(collectName);
   await collection.updateOne(filter, newValue);
 };
 
 module.exports.updateMany = async function (collectName, filter, newValue) {
+  ensureDb();
   const collection = db.collection(collectName);
   await collection.updateMany(filter, newValue);
 };
 
 module.exports.aggregate = async function (collectName, filter) {
+  ensureDb();
   const collection = db.collection(collectName);
   return await collection.aggregate(filter).toArray();
 };
@@ -46,6 +60,7 @@ module.exports.findOneAndUpdate = async function (
   update,
   options = {},
 ) {
+  ensureDb();
   const collection = db.collection(collectName);
   return await collection.findOneAndUpdate(filter, update, options);
 };
@@ -57,6 +72,7 @@ module.exports.atomicIncItem = async function (
   itemName,
   delta,
 ) {
+  ensureDb();
   const collection = db.collection("user");
   if (delta > 0) {
     // Ensure element exists (only pushes if NOT already present)
@@ -65,11 +81,11 @@ module.exports.atomicIncItem = async function (
       { $push: { itemStock: { itemId, itemLevel, itemNum: 0, itemName } } },
     );
     // Now safely increment (element guaranteed to exist)
-    await collection.updateOne(
+    const result = await collection.updateOne(
       { userId, itemStock: { $elemMatch: { itemId, itemLevel } } },
       { $inc: { "itemStock.$.itemNum": delta } },
     );
-    return true;
+    return result.modifiedCount > 0;
   }
   const absDelta = Math.abs(delta);
   const result = await collection.updateOne(
@@ -91,31 +107,37 @@ module.exports.atomicIncItem = async function (
 };
 
 module.exports.upsert = async function (collectName, filter, update) {
+  ensureDb();
   const collection = db.collection(collectName);
   await collection.updateOne(filter, update, { upsert: true });
 };
 
 module.exports.count = async function (collectName, filter) {
+  ensureDb();
   const collection = db.collection(collectName);
   return await collection.countDocuments(filter);
 };
 
 module.exports.deleteOne = async function (collectName, filter) {
+  ensureDb();
   const collection = db.collection(collectName);
   return await collection.deleteOne(filter);
 };
 
 module.exports.insertMany = async function (collectName, docs) {
+  ensureDb();
   const collection = db.collection(collectName);
   return await collection.insertMany(docs);
 };
 
 module.exports.deleteMany = async function (collectName, filter) {
+  ensureDb();
   const collection = db.collection(collectName);
   return await collection.deleteMany(filter);
 };
 
 module.exports.findWithOptions = async function (collectName, query, options = {}) {
+  ensureDb();
   const collection = db.collection(collectName);
   let cursor = collection.find(query);
   if (options.sort) cursor = cursor.sort(options.sort);
