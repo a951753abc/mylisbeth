@@ -50,6 +50,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
       if (data.lastStaminaRegenAt !== undefined) setLocalLastRegenAt(data.lastStaminaRegenAt);
     }
     setBusy(false);
+    return data;
   };
 
   return (

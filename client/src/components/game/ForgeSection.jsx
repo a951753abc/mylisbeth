@@ -137,11 +137,12 @@ export default function ForgeSection({ user, doAction, isDisabled, displayStamin
         <button
           className="btn-warning"
           disabled={isDisabled || !allSelected || displayStamina < minStamina}
-          onClick={() =>
-            doAction("forge", {
+          onClick={async () => {
+            const data = await doAction("forge", {
               materials: matSlots,
-            })
-          }
+            });
+            if (!data.error) setMatSlots(["", ""]);
+          }}
         >
           鍛造
         </button>

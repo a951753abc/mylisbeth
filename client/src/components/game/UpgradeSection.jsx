@@ -41,12 +41,13 @@ export default function UpgradeSection({ user, doAction, isDisabled, displayStam
           <button
             className="btn-success"
             disabled={isDisabled || !upWeapon || !upMat}
-            onClick={() =>
-              doAction("upgrade", {
+            onClick={async () => {
+              const data = await doAction("upgrade", {
                 weaponId: upWeapon,
                 materialId: upMat,
-              })
-            }
+              });
+              if (!data.error) setUpMat("");
+            }}
           >
             強化
           </button>
@@ -85,12 +86,13 @@ export default function UpgradeSection({ user, doAction, isDisabled, displayStam
           <button
             className="btn-warning"
             disabled={isDisabled || !repairWeapon || !repairMat || displayStamina < 1}
-            onClick={() =>
-              doAction("repair", {
+            onClick={async () => {
+              const data = await doAction("repair", {
                 weaponId: repairWeapon,
                 materialId: repairMat,
-              })
-            }
+              });
+              if (!data.error) setRepairMat("");
+            }}
           >
             修復
           </button>
