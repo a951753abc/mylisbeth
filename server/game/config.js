@@ -135,6 +135,7 @@ module.exports = {
   // Boss 反擊機制
   BOSS_COUNTER: {
     ATK_MULT: 0.5,        // Boss 反擊 ATK 倍率
+    AGI_BONUS: 4,         // Boss 反擊額外 AGI 加成（確保高 agi NPC 也有被命中的風險）
     BOSS_CRI: 11,         // 反擊暴擊門檻（d66 >= 11，約 8.3%）
     WIN_THRESHOLD: 0.40,  // 傷害/HP < 40% → WIN
     LOSE_THRESHOLD: 0.75, // 傷害/HP >= 75% → LOSE

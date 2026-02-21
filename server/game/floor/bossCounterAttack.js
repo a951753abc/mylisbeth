@@ -1,7 +1,7 @@
 const config = require("../config.js");
 const battle = require("../battle.js");
 
-const { ATK_MULT, BOSS_CRI, WIN_THRESHOLD, LOSE_THRESHOLD } = config.BOSS_COUNTER;
+const { ATK_MULT, AGI_BONUS, BOSS_CRI, WIN_THRESHOLD, LOSE_THRESHOLD } = config.BOSS_COUNTER;
 
 /**
  * Boss 反擊計算（純函數，無副作用）
@@ -13,7 +13,7 @@ const { ATK_MULT, BOSS_CRI, WIN_THRESHOLD, LOSE_THRESHOLD } = config.BOSS_COUNTE
  */
 function bossCounterAttack({ bossData, bossAtkBoost, combined }) {
   const effectiveBossAtk = Math.ceil((bossData.atk + bossAtkBoost) * ATK_MULT);
-  const bossAgi = bossData.agi || 0;
+  const bossAgi = (bossData.agi || 0) + (AGI_BONUS || 0);
   const npcAgi = combined.agi || 0;
   const npcDef = combined.def || 0;
   const npcHp = combined.hp || 1;
