@@ -9,7 +9,7 @@ const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { awardBattleExp } = require("../battleLevel.js");
 const { isNewbie } = require("../time/gameTime.js");
-const { deductPvpStamina, deductWagers, buildCombatMods } = require("./pvpUtils.js");
+const { deductPvpStamina, deductWagers, buildCombatMods, validateDuelRequest, calcWagerPayout } = require("./pvpUtils.js");
 const { getEffectiveSkills } = require("../skill/skillSlot.js");
 const { buildSkillContext } = require("../skill/skillCombat.js");
 const { awardProficiency, getProfGainKey } = require("../skill/skillProficiency.js");
@@ -17,7 +17,6 @@ const { resolveWeaponType } = require("../weapon/weaponType.js");
 
 const PVP = config.PVP;
 const MODES = PVP.MODES;
-const VALID_MODES = new Set(Object.values(MODES));
 
 module.exports = async function (cmd, rawAttacker) {
   const attacker = await ensureUserFields(rawAttacker);
@@ -28,39 +27,17 @@ module.exports = async function (cmd, rawAttacker) {
   const mode = cmd[4] || MODES.HALF_LOSS;
   const wagerCol = parseInt(cmd[5], 10) || 0;
 
-  // === 基本驗證（全部在體力扣除之前）===
-  if (attacker.isInDebt) {
-    return { error: "你目前有未清還的負債，無法發起決鬥！請先至帳單頁面還清負債。" };
-  }
+  // === 共用驗證 ===
+  const validation = validateDuelRequest(attacker, weaponId, mode, wagerCol);
+  if (validation.error) return validation;
+  const { atkWeaponIndex } = validation;
+
+  // === PvP 專屬驗證 ===
   if (!targetUserId) {
     return { error: "請選擇要挑戰的玩家。" };
   }
   if (attacker.userId === targetUserId) {
     return { error: "你不能挑戰自己！" };
-  }
-  if (!VALID_MODES.has(mode)) {
-    return { error: "無效的決鬥模式。" };
-  }
-  if (weaponId === undefined || weaponId === null) {
-    return { error: "請選擇要使用的武器。" };
-  }
-  const atkWeaponIndex = Number(weaponId);
-  if (Number.isNaN(atkWeaponIndex) || !attacker.weaponStock?.[atkWeaponIndex]) {
-    return { error: `錯誤！你沒有編號為 ${weaponId} 的武器。` };
-  }
-
-  // === 賭注驗證（First Strike / Half Loss）===
-  if (mode !== MODES.TOTAL_LOSS) {
-    if (!Number.isFinite(wagerCol) || wagerCol < PVP.WAGER_MIN) {
-      return { error: `賭注不能低於 ${PVP.WAGER_MIN} Col。` };
-    }
-    if (wagerCol > PVP.WAGER_MAX) {
-      return { error: `賭注不能超過 ${PVP.WAGER_MAX} Col。` };
-    }
-    // 預檢攻擊方 Col 是否足夠（避免扣體力後才失敗）
-    if (wagerCol > 0 && (attacker.col || 0) < wagerCol) {
-      return { error: `你的 Col 不足以支付 ${wagerCol} 的賭注。` };
-    }
   }
 
   // === 每日上限 & 同一對手冷卻 ===
@@ -215,10 +192,8 @@ module.exports = async function (cmd, rawAttacker) {
       }
     }
   } else if (wagerCol > 0) {
-    // First Strike / Half Loss 賭注制
-    const payout = Math.floor(wagerCol * 2 * (1 - PVP.WAGER_TAX));
+    const { payout, tax } = calcWagerPayout(wagerCol);
     await awardCol(winnerId, payout);
-    const tax = wagerCol * 2 - payout;
     rewardText += `\n${winnerName} 贏得賭注 ${payout} Col（系統稅 ${tax} Col）`;
   } else {
     rewardText += `\n榮譽決鬥——無 Col 交易。`;
