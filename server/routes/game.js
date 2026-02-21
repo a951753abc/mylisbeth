@@ -19,6 +19,7 @@ const config = require("../game/config.js");
 const { getNextSettlementTime } = require("../game/time/gameTime.js");
 const { increment } = require("../game/progression/statsTracker.js");
 const { getLeaderboard, getMyRank } = require("../game/leaderboard.js");
+const { logAction } = require("../game/logging/actionLogger.js");
 
 // --- Route helpers ---
 
@@ -339,7 +340,11 @@ router.get("/floor/history", ensureAuth, async (req, res) => {
 
 // Daily reward
 router.post("/daily", ensureAuth, ensureNotPaused, async (req, res) => {
-  await handleRoute(res, () => claimDaily(req.user.discordId), "每日獎勵失敗");
+  await handleRoute(res, async () => {
+    const result = await claimDaily(req.user.discordId);
+    if (!result?.error) logAction(req.user.discordId, null, "daily", {});
+    return result;
+  }, "每日獎勵失敗");
 });
 
 // Achievements
@@ -437,11 +442,13 @@ router.post("/sell-item", ensureAuth, ensureNotPaused, async (req, res) => {
   await handleRoute(res, async () => {
     const { itemIndex, quantity } = req.body;
     if (itemIndex === undefined || itemIndex === null) return { error: "缺少素材索引" };
-    return await sellItem(
+    const result = await sellItem(
       req.user.discordId,
       parseInt(itemIndex, 10),
       parseInt(quantity, 10) || 1,
     );
+    if (!result?.error) logAction(req.user.discordId, null, "sell_item", { itemIndex, quantity });
+    return result;
   }, "出售素材失敗");
 });
 
@@ -450,7 +457,9 @@ router.post("/sell-weapon", ensureAuth, ensureNotPaused, async (req, res) => {
   await handleRoute(res, async () => {
     const { weaponIndex } = req.body;
     if (weaponIndex === undefined || weaponIndex === null) return { error: "缺少武器索引" };
-    return await sellWeapon(req.user.discordId, parseInt(weaponIndex, 10));
+    const result = await sellWeapon(req.user.discordId, parseInt(weaponIndex, 10));
+    if (!result?.error) logAction(req.user.discordId, null, "sell_weapon", { weaponIndex });
+    return result;
   }, "出售武器失敗");
 });
 

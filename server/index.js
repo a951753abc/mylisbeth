@@ -16,9 +16,12 @@ const userRoutes = require("./routes/user.js");
 const gameRoutes = require("./routes/game.js");
 const npcRoutes = require("./routes/npc.js");
 const marketRoutes = require("./routes/market.js");
+const adminRoutes = require("./routes/admin/index.js");
 const { setupGameEvents } = require("./socket/gameEvents.js");
 const { runNpcPurchases } = require("./game/economy/market.js");
 const config = require("./game/config.js");
+const configManager = require("./game/configManager.js");
+const { getDashboardStats } = require("./routes/admin/dashboard.js");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -73,6 +76,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/game", gameRoutes);
 app.use("/api/npc", npcRoutes);
 app.use("/api/market", marketRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Socket.io
 setupGameEvents(io);
@@ -81,6 +85,10 @@ app.set("io", io);
 // Serve static files in production
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../client/dist")));
+  // Admin SPA 路由（比遊戲 catch-all 更具體，需放在前面）
+  app.get("/admin*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../client/dist/admin.html"));
+  });
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../client/dist/index.html"));
   });
@@ -92,11 +100,24 @@ const PORT = process.env.PORT || 3000;
 async function start() {
   await db.connect();
   await itemCache.load();
+  await configManager.loadOverrides();
 
   // Season 6: NPC 自動購買（每遊戲日 = 5 分鐘）
   setInterval(() => {
     runNpcPurchases().catch((err) => console.error("NPC 自動購買失敗:", err));
   }, config.TIME_SCALE);
+
+  // GM 儀表板：每 10 秒向 admin 房間推送狀態
+  setInterval(async () => {
+    const room = io.sockets.adapter.rooms.get("admin:dashboard");
+    if (!room || room.size === 0) return;
+    try {
+      const stats = await getDashboardStats(io);
+      io.to("admin:dashboard").emit("admin:dashboard:update", stats);
+    } catch (err) {
+      console.error("Dashboard push failed:", err.message);
+    }
+  }, 10000);
 
   server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

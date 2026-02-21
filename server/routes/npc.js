@@ -16,6 +16,7 @@ const {
 } = require("../game/npc/mission.js");
 const db = require("../db.js");
 const config = require("../game/config.js");
+const { logAction } = require("../game/logging/actionLogger.js");
 
 // GET /api/npc/tavern — 酒館 NPC 列表（含雇用上限）
 router.get("/tavern", ensureAuth, async (req, res) => {
@@ -38,6 +39,7 @@ router.post("/hire", ensureAuth, ensureNotPaused, async (req, res) => {
     if (!npcId) return res.status(400).json({ error: "請提供 npcId" });
     const result = await hireNpc(req.user.discordId, npcId);
     if (result.error) return res.status(400).json(result);
+    logAction(req.user.discordId, null, "npc:hire", { npcId });
     res.json(result);
   } catch (err) {
     console.error("雇用 NPC 失敗:", err);
@@ -52,6 +54,7 @@ router.post("/fire", ensureAuth, ensureNotPaused, async (req, res) => {
     if (!npcId) return res.status(400).json({ error: "請提供 npcId" });
     const result = await fireNpc(req.user.discordId, npcId);
     if (result.error) return res.status(400).json(result);
+    logAction(req.user.discordId, null, "npc:fire", { npcId });
     res.json(result);
   } catch (err) {
     console.error("解雇 NPC 失敗:", err);
@@ -69,6 +72,7 @@ router.post("/heal", ensureAuth, ensureNotPaused, async (req, res) => {
     }
     const result = await healNpc(req.user.discordId, npcId, healType);
     if (result.error) return res.status(400).json(result);
+    logAction(req.user.discordId, null, "npc:heal", { npcId, healType });
     res.json(result);
   } catch (err) {
     console.error("治療 NPC 失敗:", err);
@@ -99,6 +103,7 @@ router.post("/mission/start", ensureAuth, ensureNotPaused, async (req, res) => {
     if (!missionType) return res.status(400).json({ error: "請選擇任務類型" });
     const result = await startMission(req.user.discordId, npcId, missionType);
     if (result.error) return res.status(400).json(result);
+    logAction(req.user.discordId, null, "npc:mission", { npcId, missionType });
     res.json(result);
   } catch (err) {
     console.error("派遣任務失敗:", err);

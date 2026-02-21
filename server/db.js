@@ -115,6 +115,16 @@ module.exports.deleteMany = async function (collectName, filter) {
   return await collection.deleteMany(filter);
 };
 
+module.exports.findWithOptions = async function (collectName, query, options = {}) {
+  const collection = db.collection(collectName);
+  let cursor = collection.find(query);
+  if (options.sort) cursor = cursor.sort(options.sort);
+  if (options.skip) cursor = cursor.skip(options.skip);
+  if (options.limit) cursor = cursor.limit(options.limit);
+  if (options.projection) cursor = cursor.project(options.projection);
+  return await cursor.toArray();
+};
+
 module.exports.saveItemToUser = async function (userId, mine) {
   await module.exports.atomicIncItem(
     userId,

@@ -28,6 +28,12 @@ node server/scripts/seed-season2.js
 
 # Initialize Season 3 MongoDB indexes (run once after deploy)
 node server/scripts/init-season3-indexes.js
+
+# Create GM admin account (set env vars first)
+ADMIN_USER=admin ADMIN_PASS=your_password node server/scripts/seed-admin.js
+
+# Initialize admin panel indexes (action_logs TTL, admin_users unique)
+node server/scripts/init-admin-indexes.js
 ```
 
 No test framework or linter is configured. No CI pipeline exists.
@@ -39,6 +45,7 @@ No test framework or linter is configured. No CI pipeline exists.
 - **Entry**: `server/index.js` — boots Express, mounts session (shared with Socket.io via `io.engine.use`), Passport Discord OAuth2, REST routes, and socket listeners.
 - **Database**: `server/db.js` — thin wrapper around the native MongoDB driver (no Mongoose). Exposes `findOne`, `find`, `update`, `findOneAndUpdate`, `atomicIncItem`, `upsert`, etc. Database name is `lisbeth`.
 - **Auth**: Discord OAuth2 via `passport-discord`. Session stored in MongoDB via `connect-mongo`. Middleware at `server/middleware/auth.js`.
+- **Admin Auth**: Independent username/password system via bcrypt. Middleware at `server/middleware/adminAuth.js`. Session stored as `req.session.admin` (coexists with Passport).
 
 ### Command Dispatch Pattern
 
@@ -62,6 +69,8 @@ All game actions route through `server/game/move.js`:
 | Progression | `server/game/progression/` | Achievements (19 definitions incl. Season 3), daily login rewards (7-day cycle), stats tracking. |
 | AI Narrative | `server/game/gemini.js` | Calls Google Gemini to generate Japanese battle narratives for adventures. |
 | Config | `server/game/config.js` | All game constants: cooldowns, probabilities, Col rewards, boss timeout, floor material groups, TIME_SCALE, SETTLEMENT, NPC. |
+| Config Manager | `server/game/configManager.js` | Runtime config overrides: loads from DB on boot, mutates live config object via `lodash.set()`. No restart needed. |
+| Action Logger | `server/game/logging/actionLogger.js` | Fire-and-forget action logging to `action_logs` collection. Injected in `move.js` and individual routes. |
 | Migration | `server/game/migration/ensureUserFields.js` | Auto-patches old user documents with new Season 2/3 fields. |
 | Game Time | `server/game/time/gameTime.js` | Pure functions: game day calculation, settlement timing, newbie protection. 5 min real = 1 game day. |
 | NPC Generator | `server/game/npc/generator.js` | Deterministic NPC from index via `seedrandom`. Pool of 8000. |
@@ -84,6 +93,14 @@ Socket.io broadcasts from routes (not from socket handlers). Routes access `io` 
 - `useSocket` hook manages all Socket.io event subscriptions, buffering last 50 events.
 - Vite proxies `/api` and `/socket.io` to the backend in dev mode.
 
+### GM Admin Panel (Client)
+
+- Separate Vite entry point at `client/admin.html` → `client/src/admin/main.jsx`.
+- Uses `react-router-dom` for internal navigation (`/admin`, `/admin/players`, `/admin/logs`, `/admin/config`).
+- Independent auth flow (username/password), not Discord OAuth.
+- Features: Dashboard (real-time stats via Socket.io), Player Management (CRUD), Action Logs (search/filter), Config Editor (live overrides).
+- Admin routes: `server/routes/admin/` (auth, players, config, logs, dashboard).
+
 ### MongoDB Collections
 
 - `user` — player data: inventory (`itemStock`), weapons (`weaponStock`), levels, floor progress, achievements, col balance, stats.
@@ -92,6 +109,9 @@ Socket.io broadcasts from routes (not from socket handlers). Routes access `io` 
 - `item` — material definitions (including Season 2 floor materials with `mainStat`).
 - `npc` — NPC records (written on first hire). `status`: `available|hired|dead`. Indexed by `npcId` (unique), `status`, `hiredBy`.
 - `bankruptcy_log` — permanent log of bankrupt characters. Indexed by `userId`, `bankruptedAt`.
+- `admin_users` — GM accounts with bcrypt password hashes. Indexed by `username` (unique).
+- `action_logs` — player/admin action logs with 30-day TTL. Indexed by `userId+timestamp`, `action+timestamp`.
+- `config_overrides` — single document (`_id: "game_config"`) storing runtime config overrides.
 
 ### User Document Shape (key fields)
 
@@ -101,7 +121,7 @@ Socket.io broadcasts from routes (not from socket handlers). Routes access `io` 
 
 ## Environment Variables
 
-See `.env.example`: `MONGODB_URI`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_CALLBACK_URL`, `GEMINI_API_KEY`, `SESSION_SECRET`, `PORT`.
+See `.env.example`: `MONGODB_URI`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_CALLBACK_URL`, `GEMINI_API_KEY`, `SESSION_SECRET`, `PORT`, `ADMIN_USER`, `ADMIN_PASS`.
 
 ## Conventions
 

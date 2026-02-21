@@ -4,6 +4,7 @@ const db = require("../db.js");
 const { checkSettlement } = require("./economy/debtCheck.js");
 const { checkAndConsumeStamina } = require("./stamina/staminaCheck.js");
 const { checkEvent } = require("./events/eventTrigger.js");
+const { logAction } = require("./logging/actionLogger.js");
 
 const mine = require("./move/mine.js");
 const forge = require("./move/forge.js");
@@ -100,6 +101,14 @@ module.exports = async function (cmd, userOrId) {
       }
     }
   }
+
+  // 操作日誌（fire-and-forget）
+  logAction(userId, user.name, cmd[1], {
+    cmd: cmd.slice(1),
+    floor: user.currentFloor,
+    staminaCost: actionResult?.staminaCost,
+    randomEvent: actionResult?.randomEvent?.type || null,
+  }, !actionResult?.error, actionResult?.error || null);
 
   return actionResult;
 };
