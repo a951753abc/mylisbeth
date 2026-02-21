@@ -261,6 +261,9 @@ export default function MarketPanel({ user, onRefresh }) {
                           <span style={{ marginRight: "0.3rem" }}>【{l.weaponData.rarityLabel}】</span>
                         )}
                         {l.weaponData.weaponName}
+                        <span style={{ color: "var(--text-secondary)", fontSize: "0.75rem", marginLeft: "0.4rem" }}>
+                          ATK:{l.weaponData.atk || 0} DEF:{l.weaponData.def || 0} AGI:{l.weaponData.agi || 0} CRI:{l.weaponData.cri || 0} HP:{l.weaponData.hp || 0} 耐久:{l.weaponData.durability || 0}
+                        </span>
                       </span>
                     )}
                     <span style={{ color: "var(--text-secondary)", fontSize: "0.75rem", marginLeft: "0.5rem" }}>
@@ -437,6 +440,9 @@ export default function MarketPanel({ user, onRefresh }) {
                         <span>
                           {l.weaponData?.rarityLabel && `【${l.weaponData.rarityLabel}】`}
                           {l.weaponData?.weaponName}
+                          <span style={{ color: "var(--text-secondary)", fontSize: "0.7rem", marginLeft: "0.3rem" }}>
+                            ATK:{l.weaponData?.atk || 0} DEF:{l.weaponData?.def || 0}
+                          </span>
                         </span>
                       )}
                       <span style={{ color: "var(--gold)", marginLeft: "0.4rem" }}>{l.totalPrice} Col</span>
