@@ -5,6 +5,9 @@ export default function InventoryPanel({ user, onUserUpdate }) {
   const [renameName, setRenameName] = useState("");
   const [renameMsg, setRenameMsg] = useState("");
   const [renameBusy, setRenameBusy] = useState(false);
+  const [discardBusy, setDiscardBusy] = useState(false);
+  const [discardMsg, setDiscardMsg] = useState("");
+  const [discardError, setDiscardError] = useState("");
 
   const handleRename = async (weaponIndex) => {
     if (!renameName.trim() || renameBusy) return;
@@ -31,8 +34,88 @@ export default function InventoryPanel({ user, onUserUpdate }) {
     setRenameBusy(false);
   };
 
+  const handleDiscardItem = async (itemIndex, itemName, maxQty) => {
+    const qty = maxQty > 1
+      ? window.prompt(`要丟棄多少個 ${itemName}？（最多 ${maxQty}）`, "1")
+      : "1";
+    if (qty === null) return;
+    const parsedQty = parseInt(qty, 10);
+    if (!parsedQty || parsedQty <= 0 || parsedQty > maxQty) return;
+    if (!window.confirm(`確定要丟棄 ${itemName} x${parsedQty} 嗎？丟棄後不會獲得任何 Col。`)) return;
+    setDiscardBusy(true);
+    setDiscardMsg("");
+    setDiscardError("");
+    try {
+      const res = await fetch("/api/game/discard-item", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ itemIndex, quantity: parsedQty }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setDiscardError(data.error);
+      } else {
+        setDiscardMsg(data.message);
+        if (onUserUpdate) onUserUpdate();
+      }
+    } catch {
+      setDiscardError("丟棄失敗");
+    }
+    setDiscardBusy(false);
+  };
+
+  const handleDiscardWeapon = async (weaponIndex, weaponName) => {
+    if (!window.confirm(`確定要丟棄武器【${weaponName}】嗎？丟棄後不會獲得任何 Col。`)) return;
+    setDiscardBusy(true);
+    setDiscardMsg("");
+    setDiscardError("");
+    try {
+      const res = await fetch("/api/game/discard-weapon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ weaponIndex }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setDiscardError(data.error);
+      } else {
+        setDiscardMsg(data.message);
+        if (onUserUpdate) onUserUpdate();
+      }
+    } catch {
+      setDiscardError("丟棄失敗");
+    }
+    setDiscardBusy(false);
+  };
+
+  const discardBtnStyle = {
+    background: "transparent",
+    border: "1px solid #ef4444",
+    color: "#f87171",
+    borderRadius: "4px",
+    padding: "0.1rem 0.4rem",
+    fontSize: "0.7rem",
+    cursor: "pointer",
+    marginLeft: "0.4rem",
+    opacity: discardBusy ? 0.5 : 1,
+  };
+
   return (
     <div>
+      {/* Discard feedback */}
+      {discardMsg && (
+        <div style={{ color: "#4ade80", fontSize: "0.82rem", marginBottom: "0.5rem", padding: "0.4rem", background: "#064e3b33", borderRadius: "4px" }}>
+          {discardMsg}
+        </div>
+      )}
+      {discardError && (
+        <div style={{ color: "#f87171", fontSize: "0.82rem", marginBottom: "0.5rem", padding: "0.4rem", background: "#7f1d1d33", borderRadius: "4px" }}>
+          {discardError}
+        </div>
+      )}
+
       {/* Items */}
       <div className="card">
         <h2>素材庫</h2>
@@ -52,7 +135,16 @@ export default function InventoryPanel({ user, onUserUpdate }) {
                 </span>
                 <span className="stars">[{item.levelText}]</span> {item.name}
               </span>
-              <span>x{item.num}</span>
+              <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                x{item.num}
+                <button
+                  disabled={discardBusy}
+                  onClick={() => handleDiscardItem(item.index, item.name, item.num)}
+                  style={discardBtnStyle}
+                >
+                  丟棄
+                </button>
+              </span>
             </div>
           ))
         )}
@@ -131,6 +223,13 @@ export default function InventoryPanel({ user, onUserUpdate }) {
                       ✏️ 改名
                     </button>
                   )}
+                  <button
+                    disabled={discardBusy}
+                    onClick={() => handleDiscardWeapon(weapon.index, weapon.weaponName)}
+                    style={discardBtnStyle}
+                  >
+                    丟棄
+                  </button>
                 </span>
                 {weapon.rarityLabel && (
                   <span

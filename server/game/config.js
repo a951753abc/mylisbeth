@@ -105,8 +105,16 @@ module.exports = {
     DRAW: 25,
   },
 
-  INITIAL_ITEM_LIMIT: 5,
-  INITIAL_WEAPON_LIMIT: 1,
+  INITIAL_ITEM_LIMIT: 7,
+  INITIAL_WEAPON_LIMIT: 3,
+
+  // 丟棄 & 撿拾系統
+  DISCARD: {
+    // NPC 冒險撿拾機率（d100Check）
+    RECOVERY_CHANCE: { WIN: 30, DRAW: 15, LOSE: 5 },
+    // 丟棄池最大數量（防止無限增長）
+    MAX_POOL_SIZE: 500,
+  },
 
   // Season 2: Col 貨幣
   COL_ADVENTURE_REWARD: {

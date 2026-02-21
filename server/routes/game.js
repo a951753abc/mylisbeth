@@ -12,6 +12,7 @@ const claimDaily = require("../game/progression/daily.js");
 const { calculateBill, payDebt } = require("../game/economy/settlement.js");
 const { takeLoan, getLoanInfo } = require("../game/economy/loan.js");
 const { sellItem, sellWeapon, sellSealedWeapon } = require("../game/economy/shop.js");
+const { discardItem, discardWeapon } = require("../game/economy/discard.js");
 const { TITLE_EFFECTS } = require("../game/title/titleEffects.js");
 const { validateName } = require("../utils/sanitize.js");
 const config = require("../game/config.js");
@@ -459,6 +460,28 @@ router.post("/sell-sealed-weapon", ensureAuth, ensureNotPaused, async (req, res)
     if (sealedIndex === undefined || sealedIndex === null) return { error: "缺少封印武器索引" };
     return await sellSealedWeapon(req.user.discordId, parseInt(sealedIndex, 10));
   }, "出售封印武器失敗");
+});
+
+// Discard item (丟棄素材，不走 move 冷卻)
+router.post("/discard-item", ensureAuth, ensureNotPaused, async (req, res) => {
+  await handleRoute(res, async () => {
+    const { itemIndex, quantity } = req.body;
+    if (itemIndex === undefined || itemIndex === null) return { error: "缺少素材索引" };
+    return await discardItem(
+      req.user.discordId,
+      parseInt(itemIndex, 10),
+      parseInt(quantity, 10) || 1,
+    );
+  }, "丟棄素材失敗");
+});
+
+// Discard weapon (丟棄武器，不走 move 冷卻)
+router.post("/discard-weapon", ensureAuth, ensureNotPaused, async (req, res) => {
+  await handleRoute(res, async () => {
+    const { weaponIndex } = req.body;
+    if (weaponIndex === undefined || weaponIndex === null) return { error: "缺少武器索引" };
+    return await discardWeapon(req.user.discordId, parseInt(weaponIndex, 10));
+  }, "丟棄武器失敗");
 });
 
 // Solo adventure (鍛造師親自冒險)

@@ -16,6 +16,8 @@ const { getModifier } = require("../title/titleModifier.js");
 const { mineBattle } = require("../loot/battleLoot.js");
 const { awardAdvExp } = require("../progression/adventureLevel.js");
 const { applyWeaponDurability, incrementFloorExploration } = require("./adventureUtils.js");
+const roll = require("../roll.js");
+const { recoverFromDiscardPool } = require("../loot/discardRecovery.js");
 
 // 冒險結果對應 NPC 經驗值
 const NPC_EXP_GAIN = {
@@ -168,6 +170,17 @@ module.exports = async function (cmd, rawUser) {
       }
     } else if (battleResult.dead === 1) {
       await db.update("user", { userId: user.userId }, { $inc: { lost: 1 } });
+    }
+
+    // 丟棄池撿拾：NPC 冒險途中可能撿到其他玩家丟棄的物品
+    const recoveryChance = config.DISCARD.RECOVERY_CHANCE[outcomeKey] || 0;
+    if (recoveryChance > 0 && roll.d100Check(recoveryChance)) {
+      const adventureLevel = user.adventureLevel || 1;
+      const maxRecovery = Math.floor(adventureLevel * roll.d6());
+      const recoveryResult = await recoverFromDiscardPool(user.userId, maxRecovery);
+      if (recoveryResult.recoveredText) {
+        rewardText += `\n${recoveryResult.recoveredText}`;
+      }
     }
 
     // 更新探索進度

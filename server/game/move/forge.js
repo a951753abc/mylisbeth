@@ -7,7 +7,8 @@ const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { calculateRarity } = require("../weapon/rarity.js");
 
-const weaponLimit = 1;
+const config = require("../config.js");
+const weaponLimit = config.INITIAL_WEAPON_LIMIT;
 
 module.exports = async function (cmd, rawUser) {
   const user = await ensureUserFields(rawUser);

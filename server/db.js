@@ -105,6 +105,16 @@ module.exports.deleteOne = async function (collectName, filter) {
   return await collection.deleteOne(filter);
 };
 
+module.exports.insertMany = async function (collectName, docs) {
+  const collection = db.collection(collectName);
+  return await collection.insertMany(docs);
+};
+
+module.exports.deleteMany = async function (collectName, filter) {
+  const collection = db.collection(collectName);
+  return await collection.deleteMany(filter);
+};
+
 module.exports.saveItemToUser = async function (userId, mine) {
   await module.exports.atomicIncItem(
     userId,

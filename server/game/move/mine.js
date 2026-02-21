@@ -72,7 +72,7 @@ const drawLevelList = [
   ],
 ];
 
-const itemLimit = 5;
+const itemLimit = config.INITIAL_ITEM_LIMIT;
 
 module.exports = async function (cmd, rawUser) {
   const user = await ensureUserFields(rawUser);
