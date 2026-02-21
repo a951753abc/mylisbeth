@@ -276,7 +276,36 @@ module.exports = async function bossAttack(cmd, rawUser) {
     const existingParticipant = updatedState.bossStatus.participants?.find(
       (p) => p.userId === user.userId,
     );
-    if (existingParticipant) {
+    const userCreatedAt = user.gameCreatedAt || null;
+
+    // 檢查是否為重建帳號（同 userId 但 gameCreatedAt 不同 = 新角色）
+    const isStaleEntry = existingParticipant &&
+      userCreatedAt &&
+      existingParticipant.gameCreatedAt !== userCreatedAt;
+
+    if (isStaleEntry) {
+      // 移除舊角色的參與記錄，視為新參與者
+      await db.update(
+        "server_state",
+        { _id: "aincrad" },
+        { $pull: { "bossStatus.participants": { userId: user.userId } } },
+      );
+      await db.update(
+        "server_state",
+        { _id: "aincrad" },
+        {
+          $push: {
+            "bossStatus.participants": {
+              userId: user.userId,
+              name: user.name,
+              gameCreatedAt: userCreatedAt,
+              damage,
+              attacks: 1,
+            },
+          },
+        },
+      );
+    } else if (existingParticipant) {
       await db.update(
         "server_state",
         { _id: "aincrad", "bossStatus.participants.userId": user.userId },
@@ -296,6 +325,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
             "bossStatus.participants": {
               userId: user.userId,
               name: user.name,
+              gameCreatedAt: userCreatedAt,
               damage,
               attacks: 1,
             },
