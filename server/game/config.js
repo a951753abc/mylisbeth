@@ -168,15 +168,15 @@ module.exports = {
   // Season 2: 樓層素材分組 (每 2 層一組新素材)
   FLOOR_MATERIAL_GROUPS: [
     { floors: [1, 2], itemIds: ["mat_floor1_ore", "mat_floor1_crystal"] },
-    { floors: [3, 4], itemIds: ["mat_floor3_ore", "mat_floor3_crystal"] },
-    { floors: [5, 6], itemIds: ["mat_floor5_ore", "mat_floor5_crystal"] },
-    { floors: [7, 8], itemIds: ["mat_floor7_ore", "mat_floor7_crystal"] },
-    { floors: [9, 10], itemIds: ["mat_floor9_ore", "mat_floor9_crystal"] },
-    { floors: [11, 12], itemIds: ["mat_floor11_ore", "mat_floor11_crystal"] },
-    { floors: [13, 14], itemIds: ["mat_floor13_ore", "mat_floor13_crystal"] },
-    { floors: [15, 16], itemIds: ["mat_floor15_ore", "mat_floor15_crystal"] },
-    { floors: [17, 18], itemIds: ["mat_floor17_ore", "mat_floor17_crystal"] },
-    { floors: [19, 20], itemIds: ["mat_floor19_ore", "mat_floor19_crystal"] },
+    { floors: [3, 4], itemIds: ["mat_floor3_ore", "mat_floor3_crystal", "mat_fabric_silk", "mat_gem_emerald"] },
+    { floors: [5, 6], itemIds: ["mat_floor5_ore", "mat_floor5_crystal", "mat_leather_light", "mat_gem_ruby"] },
+    { floors: [7, 8], itemIds: ["mat_floor7_ore", "mat_floor7_crystal", "mat_fabric_tough", "mat_gem_sapphire"] },
+    { floors: [9, 10], itemIds: ["mat_floor9_ore", "mat_floor9_crystal", "mat_leather_dragon", "mat_gem_diamond"] },
+    { floors: [11, 12], itemIds: ["mat_floor11_ore", "mat_floor11_crystal", "mat_fabric_silk"] },
+    { floors: [13, 14], itemIds: ["mat_floor13_ore", "mat_floor13_crystal", "mat_leather_light"] },
+    { floors: [15, 16], itemIds: ["mat_floor15_ore", "mat_floor15_crystal", "mat_gem_ruby", "mat_fabric_tough"] },
+    { floors: [17, 18], itemIds: ["mat_floor17_ore", "mat_floor17_crystal", "mat_gem_sapphire", "mat_leather_dragon"] },
+    { floors: [19, 20], itemIds: ["mat_floor19_ore", "mat_floor19_crystal", "mat_gem_diamond", "mat_gem_emerald"] },
   ],
 
   // Season 3: 玩家體力值

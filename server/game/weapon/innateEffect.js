@@ -98,8 +98,9 @@ function weightedRandom(pool) {
  * @param {number} forgeLevel - 鍛造等級
  * @returns {object[]} 賦予的固有效果列表
  */
-function rollInnateEffects(weapon, weaponType, forgeLevel) {
-  const chance = INNATE_CFG.BASE_CHANCE + forgeLevel * INNATE_CFG.FORGE_LEVEL_MULT;
+function rollInnateEffects(weapon, weaponType, forgeLevel, options = {}) {
+  const innateChanceBonus = options.innateChanceBonus || 0;
+  const chance = INNATE_CFG.BASE_CHANCE + forgeLevel * INNATE_CFG.FORGE_LEVEL_MULT + innateChanceBonus;
   const effects = [];
 
   if (!roll.d100Check(chance)) {

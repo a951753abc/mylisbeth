@@ -22,6 +22,17 @@ const FLOOR_ITEM_STATS = {
   mat_floor7_crystal: "hp",
   mat_floor9_ore: "atk",
   mat_floor9_crystal: "agi",
+  // 布料
+  mat_fabric_silk: "hp",
+  mat_fabric_tough: "def",
+  // 皮革
+  mat_leather_light: "agi",
+  mat_leather_dragon: "def",
+  // 寶石
+  mat_gem_ruby: "atk",
+  mat_gem_sapphire: "cri",
+  mat_gem_emerald: "hp",
+  mat_gem_diamond: "cri",
 };
 
 function getStatName(itemId) {
@@ -224,12 +235,27 @@ module.exports.createWeapon = async function (materials, weaponName, user, optio
     rollResult = roll.d66();
   }
 
+  // 素材類型特殊加成
+  let innateChanceBonus = 0;
+  for (const mat of materials) {
+    const matType = mat.materialType || "";
+    if (matType === "fabric" || matType === "leather") {
+      // 布料/皮革：耐久 +2
+      applyStatBoost(weapon, "durability", 2);
+      weapon.text += `${mat.itemName}（${matType === "fabric" ? "布料" : "皮革"}）：耐久 +2\n`;
+    } else if (matType === "gem") {
+      // 寶石：固有效果觸發機率 +5%
+      innateChanceBonus += 5;
+      weapon.text += `${mat.itemName}（寶石）：固有效果機率 +5%\n`;
+    }
+  }
+
   // Season 9: 武器類型 + 固有效果
   const weaponType = resolveWeaponType(weapon);
   if (weaponType) {
     weapon.type = weaponType;
   }
-  const innateResults = rollInnateEffects(weapon, weaponType, forgeLevel);
+  const innateResults = rollInnateEffects(weapon, weaponType, forgeLevel, { innateChanceBonus });
   if (innateResults.length > 0) {
     const innateNames = innateResults.map((e) => e.name).join("、");
     weapon.text += `武器獲得固有效果：${innateNames}\n`;

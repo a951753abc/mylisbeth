@@ -15,6 +15,13 @@ const FLOOR_ITEM_STATS = {
   mat_floor5_ore: "atk", mat_floor5_crystal: "cri",
   mat_floor7_ore: "def", mat_floor7_crystal: "hp",
   mat_floor9_ore: "atk", mat_floor9_crystal: "agi",
+  // 布料
+  mat_fabric_silk: "hp", mat_fabric_tough: "def",
+  // 皮革
+  mat_leather_light: "agi", mat_leather_dragon: "def",
+  // 寶石
+  mat_gem_ruby: "atk", mat_gem_sapphire: "cri",
+  mat_gem_emerald: "hp", mat_gem_diamond: "cri",
 };
 
 function getStatFromItemId(itemId) {
