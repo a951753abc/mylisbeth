@@ -34,7 +34,14 @@ async function executeBankruptcy(userId, totalDebt, debtCycles, options = {}) {
   // 2. 釋放所有 NPC
   await releaseAllNpcs(userId);
 
-  // 3. 刪除角色
+  // 3. 清除 Boss 參與者記錄（避免重建帳號後傷害算在舊帳號上）
+  await db.update(
+    "server_state",
+    { _id: "aincrad" },
+    { $pull: { "bossStatus.participants": { userId } } },
+  );
+
+  // 4. 刪除角色
   await db.deleteOne("user", { userId });
 
   return summary;
