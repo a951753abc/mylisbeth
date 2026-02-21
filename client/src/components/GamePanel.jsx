@@ -7,7 +7,7 @@ import CharacterStats from "./CharacterStats.jsx";
 import StaminaDisplay from "./StaminaDisplay.jsx";
 import { useStaminaTimer } from "../hooks/useStaminaTimer.js";
 
-export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, cooldownActive }) {
+export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, cooldownActive, onSetTitle }) {
   const [result, setResult] = useState(null);
   const [forgeResult, setForgeResult] = useState(null);
   const [error, setError] = useState("");
@@ -245,7 +245,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
       )}
 
       {/* Character stats + stamina */}
-      <CharacterStats user={user}>
+      <CharacterStats user={user} onSetTitle={onSetTitle}>
         <StaminaDisplay
           displayStamina={displayStamina}
           maxStamina={maxStamina}

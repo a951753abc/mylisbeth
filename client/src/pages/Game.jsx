@@ -148,6 +148,25 @@ export default function Game({ user, onLogout }) {
     setGameUser((prev) => prev ? { ...prev, title: newTitle } : prev);
   };
 
+  const handleSetTitle = async (title) => {
+    try {
+      const res = await fetch("/api/game/title", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        handleTitleChange(title);
+        return { success: true };
+      }
+      return { error: data.error || "更換失敗" };
+    } catch {
+      return { error: "更換失敗" };
+    }
+  };
+
   const handleTogglePause = async () => {
     if (isPauseLoading) return;
     const nextPaused = !gameUser.businessPaused;
@@ -306,6 +325,7 @@ export default function Game({ user, onLogout }) {
             setCooldown={setCooldown}
             onUserUpdate={fetchUser}
             cooldownActive={isCooldownActive}
+            onSetTitle={handleSetTitle}
           />
         )}
         {tab === "floor" && (
