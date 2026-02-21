@@ -4,6 +4,7 @@ const { ensureAuth } = require("../../middleware/auth.js");
 const move = require("../../game/move.js");
 const db = require("../../db.js");
 const { handleRoute, emitSocketEvents } = require("./helpers.js");
+const emitter = require("../../socket/emitter.js");
 
 // Adventure
 router.post("/adventure", ensureAuth, async (req, res) => {
@@ -12,14 +13,12 @@ router.post("/adventure", ensureAuth, async (req, res) => {
     const result = await move([null, "adv", weaponId, npcId], req.user.discordId);
     if (result.error) return result;
     const io = req.app.get("io");
-    if (io) {
-      io.emit("battle:result", {
-        userId: req.user.discordId,
-        playerName: result.battleResult?.npcName,
-        result: result.battleResult,
-      });
-      emitSocketEvents(io, result.socketEvents);
-    }
+    emitter.battleResult(io, {
+      userId: req.user.discordId,
+      playerName: result.battleResult?.npcName,
+      result: result.battleResult,
+    });
+    emitSocketEvents(io, result.socketEvents);
     const { socketEvents, ...clientResult } = result;
     return clientResult;
   }, "冒險失敗");
@@ -32,14 +31,12 @@ router.post("/solo-adventure", ensureAuth, async (req, res) => {
     const result = await move([null, "soloAdv", weaponId !== undefined ? weaponId : 0], req.user.discordId);
     if (result.error) return result;
     const io = req.app.get("io");
-    if (io) {
-      io.emit("battle:result", {
-        userId: req.user.discordId,
-        type: "soloAdv",
-        playerName: result.battleResult?.npcName,
-        result: result.battleResult,
-      });
-    }
+    emitter.battleResult(io, {
+      userId: req.user.discordId,
+      type: "soloAdv",
+      playerName: result.battleResult?.npcName,
+      result: result.battleResult,
+    });
     return result;
   }, "獨自出擊失敗");
 });
@@ -51,20 +48,18 @@ router.post("/pvp", ensureAuth, async (req, res) => {
     const result = await move([null, "pvp", targetUserId, weaponId, mode, wagerCol], req.user.discordId);
     if (result.error) return result;
     const io = req.app.get("io");
-    if (io) {
-      emitSocketEvents(io, result.socketEvents);
-      if (result.defenderId) {
-        io.to("user:" + result.defenderId).emit("pvp:attacked", {
-          attacker: result.attackerName,
-          defender: result.defenderName,
-          winner: result.winner,
-          loser: result.loser,
-          reward: result.reward,
-          duelMode: result.duelMode,
-          battleLog: result.battleLog,
-          loserDied: result.loserDied,
-        });
-      }
+    emitSocketEvents(io, result.socketEvents);
+    if (result.defenderId) {
+      emitter.pvpAttacked(io, result.defenderId, {
+        attacker: result.attackerName,
+        defender: result.defenderName,
+        winner: result.winner,
+        loser: result.loser,
+        reward: result.reward,
+        duelMode: result.duelMode,
+        battleLog: result.battleLog,
+        loserDied: result.loserDied,
+      });
     }
     const { socketEvents, ...clientResult } = result;
     return clientResult;
@@ -78,23 +73,21 @@ router.post("/pvp-npc", ensureAuth, async (req, res) => {
     const result = await move([null, "pvpNpc", targetNpcId, weaponId, mode, wagerCol], req.user.discordId);
     if (result.error) return result;
     const io = req.app.get("io");
-    if (io) {
-      emitSocketEvents(io, result.socketEvents);
-      if (result.defenderId) {
-        io.to("user:" + result.defenderId).emit("pvp:attacked", {
-          attacker: result.attackerName,
-          defender: result.defenderName,
-          defenderOwner: result.defenderOwnerName,
-          winner: result.winner,
-          loser: result.loser,
-          reward: result.reward,
-          duelMode: result.duelMode,
-          battleLog: result.battleLog,
-          loserDied: result.loserDied,
-          npcDied: result.npcDied,
-          isNpcDuel: true,
-        });
-      }
+    emitSocketEvents(io, result.socketEvents);
+    if (result.defenderId) {
+      emitter.pvpAttacked(io, result.defenderId, {
+        attacker: result.attackerName,
+        defender: result.defenderName,
+        defenderOwner: result.defenderOwnerName,
+        winner: result.winner,
+        loser: result.loser,
+        reward: result.reward,
+        duelMode: result.duelMode,
+        battleLog: result.battleLog,
+        loserDied: result.loserDied,
+        npcDied: result.npcDied,
+        isNpcDuel: true,
+      });
     }
     const { socketEvents, ...clientResult } = result;
     return clientResult;

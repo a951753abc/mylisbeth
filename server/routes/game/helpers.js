@@ -1,6 +1,7 @@
 /**
  * 路由共用工具
  */
+const emitter = require("../../socket/emitter.js");
 
 async function handleRoute(res, fn, label) {
   try {
@@ -15,11 +16,4 @@ async function handleRoute(res, fn, label) {
   }
 }
 
-function emitSocketEvents(io, events) {
-  if (!io || !events) return;
-  for (const evt of events) {
-    io.emit(evt.event, evt.data);
-  }
-}
-
-module.exports = { handleRoute, emitSocketEvents };
+module.exports = { handleRoute, emitSocketEvents: emitter.emitSocketEvents };

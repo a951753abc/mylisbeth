@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
+import * as E from "../constants/socketEvents.js";
+
+const addEvent = (prev, type, data) => [
+  ...prev.slice(-49),
+  { type, data, time: Date.now() },
+];
 
 export function useSocket(userId) {
   const socketRef = useRef(null);
@@ -17,62 +23,34 @@ export function useSocket(userId) {
 
     socketRef.current = socket;
 
-    socket.on("battle:result", (data) => {
+    socket.on(E.BATTLE_RESULT, (data) => {
       // 跳過自己發起的戰鬥（自己已從 HTTP 取得完整結果）
       if (data.userId && data.userId === userIdRef.current) return;
-      setEvents((prev) => [
-        ...prev.slice(-49),
-        { type: "battle", data, time: Date.now() },
-      ]);
+      setEvents((prev) => addEvent(prev, "battle", data));
     });
 
-    socket.on("player:update", (data) => {
-      setEvents((prev) => [
-        ...prev.slice(-49),
-        { type: "update", data, time: Date.now() },
-      ]);
+    socket.on(E.PVP_ATTACKED, (data) => {
+      setEvents((prev) => addEvent(prev, "pvp:attacked", data));
     });
 
-    socket.on("pvp:attacked", (data) => {
-      setEvents((prev) => [
-        ...prev.slice(-49),
-        { type: "pvp:attacked", data, time: Date.now() },
-      ]);
+    socket.on(E.BOSS_DAMAGE, (data) => {
+      setEvents((prev) => addEvent(prev, "boss:damage", data));
     });
 
-    socket.on("boss:damage", (data) => {
-      setEvents((prev) => [
-        ...prev.slice(-49),
-        { type: "boss:damage", data, time: Date.now() },
-      ]);
+    socket.on(E.BOSS_DEFEATED, (data) => {
+      setEvents((prev) => addEvent(prev, "boss:defeated", data));
     });
 
-    socket.on("boss:defeated", (data) => {
-      setEvents((prev) => [
-        ...prev.slice(-49),
-        { type: "boss:defeated", data, time: Date.now() },
-      ]);
+    socket.on(E.BOSS_PHASE, (data) => {
+      setEvents((prev) => addEvent(prev, "boss:phase", data));
     });
 
-    socket.on("boss:phase", (data) => {
-      setEvents((prev) => [
-        ...prev.slice(-49),
-        { type: "boss:phase", data, time: Date.now() },
-      ]);
+    socket.on(E.FLOOR_UNLOCKED, (data) => {
+      setEvents((prev) => addEvent(prev, "floor:unlocked", data));
     });
 
-    socket.on("floor:unlocked", (data) => {
-      setEvents((prev) => [
-        ...prev.slice(-49),
-        { type: "floor:unlocked", data, time: Date.now() },
-      ]);
-    });
-
-    socket.on("npc:death", (data) => {
-      setEvents((prev) => [
-        ...prev.slice(-49),
-        { type: "npc:death", data, time: Date.now() },
-      ]);
+    socket.on(E.NPC_DEATH, (data) => {
+      setEvents((prev) => addEvent(prev, "npc:death", data));
     });
 
     return () => {
@@ -82,9 +60,9 @@ export function useSocket(userId) {
 
   useEffect(() => {
     if (!socketRef.current || !userId) return;
-    socketRef.current.emit("join:user", userId);
+    socketRef.current.emit(E.JOIN_USER, userId);
     return () => {
-      socketRef.current?.emit("leave:user", userId);
+      socketRef.current?.emit(E.LEAVE_USER, userId);
     };
   }, [userId]);
 

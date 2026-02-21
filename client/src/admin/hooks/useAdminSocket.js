@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
+import { JOIN_ADMIN, ADMIN_DASHBOARD_UPDATE } from "../../constants/socketEvents.js";
 
 export default function useAdminSocket() {
   const [stats, setStats] = useState(null);
@@ -10,10 +11,10 @@ export default function useAdminSocket() {
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      socket.emit("join:admin");
+      socket.emit(JOIN_ADMIN);
     });
 
-    socket.on("admin:dashboard:update", (data) => {
+    socket.on(ADMIN_DASHBOARD_UPDATE, (data) => {
       setStats(data);
     });
 

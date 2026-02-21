@@ -19,6 +19,7 @@ const marketRoutes = require("./routes/market.js");
 const skillRoutes = require("./routes/skill.js");
 const adminRoutes = require("./routes/admin/index.js");
 const { setupGameEvents } = require("./socket/gameEvents.js");
+const emitter = require("./socket/emitter.js");
 const { runNpcPurchases } = require("./game/economy/market.js");
 const config = require("./game/config.js");
 const configManager = require("./game/configManager.js");
@@ -115,7 +116,7 @@ async function start() {
     if (!room || room.size === 0) return;
     try {
       const stats = await getDashboardStats(io);
-      io.to("admin:dashboard").emit("admin:dashboard:update", stats);
+      emitter.adminDashboardUpdate(io, stats);
     } catch (err) {
       console.error("Dashboard push failed:", err.message);
     }

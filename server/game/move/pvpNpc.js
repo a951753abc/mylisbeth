@@ -1,6 +1,7 @@
 const db = require("../../db.js");
 const config = require("../config.js");
 const roll = require("../roll.js");
+const E = require("../../socket/events.js");
 const { pvpRawBattle } = require("../battle.js");
 const { awardCol, deductCol } = require("../economy/col.js");
 const { executeBankruptcy } = require("../economy/bankruptcy.js");
@@ -267,7 +268,7 @@ module.exports = async function (cmd, rawAttacker) {
 
   // === Socket 事件 ===
   socketEvents.push({
-    event: "battle:result",
+    event: E.BATTLE_RESULT,
     data: {
       userId: attacker.userId,
       type: "pvp-npc",

@@ -1,6 +1,7 @@
 const db = require("../../db.js");
 const config = require("../config.js");
 const roll = require("../roll.js");
+const E = require("../../socket/events.js");
 const { getFloor, getFloorBoss } = require("./floorData.js");
 const { increment } = require("../progression/statsTracker.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
@@ -109,7 +110,7 @@ function checkPhaseActivation(bossData, currentHp, totalHp, activatedPhases) {
     if (hpRatio <= phases[i].hpThreshold) {
       newPhases.push(i);
       phaseEvents.push({
-        event: "boss:phase",
+        event: E.BOSS_PHASE,
         data: {
           bossName: bossData.name,
           phaseIndex: i,
@@ -335,7 +336,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
 
     const socketEvents = [
       {
-        event: "boss:damage",
+        event: E.BOSS_DAMAGE,
         data: {
           player: user.name,
           npcName: hiredNpc.name,
@@ -391,7 +392,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
 
         // Boss 擊敗廣播
         socketEvents.push({
-          event: "boss:defeated",
+          event: E.BOSS_DEFEATED,
           data: {
             floorNumber: currentFloor,
             bossName: bossData.name,

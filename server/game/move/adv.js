@@ -1,5 +1,6 @@
 const config = require("../config.js");
 const db = require("../../db.js");
+const E = require("../../socket/events.js");
 const level = require("../level");
 const eneNameList = require("../ene/name.json");
 const { pveBattleWithSkills } = require("../battle");
@@ -245,7 +246,7 @@ module.exports = async function (cmd, rawUser) {
         newLevel: npcResult.newLevel,
       },
       socketEvents: npcDeathEvent
-        ? [{ event: "npc:death", data: npcDeathEvent }]
+        ? [{ event: E.NPC_DEATH, data: npcDeathEvent }]
         : [],
     };
   } catch (error) {

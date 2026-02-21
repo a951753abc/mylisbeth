@@ -1,5 +1,6 @@
 const db = require("../../db.js");
 const config = require("../config.js");
+const E = require("../../socket/events.js");
 const { getFloor } = require("./floorData.js");
 
 async function advanceFloor(currentFloor, participants, mvp, lastAttacker, lastAttackDrop) {
@@ -52,7 +53,7 @@ async function advanceFloor(currentFloor, participants, mvp, lastAttacker, lastA
     );
 
     socketEvents.push({
-      event: "floor:unlocked",
+      event: E.FLOOR_UNLOCKED,
       data: {
         floorNumber: nextFloor,
         name: nextFloorData.name,
