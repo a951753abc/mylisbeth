@@ -419,6 +419,11 @@ module.exports = {
     LEVEL_CAP_PER_FLOOR: 2,    // 修練等級上限 = effectiveFloor × 2
   },
 
+  // Season 12: 鍛造等級附加功能
+  FORGE_PERKS: {
+    RECIPE_BOOK_LEVEL: 2,             // 配方書解鎖等級
+  },
+
   // Season 12: 挖礦等級附加功能
   MINE_PERKS: {
     CONTINUOUS_MINING_LEVEL: 2,     // 連續挖礦解鎖等級

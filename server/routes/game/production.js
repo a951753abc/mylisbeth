@@ -66,6 +66,39 @@ router.get("/mine/preview", ensureAuth, async (req, res) => {
   }, "礦脈探測失敗");
 });
 
+// Recipes（配方書 LV2，純讀取不消耗）
+router.get("/recipes", ensureAuth, async (req, res) => {
+  await handleRoute(res, async () => {
+    const userId = req.user.discordId;
+    const user = await db.findOne("user", { userId });
+    if (!user) return { error: "角色不存在" };
+
+    const forgeLevel = user.forgeLevel ?? 1;
+    const requiredLevel = config.FORGE_PERKS?.RECIPE_BOOK_LEVEL ?? 2;
+    if (forgeLevel < requiredLevel) {
+      return { error: `此功能需要鍛造等級 LV${requiredLevel}` };
+    }
+
+    const allItems = itemCache.getAll();
+    const itemMap = {};
+    for (const item of allItems) {
+      itemMap[item.itemId] = item.name;
+    }
+
+    const recipes = await db.find("weapon", {});
+    return {
+      recipes: recipes.map((r) => ({
+        weaponName: r.name,
+        weaponType: r.type,
+        forge1: r.forge1,
+        forge1Name: itemMap[r.forge1] || r.forge1,
+        forge2: r.forge2,
+        forge2Name: itemMap[r.forge2] || r.forge2,
+      })),
+    };
+  }, "配方查詢失敗");
+});
+
 // Forge (支援 2~4 素材)
 router.post("/forge", ensureAuth, async (req, res) => {
   await handleRoute(res, async () => {

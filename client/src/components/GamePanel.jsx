@@ -207,6 +207,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
         doAction={doAction}
         isDisabled={isDisabled}
         displayStamina={displayStamina}
+        forgeLevel={user.forgeLevel ?? 1}
       />
 
       <UpgradeSection
