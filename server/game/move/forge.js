@@ -106,6 +106,13 @@ module.exports = async function (cmd, rawUser) {
     await db.update("user", { userId: user.userId }, { $set: { forgeInspiration: false } });
   }
 
+  // 記錄已發現配方（配方書用）
+  if (thisWeapon.recipeMatched && thisWeapon.recipeKey) {
+    await db.update("user", { userId: user.userId }, {
+      $addToSet: { discoveredRecipes: thisWeapon.recipeKey },
+    });
+  }
+
   const rarity = calculateRarity(thisWeapon);
   thisWeapon.rarity = rarity.id;
   thisWeapon.rarityLabel = rarity.label;

@@ -86,15 +86,19 @@ router.get("/recipes", ensureAuth, async (req, res) => {
       itemMap[item.itemId] = item.name;
     }
 
-    const recipes = weaponCache.getAll();
+    const allRecipes = weaponCache.getAll();
+    const discovered = new Set(user.discoveredRecipes || []);
+    const filtered = allRecipes.filter((r) => discovered.has(`${r.forge1}:${r.forge2}`));
     return {
-      recipes: recipes.map((r) => ({
+      recipes: filtered.map((r) => ({
         weaponName: r.name,
         forge1: r.forge1,
         forge1Name: itemMap[r.forge1] || r.forge1,
         forge2: r.forge2,
         forge2Name: itemMap[r.forge2] || r.forge2,
       })),
+      discovered: discovered.size,
+      total: allRecipes.length,
     };
   }, "配方查詢失敗");
 });

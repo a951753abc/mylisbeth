@@ -86,6 +86,8 @@ const DEFAULT_FIELDS = {
   sealedWeapons: [],
   // Season 8: 鍛造靈感（流浪鍛冶師事件）
   forgeInspiration: false,
+  // Season 12: 配方書（已發現配方）
+  discoveredRecipes: [],
   // Season 9: 劍技系統
   weaponProficiency: {
     one_handed_sword: 0, two_handed_sword: 0, two_handed_axe: 0,

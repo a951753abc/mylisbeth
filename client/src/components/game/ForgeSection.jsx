@@ -6,6 +6,7 @@ const MIN_MATERIALS = 2;
 export default function ForgeSection({ user, doAction, isDisabled, displayStamina, forgeLevel }) {
   const [matSlots, setMatSlots] = useState(["", ""]);
   const [recipes, setRecipes] = useState(null);
+  const [recipeProgress, setRecipeProgress] = useState(null); // { discovered, total }
   const [showRecipes, setShowRecipes] = useState(false);
   const [recipeLoading, setRecipeLoading] = useState(false);
   const [recipeFilter, setRecipeFilter] = useState("");
@@ -78,6 +79,9 @@ export default function ForgeSection({ user, doAction, isDisabled, displayStamin
           return; // 載入失敗，保持 recipes=null 讓下次點擊可重試
         }
         setRecipes(data.recipes || []);
+        if (data.total != null) {
+          setRecipeProgress({ discovered: data.discovered ?? 0, total: data.total });
+        }
       } catch {
         return; // 網路錯誤，保持 recipes=null 讓下次點擊可重試
       } finally {
@@ -178,7 +182,12 @@ export default function ForgeSection({ user, doAction, isDisabled, displayStamin
             </table>
           )}
           <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "0.3rem", textAlign: "right" }}>
-            共 {filteredRecipes.length} 筆{recipeFilter ? "（篩選中）" : ""}
+            {recipeFilter ? `${filteredRecipes.length} 筆符合` : ""}
+            {recipeProgress && (
+              <span style={{ marginLeft: recipeFilter ? "0.5rem" : 0 }}>
+                已發現 {recipeProgress.discovered} / {recipeProgress.total} 種配方
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -252,7 +261,11 @@ export default function ForgeSection({ user, doAction, isDisabled, displayStamin
             const data = await doAction("forge", {
               materials: matSlots,
             });
-            if (!data.error) setMatSlots(["", ""]);
+            if (!data.error) {
+              setMatSlots(["", ""]);
+              setRecipes(null); // 清除快取，下次開配方書重新載入
+              setRecipeProgress(null);
+            }
           }}
         >
           鍛造

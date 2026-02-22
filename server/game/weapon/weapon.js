@@ -142,6 +142,7 @@ module.exports.createWeapon = async function (materials, weaponName, user, optio
     forge2: materials[1].itemId,
   };
   let weapon = await db.findOne("weapon", query);
+  const recipeMatched = !!weapon;
   if (!weapon) {
     // 素材屬性加權武器類型選取（所有素材參與）
     const matStats = materials.map((m) => getStatName(m.itemId));
@@ -150,6 +151,8 @@ module.exports.createWeapon = async function (materials, weaponName, user, optio
     const matched = randWeapon.find((w) => w.type === selectedType);
     weapon = { ...(matched || randWeapon[Math.floor(Math.random() * randWeapon.length)]) };
   }
+  weapon.recipeMatched = recipeMatched;
+  weapon.recipeKey = recipeMatched ? `${query.forge1}:${query.forge2}` : null;
   weapon.weaponName = weaponName || weapon.name;
   weapon.renameCount = 0;
   weapon.hp = 0;
