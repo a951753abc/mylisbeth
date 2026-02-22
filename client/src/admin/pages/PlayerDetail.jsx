@@ -21,6 +21,10 @@ export default function PlayerDetail() {
     weaponName: "", name: "", atk: 0, def: 0, agi: 0, cri: 10, hp: 0, durability: 100,
   });
 
+  // 武器編輯
+  const [editWeaponIdx, setEditWeaponIdx] = useState(null);
+  const [editWeaponData, setEditWeaponData] = useState(null);
+
   // 聖遺物新增
   const [newRelic, setNewRelic] = useState({ id: "", name: "", nameCn: "", bossFloor: 1, effects: "" });
 
@@ -178,6 +182,43 @@ export default function PlayerDetail() {
       const data = await res.json();
       if (!res.ok) { setMsg(data.error); return; }
       setMsg("武器已移除");
+      fetchPlayer();
+    } catch (err) {
+      setMsg("操作失敗");
+    }
+  }
+
+  function startEditWeapon(idx, w) {
+    setEditWeaponIdx(idx);
+    setEditWeaponData({
+      weaponName: w.weaponName || "",
+      name: w.name || "",
+      atk: w.atk ?? 0,
+      def: w.def ?? 0,
+      agi: w.agi ?? 0,
+      cri: w.cri ?? 10,
+      hp: w.hp ?? 0,
+      durability: w.durability ?? 0,
+      maxDurability: w.maxDurability ?? w.durability ?? 0,
+      buff: w.buff ?? 0,
+    });
+  }
+
+  async function handleSaveWeapon() {
+    if (editWeaponIdx === null || !editWeaponData) return;
+    setMsg("");
+    try {
+      const res = await fetch(`/api/admin/players/${userId}/weapons/${editWeaponIdx}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(editWeaponData),
+      });
+      const data = await res.json();
+      if (!res.ok) { setMsg(data.error); return; }
+      setMsg("武器已更新");
+      setEditWeaponIdx(null);
+      setEditWeaponData(null);
       fetchPlayer();
     } catch (err) {
       setMsg("操作失敗");
@@ -371,26 +412,98 @@ export default function PlayerDetail() {
             <div style={styles.weaponGrid}>
               {weapons.map((w, idx) => w && (
                 <div key={idx} style={styles.weaponCard}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  {editWeaponIdx === idx && editWeaponData ? (
                     <div>
-                      <span style={{ color: w.rarityColor || "#eee", fontWeight: "bold", fontSize: 14 }}>
-                        {w.name || w.weaponName}
-                      </span>
-                      {w.buff > 0 && <span style={{ color: "#ff9800", marginLeft: 4 }}>+{w.buff}</span>}
-                      <span style={{ color: "#a0a0b0", fontSize: 11, marginLeft: 8 }}>
-                        ({w.weaponName}) [{w.rarityLabel || "?"}]
-                      </span>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+                        <label style={styles.editLabel}>
+                          武器名
+                          <input
+                            value={editWeaponData.weaponName}
+                            onChange={(e) => setEditWeaponData({ ...editWeaponData, weaponName: e.target.value })}
+                            style={{ ...styles.input, width: 120 }}
+                          />
+                        </label>
+                        <label style={styles.editLabel}>
+                          顯示名
+                          <input
+                            value={editWeaponData.name}
+                            onChange={(e) => setEditWeaponData({ ...editWeaponData, name: e.target.value })}
+                            style={{ ...styles.input, width: 120 }}
+                          />
+                        </label>
+                      </div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+                        {["atk", "def", "agi", "cri", "hp"].map((stat) => (
+                          <label key={stat} style={styles.editLabel}>
+                            {stat.toUpperCase()}
+                            <input
+                              type="number"
+                              value={editWeaponData[stat]}
+                              onChange={(e) => setEditWeaponData({ ...editWeaponData, [stat]: parseInt(e.target.value, 10) || 0 })}
+                              style={{ ...styles.input, width: 56 }}
+                            />
+                          </label>
+                        ))}
+                        <label style={styles.editLabel}>
+                          耐久
+                          <input
+                            type="number"
+                            value={editWeaponData.durability}
+                            onChange={(e) => setEditWeaponData({ ...editWeaponData, durability: parseInt(e.target.value, 10) || 0 })}
+                            style={{ ...styles.input, width: 56 }}
+                          />
+                        </label>
+                        <label style={styles.editLabel}>
+                          最大耐久
+                          <input
+                            type="number"
+                            value={editWeaponData.maxDurability}
+                            onChange={(e) => setEditWeaponData({ ...editWeaponData, maxDurability: parseInt(e.target.value, 10) || 0 })}
+                            style={{ ...styles.input, width: 56 }}
+                          />
+                        </label>
+                        <label style={styles.editLabel}>
+                          強化
+                          <input
+                            type="number"
+                            value={editWeaponData.buff}
+                            onChange={(e) => setEditWeaponData({ ...editWeaponData, buff: parseInt(e.target.value, 10) || 0 })}
+                            style={{ ...styles.input, width: 50 }}
+                          />
+                        </label>
+                      </div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button style={styles.btn} onClick={handleSaveWeapon}>儲存</button>
+                        <button style={styles.smallBtn} onClick={() => { setEditWeaponIdx(null); setEditWeaponData(null); }}>取消</button>
+                      </div>
                     </div>
-                    <button style={styles.smallBtnDanger} onClick={() => handleRemoveWeapon(idx)}>刪除</button>
-                  </div>
-                  <div style={styles.statRow}>
-                    <StatBadge label="ATK" value={w.atk} />
-                    <StatBadge label="DEF" value={w.def} />
-                    <StatBadge label="AGI" value={w.agi} />
-                    <StatBadge label="CRI" value={w.cri} />
-                    <StatBadge label="HP" value={w.hp} />
-                    <StatBadge label="DUR" value={w.durability} />
-                  </div>
+                  ) : (
+                    <>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div>
+                          <span style={{ color: w.rarityColor || "#eee", fontWeight: "bold", fontSize: 14 }}>
+                            {w.name || w.weaponName}
+                          </span>
+                          {w.buff > 0 && <span style={{ color: "#ff9800", marginLeft: 4 }}>+{w.buff}</span>}
+                          <span style={{ color: "#a0a0b0", fontSize: 11, marginLeft: 8 }}>
+                            ({w.weaponName}) [{w.rarityLabel || "?"}]
+                          </span>
+                        </div>
+                        <div style={{ display: "flex", gap: 4 }}>
+                          <button style={styles.smallBtn} onClick={() => startEditWeapon(idx, w)}>編輯</button>
+                          <button style={styles.smallBtnDanger} onClick={() => handleRemoveWeapon(idx)}>刪除</button>
+                        </div>
+                      </div>
+                      <div style={styles.statRow}>
+                        <StatBadge label="ATK" value={w.atk} />
+                        <StatBadge label="DEF" value={w.def} />
+                        <StatBadge label="AGI" value={w.agi} />
+                        <StatBadge label="CRI" value={w.cri} />
+                        <StatBadge label="HP" value={w.hp} />
+                        <StatBadge label="DUR" value={`${w.durability}/${w.maxDurability ?? w.durability}`} />
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
@@ -738,6 +851,13 @@ const styles = {
     display: "flex",
     gap: 8,
     marginTop: 6,
+  },
+  editLabel: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    color: "#a0a0b0",
+    fontSize: 11,
   },
   statBadge: {
     display: "flex",

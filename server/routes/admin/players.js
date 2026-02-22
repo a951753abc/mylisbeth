@@ -242,6 +242,80 @@ router.post("/:userId/weapons", async (req, res) => {
   }
 });
 
+// PATCH /api/admin/players/:userId/weapons/:index — 編輯武器屬性
+router.patch("/:userId/weapons/:index", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const index = parseInt(req.params.index);
+
+    const user = await db.findOne("user", { userId });
+    if (!user) return res.status(404).json({ error: "找不到玩家" });
+
+    const weapons = user.weaponStock || [];
+    if (index < 0 || index >= weapons.length || !weapons[index]) {
+      return res.status(400).json({ error: "無效的武器索引" });
+    }
+
+    const { weaponName, name, atk, def, agi, cri, hp, durability, maxDurability, buff } = req.body;
+    const updates = {};
+    const prefix = `weaponStock.${index}`;
+
+    const parseStat = (val, min, max) => {
+      const n = parseInt(val, 10);
+      if (isNaN(n)) return null;
+      return Math.min(max, Math.max(min, n));
+    };
+
+    if (weaponName !== undefined) updates[`${prefix}.weaponName`] = String(weaponName);
+    if (name !== undefined) updates[`${prefix}.name`] = String(name);
+
+    const statFields = [
+      ["atk", atk, 0, 9999],
+      ["def", def, 0, 9999],
+      ["agi", agi, 0, 9999],
+      ["cri", cri, 5, 99],
+      ["hp", hp, 0, 99999],
+      ["durability", durability, 0, 9999],
+      ["maxDurability", maxDurability, 0, 9999],
+      ["buff", buff, 0, 99],
+    ];
+    for (const [field, val, min, max] of statFields) {
+      if (val === undefined) continue;
+      const parsed = parseStat(val, min, max);
+      if (parsed === null) return res.status(400).json({ error: `${field} 必須為整數` });
+      updates[`${prefix}.${field}`] = parsed;
+    }
+
+    // 耐久不能超過最大耐久
+    const newDur = updates[`${prefix}.durability`];
+    const newMaxDur = updates[`${prefix}.maxDurability`];
+    const effectiveDur = newDur ?? weapons[index].durability ?? 0;
+    const effectiveMaxDur = newMaxDur ?? weapons[index].maxDurability ?? weapons[index].durability ?? 0;
+    if (effectiveDur > effectiveMaxDur) {
+      return res.status(400).json({ error: "耐久不能大於最大耐久" });
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "未提供任何修改欄位" });
+    }
+
+    await db.update("user", { userId }, { $set: updates });
+
+    const previous = weapons[index];
+    logAction(userId, user.name, "admin:edit_weapon", {
+      index,
+      weaponName: previous.weaponName,
+      changes: { weaponName, name, atk, def, agi, cri, hp, durability, maxDurability, buff },
+      adminUser: req.session.admin.username,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("編輯武器失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
 // DELETE /api/admin/players/:userId/weapons/:index — 移除武器
 router.delete("/:userId/weapons/:index", async (req, res) => {
   try {
