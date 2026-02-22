@@ -178,7 +178,25 @@ async function resolveMission(userId, npcIdx, npc, title) {
     const commission = Math.floor(rawReward * MISSIONS.COMMISSION_RATE);
     const netReward = Math.max(1, Math.round((rawReward - commission) * rewardMod));
 
-    await awardCol(userId, netReward); // awardCol 已自動追蹤 totalColEarned
+    // 體力損耗
+    const condLossMod = getModifier(title, "npcCondLoss");
+    const condLoss = Math.max(1, Math.round(missionDef.condCost * condLossMod));
+    const newCond = Math.max(0, (npc.condition ?? 100) - condLoss);
+
+    // 冪等性保護：原子清除 mission + 更新體力，mission 已被清除時跳過
+    const guard = await db.findOneAndUpdate(
+      "user",
+      { userId, [`hiredNpcs.${npcIdx}.mission`]: { $ne: null } },
+      { $set: {
+        [`hiredNpcs.${npcIdx}.mission`]: null,
+        [`hiredNpcs.${npcIdx}.condition`]: newCond,
+      } },
+      { returnDocument: "after" },
+    );
+    if (!guard) return null; // 已被另一個請求結算
+
+    // 獎勵發放（在原子 guard 之後，確保不會重複）
+    await awardCol(userId, netReward);
     await increment(userId, "totalMissionRewards", netReward);
     await increment(userId, "totalMissionsCompleted");
     if (mission.type === "escort") {
@@ -187,18 +205,6 @@ async function resolveMission(userId, npcIdx, npc, title) {
 
     // 冒險等級經驗
     const advExpResult = await awardAdvExp(userId, config.ADV_LEVEL.EXP_MISSION_SUCCESS);
-
-    // 體力損耗
-    const condLossMod = getModifier(title, "npcCondLoss");
-    const condLoss = Math.max(1, Math.round(missionDef.condCost * condLossMod));
-    const newCond = Math.max(0, (npc.condition ?? 100) - condLoss);
-
-    await db.update("user", { userId }, {
-      $set: {
-        [`hiredNpcs.${npcIdx}.mission`]: null,
-        [`hiredNpcs.${npcIdx}.condition`]: newCond,
-      },
-    });
 
     result = {
       success: true,
@@ -221,12 +227,20 @@ async function resolveMission(userId, npcIdx, npc, title) {
     const effectiveDeathChance = Math.max(1, Math.round(missionDef.deathChance * deathMod));
     const isDeath = newCond <= 20 && roll.d100Check(effectiveDeathChance);
 
-    // 失敗也給少量冒險經驗
-    const advExpResultFail = await awardAdvExp(userId, config.ADV_LEVEL.EXP_MISSION_FAIL);
-
     if (isDeath) {
+      // 冪等性保護：先原子清除 mission
+      const guard = await db.findOneAndUpdate(
+        "user",
+        { userId, [`hiredNpcs.${npcIdx}.mission`]: { $ne: null } },
+        { $set: { [`hiredNpcs.${npcIdx}.mission`]: null } },
+        { returnDocument: "after" },
+      );
+      if (!guard) return null;
+
       await killNpc(userId, npc.npcId, `任務失敗：${missionDef.name}`);
       await increment(userId, "npcDeaths");
+      const advExpResultFail = await awardAdvExp(userId, config.ADV_LEVEL.EXP_MISSION_FAIL);
+
       result = {
         success: false,
         died: true,
@@ -238,12 +252,19 @@ async function resolveMission(userId, npcIdx, npc, title) {
         advNewLevel: advExpResultFail.newLevel,
       };
     } else {
-      await db.update("user", { userId }, {
-        $set: {
+      // 冪等性保護：原子清除 mission + 更新體力
+      const guard = await db.findOneAndUpdate(
+        "user",
+        { userId, [`hiredNpcs.${npcIdx}.mission`]: { $ne: null } },
+        { $set: {
           [`hiredNpcs.${npcIdx}.mission`]: null,
           [`hiredNpcs.${npcIdx}.condition`]: newCond,
-        },
-      });
+        } },
+        { returnDocument: "after" },
+      );
+      if (!guard) return null;
+
+      const advExpResultFail = await awardAdvExp(userId, config.ADV_LEVEL.EXP_MISSION_FAIL);
 
       result = {
         success: false,
@@ -278,16 +299,25 @@ async function checkMissions(userId) {
   // 逆序遍歷以避免 index 位移問題（killNpc 會 $pull）
   for (let i = user.hiredNpcs.length - 1; i >= 0; i--) {
     const npc = user.hiredNpcs[i];
-    if (!npc.mission) continue;
+    if (!npc || !npc.mission) continue;
     if (Date.now() < npc.mission.endsAt) continue;
 
-    const result = npc.mission.isTraining
-      ? await resolveTraining(userId, i, npc)
-      : await resolveMission(userId, i, npc, title);
-    if (result) {
-      results.push(result);
-      // 若 NPC 死亡，$pull 會導致 index 位移，逆序遍歷下直接 break 是安全的
-      if (result.died) break;
+    try {
+      const result = npc.mission.isTraining
+        ? await resolveTraining(userId, i, npc)
+        : await resolveMission(userId, i, npc, title);
+      if (result) {
+        results.push(result);
+        if (result.died) break;
+      }
+    } catch (err) {
+      // 單一 NPC 結算失敗：log 錯誤 + 清除該 NPC 的 mission（防止無限重試）
+      console.error(`[checkMissions] NPC 結算失敗 userId=${userId} npcIdx=${i} npcId=${npc.npcId}:`, err);
+      try {
+        await db.update("user", { userId }, { $set: { [`hiredNpcs.${i}.mission`]: null } });
+      } catch (cleanupErr) {
+        console.error(`[checkMissions] mission 清除也失敗:`, cleanupErr);
+      }
     }
   }
 
@@ -482,39 +512,21 @@ async function resolveTraining(userId, npcIdx, npc) {
   const levelCap = effectiveFloor * (TRAINING.LEVEL_CAP_PER_FLOOR || 2);
 
   let profResult = null;
-  let skillResult = null;
+  let newProf = null;
+  let weaponType = null;
 
   if (equippedWeapon) {
-    const weaponType = resolveWeaponType(equippedWeapon);
+    weaponType = resolveWeaponType(equippedWeapon);
     if (weaponType) {
       const currentProf = ((currentNpc.weaponProficiency || {})[weaponType]) || 0;
 
       if (currentProf >= profCap) {
-        // 已達修練熟練度上限
         profResult = { profGained: 0, weaponType, atCap: true };
       } else {
-        // 獎勵熟練度（樓層加成，封頂）
         const rawProfGain = Math.round(trainingDef.profGain * floorMult);
         const cappedProfGain = Math.min(rawProfGain, profCap - currentProf);
-        const newProf = Math.min(config.SKILL.MAX_PROFICIENCY, currentProf + cappedProfGain);
-
-        await db.update("user", { userId }, {
-          $set: {
-            [`hiredNpcs.${npcIdx}.weaponProficiency.${weaponType}`]: newProf,
-          },
-        });
-
+        newProf = Math.min(config.SKILL.MAX_PROFICIENCY, currentProf + cappedProfGain);
         profResult = { profGained: newProf - currentProf, weaponType, atCap: newProf >= profCap };
-
-        // 增強的技能學習（僅在未達熟練度上限時）
-        const qualityMult = config.SKILL.NPC_QUALITY_LEARN_MULT[currentNpc.quality] || 1.0;
-        const learnChance = config.SKILL.NPC_LEARN_CHANCE * trainingDef.learnChanceMult * qualityMult;
-
-        const refreshed = await db.findOne("user", { userId });
-        const refreshedNpc = (refreshed?.hiredNpcs || [])[npcIdx];
-        if (refreshedNpc) {
-          skillResult = await tryNpcLearnSkill(userId, npcIdx, refreshedNpc, equippedWeapon, learnChance);
-        }
       }
     }
   }
@@ -531,7 +543,6 @@ async function resolveTraining(userId, npcIdx, npc) {
   let levelUp;
 
   if (currentLevel >= levelCap) {
-    // 已達修練等級上限
     expGain = 0;
     finalExp = currentNpc.exp || 0;
     finalLevel = currentLevel;
@@ -546,14 +557,36 @@ async function resolveTraining(userId, npcIdx, npc) {
     finalLevel = levelUp ? Math.min(levelCap, currentLevel + 1) : currentLevel;
   }
 
-  await db.update("user", { userId }, {
-    $set: {
-      [`hiredNpcs.${npcIdx}.mission`]: null,
-      [`hiredNpcs.${npcIdx}.condition`]: newCond,
-      [`hiredNpcs.${npcIdx}.exp`]: finalExp,
-      [`hiredNpcs.${npcIdx}.level`]: finalLevel,
-    },
-  });
+  // 冪等性保護：所有欄位合併為單一原子更新，mission 已被清除時跳過
+  const atomicSet = {
+    [`hiredNpcs.${npcIdx}.mission`]: null,
+    [`hiredNpcs.${npcIdx}.condition`]: newCond,
+    [`hiredNpcs.${npcIdx}.exp`]: finalExp,
+    [`hiredNpcs.${npcIdx}.level`]: finalLevel,
+  };
+  if (newProf !== null && weaponType) {
+    atomicSet[`hiredNpcs.${npcIdx}.weaponProficiency.${weaponType}`] = newProf;
+  }
+
+  const guard = await db.findOneAndUpdate(
+    "user",
+    { userId, [`hiredNpcs.${npcIdx}.mission`]: { $ne: null } },
+    { $set: atomicSet },
+    { returnDocument: "after" },
+  );
+  if (!guard) return null; // 已被另一個請求結算
+
+  // 技能學習（在原子 guard 之後，僅在有熟練度提升時嘗試）
+  let skillResult = null;
+  if (newProf !== null && weaponType && equippedWeapon) {
+    const qualityMult = config.SKILL.NPC_QUALITY_LEARN_MULT[currentNpc.quality] || 1.0;
+    const learnChance = config.SKILL.NPC_LEARN_CHANCE * trainingDef.learnChanceMult * qualityMult;
+
+    const refreshedNpc = (guard.hiredNpcs || [])[npcIdx];
+    if (refreshedNpc) {
+      skillResult = await tryNpcLearnSkill(userId, npcIdx, refreshedNpc, equippedWeapon, learnChance);
+    }
+  }
 
   return {
     isTraining: true,

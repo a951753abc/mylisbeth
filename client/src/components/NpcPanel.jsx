@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { QUALITY_COLOR } from "../constants/npcQuality.js";
 import ProficiencyBar from "./ProficiencyBar.jsx";
 
@@ -163,7 +163,10 @@ export default function NpcPanel({ user, onRefresh }) {
     setBusy(null);
   };
 
+  const checkMissionsLock = useRef(false);
   const handleCheckMissions = async () => {
+    if (checkMissionsLock.current) return; // 防重複點擊（同步互斥鎖）
+    checkMissionsLock.current = true;
     setBusy("check_missions");
     try {
       const res = await fetch("/api/npc/mission/check", {
@@ -182,6 +185,7 @@ export default function NpcPanel({ user, onRefresh }) {
       setMessage("❌ 結算失敗");
     }
     setBusy(null);
+    checkMissionsLock.current = false;
   };
 
   if (npcs.length === 0) {

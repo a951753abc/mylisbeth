@@ -42,23 +42,53 @@ router.get('/me', ensureAuth, async (req, res) => {
             await recoverConditions(user.userId, daysPassed);
         }
 
-        // Season 6: 懶結算 NPC 任務
-        await checkMissions(user.userId);
-
-        // 重新讀取最新資料
-        user = await db.findOne("user", { userId: req.user.discordId });
-        if (!user) return res.json({ exists: false });
-
-        // 清理幽靈 NPC（死亡競態條件殘留的不完整條目）
-        if (user.hiredNpcs && user.hiredNpcs.some((n) => !n.npcId || !n.name)) {
+        // 清理幽靈 NPC（死亡競態條件殘留的不完整條目）— 必須在 checkMissions 之前
+        if (user.hiredNpcs && user.hiredNpcs.some((n) => !n.npcId || !n.name || !n.baseStats)) {
             await db.update(
                 "user",
                 { userId: user.userId },
-                { $pull: { hiredNpcs: { $or: [{ npcId: { $exists: false } }, { npcId: null }, { name: { $exists: false } }, { name: null }] } } },
+                { $pull: { hiredNpcs: { $or: [
+                    { npcId: { $exists: false } }, { npcId: null },
+                    { name: { $exists: false } }, { name: null },
+                    { baseStats: { $exists: false } }, { baseStats: null },
+                ] } } },
             );
             user = await db.findOne("user", { userId: req.user.discordId });
             if (!user) return res.json({ exists: false });
         }
+
+        // 修復 NaN 資料汙染（競態條件導致 condition/exp/level 變 NaN）
+        if (user.hiredNpcs && user.hiredNpcs.length > 0) {
+            const nanFixes = {};
+            user.hiredNpcs.forEach((npc, idx) => {
+                if (typeof npc.condition !== 'number' || isNaN(npc.condition)) {
+                    nanFixes[`hiredNpcs.${idx}.condition`] = 0;
+                }
+                if (typeof npc.exp !== 'number' || isNaN(npc.exp)) {
+                    nanFixes[`hiredNpcs.${idx}.exp`] = 0;
+                }
+                if (typeof npc.level !== 'number' || isNaN(npc.level) || npc.level < 1) {
+                    nanFixes[`hiredNpcs.${idx}.level`] = 1;
+                }
+            });
+            if (Object.keys(nanFixes).length > 0) {
+                console.warn(`[/api/me] 修復 NaN 資料 userId=${user.userId}:`, Object.keys(nanFixes));
+                await db.update("user", { userId: user.userId }, { $set: nanFixes });
+                user = await db.findOne("user", { userId: req.user.discordId });
+                if (!user) return res.json({ exists: false });
+            }
+        }
+
+        // Season 6: 懶結算 NPC 任務（錯誤隔離：失敗不阻斷登入）
+        try {
+            await checkMissions(user.userId);
+        } catch (missionErr) {
+            console.error(`[/api/me] checkMissions 失敗 userId=${user.userId}:`, missionErr);
+        }
+
+        // 重新讀取最新資料
+        user = await db.findOne("user", { userId: req.user.discordId });
+        if (!user) return res.json({ exists: false });
 
         const userInfo = info(user);
         res.json({ exists: true, ...userInfo });
