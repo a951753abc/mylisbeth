@@ -190,6 +190,141 @@ router.patch("/:userId/reset", async (req, res) => {
   }
 });
 
+// POST /api/admin/players/:userId/weapons — 新增武器
+router.post("/:userId/weapons", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const { weaponName, name, atk, def, agi, cri, hp, durability } = req.body;
+    if (!weaponName) return res.status(400).json({ error: "缺少 weaponName" });
+
+    const user = await db.findOne("user", { userId });
+    if (!user) return res.status(404).json({ error: "找不到玩家" });
+
+    const weapon = {
+      weaponName: weaponName || "未知武器",
+      name: name || weaponName,
+      atk: parseInt(atk) || 0,
+      def: parseInt(def) || 0,
+      agi: parseInt(agi) || 0,
+      cri: parseInt(cri) || 10,
+      hp: parseInt(hp) || 0,
+      durability: parseInt(durability) || 100,
+      buff: 0,
+      renameCount: 0,
+    };
+
+    await db.update("user", { userId }, { $push: { weaponStock: weapon } });
+
+    logAction(userId, user.name, "admin:add_weapon", {
+      weapon,
+      adminUser: req.session.admin.username,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("新增武器失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// DELETE /api/admin/players/:userId/weapons/:index — 移除武器
+router.delete("/:userId/weapons/:index", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const index = parseInt(req.params.index);
+
+    const user = await db.findOne("user", { userId });
+    if (!user) return res.status(404).json({ error: "找不到玩家" });
+
+    const weapons = user.weaponStock || [];
+    if (index < 0 || index >= weapons.length || !weapons[index]) {
+      return res.status(400).json({ error: "無效的武器索引" });
+    }
+
+    const removedWeapon = weapons[index];
+
+    // 同 weapon.js 的 removeWeapon 模式：先 $unset 再 $pull null
+    await db.update("user", { userId }, { $unset: { [`weaponStock.${index}`]: 1 } });
+    await db.update("user", { userId }, { $pull: { weaponStock: null } });
+
+    logAction(userId, user.name, "admin:remove_weapon", {
+      index,
+      weaponName: removedWeapon.weaponName,
+      name: removedWeapon.name,
+      adminUser: req.session.admin.username,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("移除武器失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// POST /api/admin/players/:userId/relics — 新增聖遺物
+router.post("/:userId/relics", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const { id, name, nameCn, bossFloor, effects } = req.body;
+    if (!id || !name) return res.status(400).json({ error: "缺少 id 或 name" });
+
+    const user = await db.findOne("user", { userId });
+    if (!user) return res.status(404).json({ error: "找不到玩家" });
+
+    // 檢查是否已擁有
+    const existing = (user.bossRelics || []).some((r) => r.id === id);
+    if (existing) return res.status(400).json({ error: "玩家已擁有此聖遺物" });
+
+    const relic = {
+      id,
+      name,
+      nameCn: nameCn || name,
+      bossFloor: parseInt(bossFloor) || 0,
+      effects: effects || {},
+      obtainedAt: new Date(),
+    };
+
+    await db.update("user", { userId }, { $push: { bossRelics: relic } });
+
+    logAction(userId, user.name, "admin:add_relic", {
+      relic,
+      adminUser: req.session.admin.username,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("新增聖遺物失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// DELETE /api/admin/players/:userId/relics/:relicId — 移除聖遺物
+router.delete("/:userId/relics/:relicId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const relicId = req.params.relicId;
+
+    const user = await db.findOne("user", { userId });
+    if (!user) return res.status(404).json({ error: "找不到玩家" });
+
+    const relic = (user.bossRelics || []).find((r) => r.id === relicId);
+    if (!relic) return res.status(400).json({ error: "找不到此聖遺物" });
+
+    await db.update("user", { userId }, { $pull: { bossRelics: { id: relicId } } });
+
+    logAction(userId, user.name, "admin:remove_relic", {
+      relicId,
+      relicName: relic.name,
+      adminUser: req.session.admin.username,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("移除聖遺物失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
 // DELETE /api/admin/players/:userId — 強制刪除玩家
 router.delete("/:userId", async (req, res) => {
   try {
