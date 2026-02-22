@@ -11,6 +11,7 @@ const itemCache = require("../cache/itemCache.js");
 const { checkAndConsumeStamina } = require("../stamina/staminaCheck.js");
 const { awardCol } = require("../economy/col.js");
 const { getActiveFloor } = require("../floor/activeFloor.js");
+const weaponCache = require("../cache/weaponCache.js");
 
 const drawLevelList = [
   // Lv1: 4% ★★★, 20% ★★
@@ -236,9 +237,10 @@ module.exports = async function (cmd, rawUser, staminaInfo) {
     const chance = perks.MASTER_EYE_CHANCE ?? 10;
     if (roll.d100Check(chance)) {
       const target = minedItems[Math.floor(Math.random() * minedItems.length)];
-      const recipes = await db.find("weapon", {
-        $or: [{ forge1: target.itemId }, { forge2: target.itemId }],
-      });
+      const allRecipes = weaponCache.getAll();
+      const recipes = allRecipes.filter(
+        (r) => r.forge1 === target.itemId || r.forge2 === target.itemId,
+      );
       if (recipes.length > 0) {
         const hints = recipes.slice(0, 3).map((r) => {
           const partnerId = r.forge1 === target.itemId ? r.forge2 : r.forge1;
