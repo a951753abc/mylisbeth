@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { io } from "socket.io-client";
 import * as E from "../constants/socketEvents.js";
 
@@ -11,6 +11,7 @@ export function useSocket(userId) {
   const socketRef = useRef(null);
   const userIdRef = useRef(userId);
   const [events, setEvents] = useState([]);
+  const [serverFull, setServerFull] = useState(null);
 
   useEffect(() => {
     userIdRef.current = userId;
@@ -22,6 +23,13 @@ export function useSocket(userId) {
     });
 
     socketRef.current = socket;
+
+    // 重連時自動重新加入（含首次連線）
+    socket.on("connect", () => {
+      if (userIdRef.current) {
+        socket.emit(E.JOIN_USER, userIdRef.current);
+      }
+    });
 
     socket.on(E.BATTLE_RESULT, (data) => {
       // 跳過自己發起的戰鬥（自己已從 HTTP 取得完整結果）
@@ -53,6 +61,14 @@ export function useSocket(userId) {
       setEvents((prev) => addEvent(prev, "npc:death", data));
     });
 
+    socket.on(E.SERVER_FULL, (data) => {
+      setServerFull(data);
+    });
+
+    socket.on(E.JOIN_ACCEPTED, () => {
+      setServerFull(null);
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -60,7 +76,11 @@ export function useSocket(userId) {
 
   useEffect(() => {
     if (!socketRef.current || !userId) return;
-    socketRef.current.emit(E.JOIN_USER, userId);
+    // 若 socket 已連線，立即發送 JOIN_USER（connect handler 不會重複觸發）
+    // 若尚未連線，connect handler 會在連線後自動發送
+    if (socketRef.current.connected) {
+      socketRef.current.emit(E.JOIN_USER, userId);
+    }
     return () => {
       socketRef.current?.emit(E.LEAVE_USER, userId);
     };
@@ -68,5 +88,10 @@ export function useSocket(userId) {
 
   const clearEvents = () => setEvents([]);
 
-  return { socket: socketRef.current, events, clearEvents };
+  const retryJoin = useCallback(() => {
+    if (!socketRef.current || !userIdRef.current) return;
+    socketRef.current.emit(E.JOIN_USER, userIdRef.current);
+  }, []);
+
+  return { socket: socketRef.current, events, clearEvents, serverFull, retryJoin };
 }

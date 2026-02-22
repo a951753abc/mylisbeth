@@ -73,4 +73,18 @@ function ensureNotPaused(req, res, next) {
         });
 }
 
-module.exports = { ensureAuth, ensureNotPaused };
+/**
+ * 在線人數限制中間件：未在線 + 伺服器已滿時返回 503
+ * 未認證請求或伺服器未滿時直接放行（允許新玩家創角、重連中操作）
+ */
+function ensureOnline(req, res, next) {
+    if (!req.isAuthenticated()) return next();
+    const { isPlayerOnline, getOnlineCount } = require('../socket/gameEvents.js');
+    const config = require('../game/config.js');
+    if (!isPlayerOnline(req.user.discordId) && getOnlineCount() >= config.MAX_ONLINE_PLAYERS) {
+        return res.status(503).json({ error: '伺服器已滿，請稍後再試。' });
+    }
+    next();
+}
+
+module.exports = { ensureAuth, ensureNotPaused, ensureOnline };

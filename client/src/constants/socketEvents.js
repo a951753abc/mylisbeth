@@ -15,6 +15,10 @@ export const NPC_DEATH = "npc:death";
 // 管理事件（Server → Client）
 export const ADMIN_DASHBOARD_UPDATE = "admin:dashboard:update";
 
+// 系統事件（Server → Client）
+export const SERVER_FULL = "server:full";
+export const JOIN_ACCEPTED = "join:accepted";
+
 // 控制事件（Client → Server）
 export const JOIN_USER = "join:user";
 export const LEAVE_USER = "leave:user";

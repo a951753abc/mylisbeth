@@ -14,6 +14,10 @@ const NPC_DEATH = "npc:death";
 // 管理事件（Server → Client）
 const ADMIN_DASHBOARD_UPDATE = "admin:dashboard:update";
 
+// 系統事件（Server → Client）
+const SERVER_FULL = "server:full";
+const JOIN_ACCEPTED = "join:accepted";
+
 // 控制事件（Client → Server）
 const JOIN_USER = "join:user";
 const LEAVE_USER = "leave:user";
@@ -28,6 +32,8 @@ module.exports = {
   FLOOR_UNLOCKED,
   NPC_DEATH,
   ADMIN_DASHBOARD_UPDATE,
+  SERVER_FULL,
+  JOIN_ACCEPTED,
   JOIN_USER,
   LEAVE_USER,
   JOIN_ADMIN,

@@ -76,7 +76,7 @@ export default function Game({ user, onLogout }) {
   const [bossUpdate, setBossUpdate] = useState(null);
   const [bankruptcy, setBankruptcy] = useState(null);
   const [isPauseLoading, setIsPauseLoading] = useState(false);
-  const { events } = useSocket(gameUser?.userId);
+  const { events, serverFull, retryJoin } = useSocket(gameUser?.userId);
 
   const handleCooldownExpire = useCallback(() => setCooldown(0), []);
   const isCooldownActive = cooldown > 0;
@@ -274,6 +274,29 @@ export default function Game({ user, onLogout }) {
         info={bankruptcy}
         onDismiss={handleBankruptcyDismiss}
       />
+    );
+  }
+
+  if (serverFull) {
+    return (
+      <div className="login-page">
+        <h1>伺服器已滿</h1>
+        <p>目前在線人數已達上限（{serverFull.max} 人），請稍後再試。</p>
+        <button className="btn-primary" onClick={retryJoin} style={{ marginTop: "1rem" }}>
+          重新嘗試連線
+        </button>
+        <button
+          onClick={onLogout}
+          style={{
+            background: "transparent",
+            color: "var(--text-secondary)",
+            border: "none",
+            marginTop: "1rem",
+          }}
+        >
+          登出
+        </button>
+      </div>
     );
   }
 

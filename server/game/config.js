@@ -1,4 +1,5 @@
 module.exports = {
+  MAX_ONLINE_PLAYERS: 50,
   MOVE_COOLDOWN: 5000,
 
   // Season 3: 遊戲時間

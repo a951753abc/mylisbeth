@@ -83,14 +83,15 @@ io.engine.use(sessionMiddleware);
 
 // Passport Discord strategy setup
 require("./middleware/auth.js");
+const { ensureOnline } = require("./middleware/auth.js");
 
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
-app.use("/api/game", gameRoutes);
-app.use("/api/npc", npcRoutes);
-app.use("/api/market", marketRoutes);
-app.use("/api/skill", skillRoutes);
+app.use("/api/game", ensureOnline, gameRoutes);
+app.use("/api/npc", ensureOnline, npcRoutes);
+app.use("/api/market", ensureOnline, marketRoutes);
+app.use("/api/skill", ensureOnline, skillRoutes);
 app.use("/api/admin", adminRoutes);
 
 // Socket.io
