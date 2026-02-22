@@ -10,6 +10,10 @@ const { awardAdvExp } = require("../progression/adventureLevel.js");
 const { getActiveFloor } = require("../floor/activeFloor.js");
 const { formatText, getText } = require("../textManager.js");
 
+const { resolveWeaponType } = require("../weapon/weaponType.js");
+const { getExpToNextLevel } = require("./npcStats.js");
+const { tryNpcLearnSkill } = require("../skill/npcSkillLearning.js");
+
 const MISSIONS = config.NPC_MISSIONS;
 
 /**
@@ -265,11 +269,12 @@ async function checkMissions(userId) {
     if (!npc.mission) continue;
     if (Date.now() < npc.mission.endsAt) continue;
 
-    const result = await resolveMission(userId, i, npc, title);
+    const result = npc.mission.isTraining
+      ? await resolveTraining(userId, i, npc)
+      : await resolveMission(userId, i, npc, title);
     if (result) {
       results.push(result);
       // 若 NPC 死亡，$pull 會導致 index 位移，逆序遍歷下直接 break 是安全的
-      // （已處理完當前及更高 index 的 NPC，剩餘的留待下次 checkMissions）
       if (result.died) break;
     }
   }
@@ -277,4 +282,225 @@ async function checkMissions(userId) {
   return results;
 }
 
-module.exports = { startMission, checkMissions, resolveMission, getMissionPreviews };
+/**
+ * 計算修練預覽資訊
+ * @param {object} npc - hiredNpc entry
+ * @param {object[]} weapons - user.weaponStock
+ * @param {number} currentFloor - 玩家當前樓層
+ * @returns {Array<object>}
+ */
+function getTrainingPreviews(npc, weapons, currentFloor) {
+  const TRAINING = config.NPC_TRAINING;
+  const equippedWeapon = npc.equippedWeaponIndex != null
+    ? weapons[npc.equippedWeaponIndex]
+    : null;
+  const hasWeapon = !!equippedWeapon;
+  const weaponType = equippedWeapon ? resolveWeaponType(equippedWeapon) : null;
+  const effectiveFloor = Math.max(1, currentFloor - 3);
+  const floorMult = 1 + (effectiveFloor - 1) * (TRAINING.FLOOR_MULT || 0.3);
+  const qualityMult = config.SKILL.NPC_QUALITY_LEARN_MULT[npc.quality] || 1.0;
+
+  return TRAINING.TYPES.map((type) => ({
+    id: type.id,
+    name: type.name,
+    duration: type.duration,
+    durationMinutes: type.duration * 5,
+    profGain: Math.round(type.profGain * floorMult),
+    learnChance: Math.round(
+      config.SKILL.NPC_LEARN_CHANCE * type.learnChanceMult * qualityMult,
+    ),
+    condCost: type.condCost,
+    expReward: Math.round(type.expReward * floorMult),
+    hasWeapon,
+    weaponType,
+  }));
+}
+
+/**
+ * 派遣 NPC 進行自主修練
+ * @param {string} userId
+ * @param {string} npcId
+ * @param {string} trainingType - "quick_training" | "intensive_training"
+ * @returns {{ success?: boolean, error?: string }}
+ */
+async function startTraining(userId, npcId, trainingType) {
+  const user = await db.findOne("user", { userId });
+  if (!user) return { error: getText("NPC.CHAR_NOT_FOUND") };
+
+  const hired = user.hiredNpcs || [];
+  const npcIdx = hired.findIndex((n) => n.npcId === npcId);
+  if (npcIdx === -1) return { error: getText("NPC.NPC_NOT_FOUND") };
+
+  const npc = hired[npcIdx];
+
+  if (npc.mission) return { error: formatText("NPC.ON_MISSION", { npcName: npc.name }) };
+
+  const activeMissions = hired.filter((n) => n.mission).length;
+  const concurrentLimit = MISSIONS.CONCURRENT_LIMIT ?? 2;
+  if (activeMissions >= concurrentLimit) {
+    return { error: formatText("NPC.MISSION_LIMIT", { limit: concurrentLimit }) };
+  }
+
+  if ((npc.condition ?? 100) < 10) {
+    return { error: formatText("NPC.LOW_CONDITION", { npcName: npc.name }) };
+  }
+
+  const trainingDef = (config.NPC_TRAINING.TYPES || []).find((t) => t.id === trainingType);
+  if (!trainingDef) return { error: getText("NPC.INVALID_TRAINING") };
+
+  // 需裝備武器
+  const weapons = user.weaponStock || [];
+  const equippedWeapon = npc.equippedWeaponIndex != null
+    ? weapons[npc.equippedWeaponIndex]
+    : null;
+  if (!equippedWeapon) {
+    return { error: formatText("NPC.TRAINING_NO_WEAPON", { npcName: npc.name }) };
+  }
+
+  const now = Date.now();
+  const endsAt = now + trainingDef.duration * config.TIME_SCALE;
+
+  const mission = {
+    type: trainingType,
+    name: trainingDef.name,
+    startedAt: now,
+    endsAt,
+    floor: getActiveFloor(user),
+    isTraining: true,
+  };
+
+  const updateResult = await db.findOneAndUpdate(
+    "user",
+    {
+      userId,
+      [`hiredNpcs.${npcIdx}.mission`]: null,
+      $expr: {
+        $lt: [
+          { $size: { $filter: { input: "$hiredNpcs", cond: { $ne: ["$$this.mission", null] } } } },
+          concurrentLimit,
+        ],
+      },
+    },
+    { $set: { [`hiredNpcs.${npcIdx}.mission`]: mission } },
+    { returnDocument: "after" },
+  );
+  if (!updateResult) {
+    return { error: formatText("NPC.MISSION_LIMIT_OR_CHANGED", { limit: concurrentLimit }) };
+  }
+
+  return {
+    success: true,
+    mission,
+    npcName: npc.name,
+    durationMinutes: trainingDef.duration * 5,
+  };
+}
+
+/**
+ * 結算 NPC 修練結果
+ * @param {string} userId
+ * @param {number} npcIdx
+ * @param {object} npc
+ * @returns {object|null}
+ */
+async function resolveTraining(userId, npcIdx, npc) {
+  const mission = npc.mission;
+  if (!mission || Date.now() < mission.endsAt) return null;
+
+  const trainingDef = (config.NPC_TRAINING.TYPES || []).find((t) => t.id === mission.type);
+  if (!trainingDef) {
+    await db.update("user", { userId }, { $set: { [`hiredNpcs.${npcIdx}.mission`]: null } });
+    return null;
+  }
+
+  // 重新讀取最新資料
+  const user = await db.findOne("user", { userId });
+  if (!user) return null;
+  const currentNpc = (user.hiredNpcs || [])[npcIdx];
+  if (!currentNpc) return null;
+
+  const weapons = user.weaponStock || [];
+  const equippedWeapon = currentNpc.equippedWeaponIndex != null
+    ? weapons[currentNpc.equippedWeaponIndex]
+    : null;
+
+  // 樓層加成：effectiveFloor = max(1, floor - 3)
+  const trainingFloor = mission.floor || user.currentFloor || 1;
+  const effectiveFloor = Math.max(1, trainingFloor - 3);
+  const floorMult = 1 + (effectiveFloor - 1) * (config.NPC_TRAINING.FLOOR_MULT || 0.3);
+
+  let profResult = null;
+  let skillResult = null;
+
+  if (equippedWeapon) {
+    const weaponType = resolveWeaponType(equippedWeapon);
+    if (weaponType) {
+      // 獎勵熟練度（樓層加成）
+      const profGain = Math.round(trainingDef.profGain * floorMult);
+      const profPath = `hiredNpcs.${npcIdx}.weaponProficiency`;
+      const currentProf = currentNpc.weaponProficiency || 0;
+      const newProf = Math.min(config.SKILL.MAX_PROFICIENCY, currentProf + profGain);
+
+      await db.update("user", { userId }, {
+        $set: {
+          [profPath]: newProf,
+          [`hiredNpcs.${npcIdx}.proficientType`]: weaponType,
+        },
+      });
+
+      profResult = { profGained: newProf - currentProf, weaponType };
+    }
+
+    // 增強的技能學習（使用 overrideChance）
+    const qualityMult = config.SKILL.NPC_QUALITY_LEARN_MULT[currentNpc.quality] || 1.0;
+    const learnChance = config.SKILL.NPC_LEARN_CHANCE * trainingDef.learnChanceMult * qualityMult;
+
+    // 重新讀取最新 NPC 資料（熟練度已更新）
+    const refreshed = await db.findOne("user", { userId });
+    const refreshedNpc = (refreshed?.hiredNpcs || [])[npcIdx];
+    if (refreshedNpc) {
+      skillResult = await tryNpcLearnSkill(userId, npcIdx, refreshedNpc, equippedWeapon, learnChance);
+    }
+  }
+
+  // 體力扣除
+  const condLoss = trainingDef.condCost;
+  const newCond = Math.max(0, (currentNpc.condition ?? 100) - condLoss);
+
+  // NPC EXP（樓層加成）
+  const expGain = Math.round(trainingDef.expReward * floorMult);
+  const currentExp = currentNpc.exp || 0;
+  const currentLevel = currentNpc.level || 1;
+  const expNeeded = getExpToNextLevel(currentLevel);
+  const totalExp = currentExp + expGain;
+  const levelUp = totalExp >= expNeeded;
+  const finalExp = levelUp ? totalExp - expNeeded : totalExp;
+  const finalLevel = levelUp ? currentLevel + 1 : currentLevel;
+
+  await db.update("user", { userId }, {
+    $set: {
+      [`hiredNpcs.${npcIdx}.mission`]: null,
+      [`hiredNpcs.${npcIdx}.condition`]: newCond,
+      [`hiredNpcs.${npcIdx}.exp`]: finalExp,
+      [`hiredNpcs.${npcIdx}.level`]: finalLevel,
+    },
+  });
+
+  return {
+    isTraining: true,
+    trainingName: trainingDef.name,
+    npcName: currentNpc.name,
+    profResult,
+    skillResult,
+    condLoss,
+    newCondition: newCond,
+    expGained: expGain,
+    levelUp,
+    newLevel: finalLevel,
+  };
+}
+
+module.exports = {
+  startMission, checkMissions, resolveMission, getMissionPreviews,
+  startTraining, resolveTraining, getTrainingPreviews,
+};

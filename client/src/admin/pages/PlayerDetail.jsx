@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import AdminNpcCard from "../components/AdminNpcCard.jsx";
 
 export default function PlayerDetail() {
   const { userId } = useParams();
@@ -23,6 +24,10 @@ export default function PlayerDetail() {
   // 聖遺物新增
   const [newRelic, setNewRelic] = useState({ id: "", name: "", nameCn: "", bossFloor: 1, effects: "" });
 
+  // 技能定義（Admin NPC 用）
+  const [skillDefs, setSkillDefs] = useState([]);
+  const [weaponTypeDefs, setWeaponTypeDefs] = useState([]);
+
   // 展開/折疊區塊
   const [sections, setSections] = useState({ items: true, weapons: true, relics: true, npcs: true });
 
@@ -42,6 +47,16 @@ export default function PlayerDetail() {
   useEffect(() => {
     fetchPlayer();
   }, [fetchPlayer]);
+
+  useEffect(() => {
+    fetch("/api/admin/players/skill-definitions", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        setSkillDefs(data.skills || []);
+        setWeaponTypeDefs(data.weaponTypes || []);
+      })
+      .catch(() => {});
+  }, []);
 
   function toggleSection(key) {
     setSections((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -184,42 +199,6 @@ export default function PlayerDetail() {
       if (!res.ok) { setMsg(data.error); return; }
       setMsg("武器已新增");
       setNewWeapon({ weaponName: "", name: "", atk: 0, def: 0, agi: 0, cri: 10, hp: 0, durability: 100 });
-      fetchPlayer();
-    } catch (err) {
-      setMsg("操作失敗");
-    }
-  }
-
-  // ── NPC Management ──
-  async function handleNpcAction(npcId, action) {
-    const labels = { fire: "解雇", heal: "治療", kill: "殺死" };
-    if (!confirm(`確定要${labels[action]}此 NPC？`)) return;
-    setMsg("");
-    try {
-      const res = await fetch(`/api/admin/players/${userId}/npcs/${npcId}/${action}`, {
-        method: "POST",
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (!res.ok) { setMsg(data.error); return; }
-      setMsg(`NPC 已${labels[action]}`);
-      fetchPlayer();
-    } catch (err) {
-      setMsg("操作失敗");
-    }
-  }
-
-  async function handleNpcModify(npcId, field, value) {
-    setMsg("");
-    try {
-      const res = await fetch(`/api/admin/players/${userId}/npcs/${npcId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ [field]: value }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setMsg(data.error); return; }
       fetchPlayer();
     } catch (err) {
       setMsg("操作失敗");
@@ -538,66 +517,18 @@ export default function PlayerDetail() {
         <div style={styles.sectionBody}>
           {npcs.length > 0 ? (
             <div style={styles.weaponGrid}>
-              {npcs.map((npc) => {
-                const qualityColors = { S: "#ff9800", A: "#e94560", B: "#4caf50", C: "#a0a0b0" };
-                const condColor = npc.condition >= 70 ? "#4caf50" : npc.condition >= 30 ? "#ff9800" : "#e94560";
-                const equippedWeapon = npc.equippedWeaponIndex != null ? weapons[npc.equippedWeaponIndex] : null;
-                return (
-                  <div key={npc.npcId} style={styles.weaponCard}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
-                        <span style={{ color: qualityColors[npc.quality] || "#eee", fontWeight: "bold", fontSize: 14 }}>
-                          [{npc.quality}] {npc.name}
-                        </span>
-                        <span style={{ color: "#a0a0b0", fontSize: 11, marginLeft: 8 }}>
-                          Lv.{npc.level || 1} | EXP: {npc.exp || 0}
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", gap: 4 }}>
-                        <button style={styles.smallBtn} onClick={() => handleNpcAction(npc.npcId, "heal")}>回滿體力</button>
-                        <button style={styles.smallBtn} onClick={() => handleNpcAction(npc.npcId, "fire")}>解雇</button>
-                        <button style={styles.smallBtnDanger} onClick={() => handleNpcAction(npc.npcId, "kill")}>殺死</button>
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", gap: 12, marginTop: 6, flexWrap: "wrap", fontSize: 12 }}>
-                      <span>體力: <span style={{ color: condColor }}>{npc.condition ?? 100}/100</span></span>
-                      <span style={{ color: "#a0a0b0" }}>ID: {npc.npcId}</span>
-                      <span style={{ color: "#a0a0b0" }}>月薪: {npc.monthlyCost || npc.weeklyCost}</span>
-                      {equippedWeapon && (
-                        <span>裝備: <span style={{ color: equippedWeapon.rarityColor || "#eee" }}>
-                          {equippedWeapon.name || equippedWeapon.weaponName}
-                        </span></span>
-                      )}
-                      {npc.mission && (
-                        <span style={{ color: "#ff9800" }}>任務中: {npc.mission.name || npc.mission.type}</span>
-                      )}
-                    </div>
-                    {npc.baseStats && (
-                      <div style={styles.statRow}>
-                        <StatBadge label="ATK" value={npc.baseStats.atk} />
-                        <StatBadge label="DEF" value={npc.baseStats.def} />
-                        <StatBadge label="AGI" value={npc.baseStats.agi} />
-                        <StatBadge label="HP" value={npc.baseStats.hp} />
-                      </div>
-                    )}
-                    {(npc.learnedSkills?.length > 0 || npc.proficientType) && (
-                      <div style={{ marginTop: 4, fontSize: 11, color: "#a0a0b0" }}>
-                        {npc.proficientType && <span>擅長: {npc.proficientType} (熟練度 {npc.weaponProficiency || 0})</span>}
-                        {npc.learnedSkills?.length > 0 && (
-                          <span style={{ marginLeft: 8 }}>技能: {npc.learnedSkills.map((s) => s.name || s.skillId).join(", ")}</span>
-                        )}
-                      </div>
-                    )}
-                    <div style={{ display: "flex", gap: 6, marginTop: 6, alignItems: "center", fontSize: 11 }}>
-                      <span style={{ color: "#a0a0b0" }}>快速修改:</span>
-                      <button style={styles.smallBtn} onClick={() => handleNpcModify(npc.npcId, "condition", 100)}>體力→100</button>
-                      <button style={styles.smallBtn} onClick={() => handleNpcModify(npc.npcId, "condition", 50)}>體力→50</button>
-                      <button style={styles.smallBtn} onClick={() => handleNpcModify(npc.npcId, "level", (npc.level || 1) + 1)}>等級+1</button>
-                      <button style={styles.smallBtn} onClick={() => handleNpcModify(npc.npcId, "level", (npc.level || 1) + 5)}>等級+5</button>
-                    </div>
-                  </div>
-                );
-              })}
+              {npcs.map((npc) => (
+                <AdminNpcCard
+                  key={npc.npcId}
+                  npc={npc}
+                  weapons={weapons}
+                  userId={userId}
+                  skillDefs={skillDefs}
+                  weaponTypes={weaponTypeDefs}
+                  onRefresh={fetchPlayer}
+                  setMsg={setMsg}
+                />
+              ))}
             </div>
           ) : (
             <div style={{ color: "#a0a0b0", fontSize: 13 }}>無雇用 NPC</div>

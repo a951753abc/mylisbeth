@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const db = require("../../db.js");
 const { logAction } = require("../../game/logging/actionLogger.js");
+const { getAllSkills } = require("../../game/skill/skillRegistry.js");
+const { getNpcSlotCount } = require("../../game/skill/skillSlot.js");
+const { getAllWeaponTypes } = require("../../game/weapon/weaponType.js");
 
 // GET /api/admin/players?search=&page=1&limit=20
 router.get("/", async (req, res) => {
@@ -48,6 +51,18 @@ router.get("/", async (req, res) => {
     });
   } catch (err) {
     console.error("查詢玩家失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// GET /api/admin/players/skill-definitions — 技能和武器類型定義（Admin 用）
+router.get("/skill-definitions", async (req, res) => {
+  try {
+    const skills = getAllSkills();
+    const weaponTypes = getAllWeaponTypes();
+    res.json({ skills, weaponTypes });
+  } catch (err) {
+    console.error("取得技能定義失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
   }
 });
@@ -448,6 +463,140 @@ router.patch("/:userId/npcs/:npcId", async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error("修改 NPC 失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// PATCH /api/admin/players/:userId/npcs/:npcId/proficiency — 修改 NPC 熟練度
+router.patch("/:userId/npcs/:npcId/proficiency", async (req, res) => {
+  try {
+    const { userId, npcId } = req.params;
+    const { weaponProficiency, proficientType } = req.body;
+
+    const user = await db.findOne("user", { userId });
+    if (!user) return res.status(404).json({ error: "找不到玩家" });
+
+    const hired = user.hiredNpcs || [];
+    const npcIdx = hired.findIndex((n) => n.npcId === npcId);
+    if (npcIdx === -1) return res.status(400).json({ error: "玩家未雇用此 NPC" });
+
+    const updates = {};
+
+    if (weaponProficiency !== undefined) {
+      const prof = parseInt(weaponProficiency);
+      if (isNaN(prof) || prof < 0 || prof > 1000) {
+        return res.status(400).json({ error: "weaponProficiency 必須在 0-1000 之間" });
+      }
+      updates[`hiredNpcs.${npcIdx}.weaponProficiency`] = prof;
+    }
+
+    if (proficientType !== undefined) {
+      const validTypes = getAllWeaponTypes();
+      if (proficientType !== null && !validTypes.includes(proficientType)) {
+        return res.status(400).json({ error: `無效的武器類型: ${proficientType}` });
+      }
+      updates[`hiredNpcs.${npcIdx}.proficientType`] = proficientType;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "未提供任何修改欄位" });
+    }
+
+    await db.update("user", { userId }, { $set: updates });
+
+    logAction(userId, user.name, "admin:modify_npc_proficiency", {
+      npcId,
+      npcName: hired[npcIdx].name,
+      changes: { weaponProficiency, proficientType },
+      adminUser: req.session.admin.username,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("修改 NPC 熟練度失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// PATCH /api/admin/players/:userId/npcs/:npcId/skills — 管理 NPC 技能
+router.patch("/:userId/npcs/:npcId/skills", async (req, res) => {
+  try {
+    const { userId, npcId } = req.params;
+    const { action, skillId, target } = req.body;
+
+    if (!["add", "remove"].includes(action)) {
+      return res.status(400).json({ error: "action 必須為 add 或 remove" });
+    }
+    if (!skillId) return res.status(400).json({ error: "缺少 skillId" });
+    if (!["learned", "equipped"].includes(target)) {
+      return res.status(400).json({ error: "target 必須為 learned 或 equipped" });
+    }
+
+    const user = await db.findOne("user", { userId });
+    if (!user) return res.status(404).json({ error: "找不到玩家" });
+
+    const hired = user.hiredNpcs || [];
+    const npcIdx = hired.findIndex((n) => n.npcId === npcId);
+    if (npcIdx === -1) return res.status(400).json({ error: "玩家未雇用此 NPC" });
+
+    const npc = hired[npcIdx];
+    const learnedPath = `hiredNpcs.${npcIdx}.learnedSkills`;
+    const equippedPath = `hiredNpcs.${npcIdx}.equippedSkills`;
+
+    if (action === "add" && target === "learned") {
+      // 驗證 skillId 存在
+      const allSkills = getAllSkills();
+      if (!allSkills.some((s) => s.id === skillId)) {
+        return res.status(400).json({ error: `找不到技能: ${skillId}` });
+      }
+      await db.update("user", { userId }, { $addToSet: { [learnedPath]: skillId } });
+
+    } else if (action === "remove" && target === "learned") {
+      await db.update("user", { userId }, {
+        $pull: {
+          [learnedPath]: skillId,
+          [equippedPath]: { skillId },
+        },
+      });
+
+    } else if (action === "add" && target === "equipped") {
+      const learned = npc.learnedSkills || [];
+      if (!learned.includes(skillId)) {
+        return res.status(400).json({ error: "NPC 尚未學會此技能" });
+      }
+      const slotCount = getNpcSlotCount(npc);
+      const equipped = npc.equippedSkills || [];
+      if (equipped.length >= slotCount) {
+        return res.status(400).json({ error: `裝備欄已滿（上限 ${slotCount}）` });
+      }
+      const alreadyEquipped = equipped.some(
+        (es) => (typeof es === "string" ? es : es.skillId) === skillId,
+      );
+      if (alreadyEquipped) {
+        return res.status(400).json({ error: "此技能已裝備" });
+      }
+      await db.update("user", { userId }, {
+        $push: { [equippedPath]: { skillId, mods: [] } },
+      });
+
+    } else if (action === "remove" && target === "equipped") {
+      await db.update("user", { userId }, {
+        $pull: { [equippedPath]: { skillId } },
+      });
+    }
+
+    logAction(userId, user.name, "admin:modify_npc_skills", {
+      npcId,
+      npcName: npc.name,
+      action,
+      skillId,
+      target,
+      adminUser: req.session.admin.username,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("修改 NPC 技能失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
   }
 });

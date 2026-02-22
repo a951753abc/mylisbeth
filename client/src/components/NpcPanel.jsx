@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { QUALITY_COLOR } from "../constants/npcQuality.js";
+import ProficiencyBar from "./ProficiencyBar.jsx";
 
 function conditionColor(cond) {
   if (cond >= 70) return "#4caf50";
@@ -39,6 +40,8 @@ export default function NpcPanel({ user, onRefresh }) {
   const [countdowns, setCountdowns] = useState({});
   const [concurrentLimit, setConcurrentLimit] = useState(2);
   const [skillMap, setSkillMap] = useState({});
+  const [trainingPicker, setTrainingPicker] = useState(null);
+  const [trainingTypes, setTrainingTypes] = useState([]);
 
   // 過濾幽靈 NPC（死亡後因競態條件殘留的不完整條目）
   const npcs = (user.hiredNpcs || []).filter((n) => n.npcId && n.name);
@@ -119,6 +122,7 @@ export default function NpcPanel({ user, onRefresh }) {
 
   const openMissionPicker = async (npcId) => {
     setMissionPicker(npcId);
+    setTrainingPicker(null);
     setMissionTypes([]);
     try {
       const res = await fetch(`/api/npc/mission/types?npcId=${npcId}`, { credentials: "include" });
@@ -134,6 +138,27 @@ export default function NpcPanel({ user, onRefresh }) {
     setBusy(`mission_${npcId}`);
     await doAction("/api/npc/mission/start", { npcId, missionType }, "✅ 任務已派遣");
     setMissionPicker(null);
+    setBusy(null);
+  };
+
+  const openTrainingPicker = async (npcId) => {
+    setTrainingPicker(npcId);
+    setMissionPicker(null);
+    setTrainingTypes([]);
+    try {
+      const res = await fetch(`/api/npc/training/types?npcId=${npcId}`, { credentials: "include" });
+      const data = await res.json();
+      setTrainingTypes(data.trainings || []);
+      if (data.concurrentLimit != null) setConcurrentLimit(data.concurrentLimit);
+    } catch {
+      setMessage("❌ 無法載入修練列表");
+    }
+  };
+
+  const handleStartTraining = async (npcId, trainingType) => {
+    setBusy(`training_${npcId}`);
+    await doAction("/api/npc/training/start", { npcId, trainingType }, "✅ 修練已開始");
+    setTrainingPicker(null);
     setBusy(null);
   };
 
@@ -219,29 +244,54 @@ export default function NpcPanel({ user, onRefresh }) {
             <div
               key={i}
               style={{
-                background: r.success ? "#14532d33" : "#7f1d1d33",
-                border: `1px solid ${r.success ? "#22c55e" : "#ef4444"}`,
+                background: r.isTraining ? "#1e1b4b33" : (r.success ? "#14532d33" : "#7f1d1d33"),
+                border: `1px solid ${r.isTraining ? "#818cf8" : (r.success ? "#22c55e" : "#ef4444")}`,
                 borderRadius: "6px",
                 padding: "0.5rem 0.7rem",
                 marginBottom: "0.3rem",
                 fontSize: "0.85rem",
               }}
             >
-              <strong>{r.npcName}</strong> — {r.missionName}：
-              {r.success ? (
-                <span style={{ color: "#86efac" }}>
-                  成功！獲得 {r.reward} Col（手續費 {r.commission} Col）
-                </span>
-              ) : r.died ? (
-                <span style={{ color: "#fca5a5" }}>失敗...{r.npcName} 在任務中犧牲了</span>
+              {r.isTraining ? (
+                <>
+                  <strong>{r.npcName}</strong> — {r.trainingName}：
+                  <span style={{ color: "#a5b4fc" }}>修練完成！</span>
+                  {r.profResult && (
+                    <span style={{ color: "var(--gold)", marginLeft: "0.4rem" }}>
+                      熟練度 +{r.profResult.profGained}
+                    </span>
+                  )}
+                  {r.skillResult?.learned && (
+                    <span style={{ color: "#c084fc", marginLeft: "0.4rem" }}>
+                      學會新技能「{r.skillResult.skillName}」！
+                    </span>
+                  )}
+                  {r.expGained > 0 && (
+                    <span style={{ color: "#93c5fd", marginLeft: "0.4rem", fontSize: "0.8rem" }}>
+                      EXP +{r.expGained}
+                      {r.levelUp && ` LV UP! → LV ${r.newLevel}`}
+                    </span>
+                  )}
+                </>
               ) : (
-                <span style={{ color: "#fca5a5" }}>失敗，體力 -{r.condLoss}%</span>
-              )}
-              {r.advExpGained > 0 && (
-                <span style={{ color: "#93c5fd", marginLeft: "0.4rem", fontSize: "0.8rem" }}>
-                  +{r.advExpGained} 冒險EXP
-                  {r.advLevelUp && ` LV UP! → LV ${r.advNewLevel}`}
-                </span>
+                <>
+                  <strong>{r.npcName}</strong> — {r.missionName}：
+                  {r.success ? (
+                    <span style={{ color: "#86efac" }}>
+                      成功！獲得 {r.reward} Col（手續費 {r.commission} Col）
+                    </span>
+                  ) : r.died ? (
+                    <span style={{ color: "#fca5a5" }}>失敗...{r.npcName} 在任務中犧牲了</span>
+                  ) : (
+                    <span style={{ color: "#fca5a5" }}>失敗，體力 -{r.condLoss}%</span>
+                  )}
+                  {r.advExpGained > 0 && (
+                    <span style={{ color: "#93c5fd", marginLeft: "0.4rem", fontSize: "0.8rem" }}>
+                      +{r.advExpGained} 冒險EXP
+                      {r.advLevelUp && ` LV UP! → LV ${r.advNewLevel}`}
+                    </span>
+                  )}
+                </>
               )}
             </div>
           ))}
@@ -312,25 +362,25 @@ export default function NpcPanel({ user, onRefresh }) {
                 </div>
               </div>
 
-              {/* 任務狀態 */}
+              {/* 任務/修練狀態 */}
               {onMission && (
                 <div
                   style={{
                     marginTop: "0.4rem",
                     padding: "0.4rem 0.6rem",
                     borderRadius: "4px",
-                    background: missionDone ? "#14532d33" : "#1a1a2e",
-                    border: `1px solid ${missionDone ? "#22c55e" : "#4b5563"}`,
+                    background: missionDone ? "#14532d33" : (npc.mission.isTraining ? "#1e1b4b33" : "#1a1a2e"),
+                    border: `1px solid ${missionDone ? "#22c55e" : (npc.mission.isTraining ? "#818cf8" : "#4b5563")}`,
                     fontSize: "0.8rem",
                   }}
                 >
                   {missionDone ? (
                     <span style={{ color: "#86efac" }}>
-                      {npc.mission.name} — 已完成！請按「結算任務」查看結果
+                      {npc.mission.isTraining ? "修練" : "任務"}：{npc.mission.name} — 已完成！請按「結算任務」查看結果
                     </span>
                   ) : (
-                    <span style={{ color: "#d4d4d8" }}>
-                      {npc.mission.name} — 剩餘 {formatCountdown(cdMs)}
+                    <span style={{ color: npc.mission.isTraining ? "#a5b4fc" : "#d4d4d8" }}>
+                      {npc.mission.isTraining ? "修練中" : "任務"}：{npc.mission.name} — 剩餘 {formatCountdown(cdMs)}
                     </span>
                   )}
                 </div>
@@ -385,75 +435,91 @@ export default function NpcPanel({ user, onRefresh }) {
                 )}
               </div>
 
-              {/* NPC 劍技 */}
-              {((npc.learnedSkills || []).length > 0 || (npc.equippedSkills || []).length > 0) && (
-                <div style={{ marginTop: "0.4rem" }}>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.2rem" }}>
-                    劍技（已學 {(npc.learnedSkills || []).length}，裝備 {(npc.equippedSkills || []).length}）
-                    {npc.proficientType && (
-                      <span style={{ marginLeft: "0.4rem", color: "var(--gold)" }}>
-                        擅長：{WEAPON_TYPE_NAMES[npc.proficientType] || npc.proficientType}
-                        {npc.weaponProficiency > 0 && ` (熟練度 ${npc.weaponProficiency})`}
-                      </span>
-                    )}
+              {/* 武器熟練度 + 劍技 */}
+              <div style={{ marginTop: "0.4rem" }}>
+                {/* 熟練度進度條 */}
+                {npc.proficientType ? (
+                  <ProficiencyBar
+                    label={`武器熟練度（${WEAPON_TYPE_NAMES[npc.proficientType] || npc.proficientType}）`}
+                    value={npc.weaponProficiency || 0}
+                    max={1000}
+                  />
+                ) : (
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.3rem" }}>
+                    武器熟練度：尚未確定武器類型
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
-                    {(npc.equippedSkills || []).map((es, idx) => {
-                      const skillId = typeof es === "string" ? es : es.skillId;
-                      const def = skillMap[skillId];
-                      const mods = typeof es === "object" && es.mods ? es.mods : [];
-                      return (
-                        <span
-                          key={`${skillId}_${idx}`}
-                          style={{
-                            display: "inline-block",
-                            padding: "0.15rem 0.4rem",
-                            fontSize: "0.7rem",
-                            background: `${def?.color || "#a855f7"}22`,
-                            border: `1px solid ${def?.color || "#a855f7"}`,
-                            borderRadius: "3px",
-                            color: def?.color || "#a855f7",
-                          }}
-                          title={def ? `${def.nameJp} — ${def.description}` : skillId}
-                        >
-                          {def ? def.nameCn : skillId}
-                          {mods.length > 0 && ` +${mods.length}`}
-                        </span>
-                      );
-                    })}
-                    {/* 已學但未裝備的技能 */}
-                    {(() => {
-                      const equippedSet = new Set((npc.equippedSkills || []).map(
-                        (es) => typeof es === "string" ? es : es.skillId,
-                      ));
-                      return (npc.learnedSkills || [])
-                        .filter((s) => !equippedSet.has(s))
-                        .map((skillId, idx) => {
-                          const def = skillMap[skillId];
-                          return (
-                            <span
-                              key={`unequip_${skillId}_${idx}`}
-                              style={{
-                                display: "inline-block",
-                                padding: "0.15rem 0.4rem",
-                                fontSize: "0.7rem",
-                                background: "rgba(100, 100, 100, 0.15)",
-                                border: "1px dashed #666",
-                                borderRadius: "3px",
-                                color: "#888",
-                              }}
-                              title={def ? `${def.nameJp}（未裝備）` : `${skillId}（未裝備）`}
-                            >
-                              {def ? def.nameCn : skillId}
-                            </span>
-                          );
-                        });
-                    })()}
-                  </div>
-                </div>
-              )}
+                )}
 
-              {/* 派遣任務按鈕（不在任務中時顯示） */}
+                {/* 劍技列表 */}
+                {(npc.learnedSkills || []).length > 0 || (npc.equippedSkills || []).length > 0 ? (
+                  <>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.2rem" }}>
+                      劍技（已學 {(npc.learnedSkills || []).length}，裝備 {(npc.equippedSkills || []).length}）
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
+                      {(npc.equippedSkills || []).map((es, idx) => {
+                        const skillId = typeof es === "string" ? es : es.skillId;
+                        const def = skillMap[skillId];
+                        const mods = typeof es === "object" && es.mods ? es.mods : [];
+                        return (
+                          <span
+                            key={`${skillId}_${idx}`}
+                            style={{
+                              display: "inline-block",
+                              padding: "0.15rem 0.4rem",
+                              fontSize: "0.7rem",
+                              background: `${def?.color || "#a855f7"}22`,
+                              border: `1px solid ${def?.color || "#a855f7"}`,
+                              borderRadius: "3px",
+                              color: def?.color || "#a855f7",
+                            }}
+                            title={def ? `${def.nameJp} — ${def.description}` : skillId}
+                          >
+                            {def ? def.nameCn : skillId}
+                            {mods.length > 0 && ` +${mods.length}`}
+                          </span>
+                        );
+                      })}
+                      {(() => {
+                        const equippedSet = new Set((npc.equippedSkills || []).map(
+                          (es) => typeof es === "string" ? es : es.skillId,
+                        ));
+                        return (npc.learnedSkills || [])
+                          .filter((s) => !equippedSet.has(s))
+                          .map((skillId, idx) => {
+                            const def = skillMap[skillId];
+                            return (
+                              <span
+                                key={`unequip_${skillId}_${idx}`}
+                                style={{
+                                  display: "inline-block",
+                                  padding: "0.15rem 0.4rem",
+                                  fontSize: "0.7rem",
+                                  background: "rgba(100, 100, 100, 0.15)",
+                                  border: "1px dashed #666",
+                                  borderRadius: "3px",
+                                  color: "#888",
+                                }}
+                                title={def ? `${def.nameJp}（未裝備）` : `${skillId}（未裝備）`}
+                              >
+                                {def ? def.nameCn : skillId}
+                              </span>
+                            );
+                          });
+                      })()}
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", fontStyle: "italic" }}>
+                    {!npc.proficientType
+                      ? "裝備武器後派遣冒險或進行修練，即可累積武器熟練度並學習劍技"
+                      : "尚未學會任何劍技。累積熟練度後有機會在戰鬥中自動學會"
+                    }
+                  </div>
+                )}
+              </div>
+
+              {/* 派遣任務/修練按鈕（不在任務中時顯示） */}
               {!onMission && (
                 <div style={{ marginTop: "0.5rem" }}>
                   {missionPicker === npc.npcId ? (
@@ -515,15 +581,101 @@ export default function NpcPanel({ user, onRefresh }) {
                         取消
                       </button>
                     </div>
+                  ) : trainingPicker === npc.npcId ? (
+                    <div style={{
+                      background: "#1e1b4b22",
+                      border: "1px solid #818cf8",
+                      borderRadius: "6px",
+                      padding: "0.5rem",
+                    }}>
+                      <div style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "0.4rem", color: "#a5b4fc" }}>
+                        選擇修練：
+                      </div>
+                      <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "0.3rem" }}>
+                        無死亡風險 | 無 Col 收益 | 需裝備武器
+                      </div>
+                      {trainingTypes.length === 0 ? (
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>載入中...</div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                          {trainingTypes.map((t) => (
+                            <div
+                              key={t.id}
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                padding: "0.4rem 0.5rem",
+                                background: "var(--card-bg)",
+                                borderRadius: "4px",
+                                fontSize: "0.8rem",
+                                opacity: t.hasWeapon ? 1 : 0.5,
+                              }}
+                            >
+                              <div>
+                                <strong>{t.name}</strong>
+                                <span style={{ color: "var(--text-secondary)", marginLeft: "0.4rem" }}>
+                                  {t.durationMinutes}分
+                                </span>
+                                <br />
+                                <span style={{ fontSize: "0.75rem" }}>
+                                  <span style={{ color: "#a5b4fc" }}>熟練度 +{t.profGain}</span>
+                                  {" | "}學技 <span style={{ color: "#c084fc" }}>{t.learnChance}%</span>
+                                  {" | "}EXP +{t.expReward}
+                                  {" | "}體力 -{t.condCost}%
+                                </span>
+                                {!t.hasWeapon && (
+                                  <span style={{ color: "#f44336", fontSize: "0.7rem", marginLeft: "0.3rem" }}>
+                                    需裝備武器
+                                  </span>
+                                )}
+                              </div>
+                              <button
+                                className="btn-primary"
+                                style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem", whiteSpace: "nowrap" }}
+                                disabled={!t.hasWeapon || busy === `training_${npc.npcId}` || cond < 10 || isPaused || missionsFull}
+                                onClick={() => handleStartTraining(npc.npcId, t.id)}
+                              >
+                                修練
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <button
+                        style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem", marginTop: "0.4rem" }}
+                        onClick={() => setTrainingPicker(null)}
+                      >
+                        取消
+                      </button>
+                    </div>
                   ) : (
-                    <button
-                      className="btn-primary"
-                      style={{ fontSize: "0.75rem", padding: "0.2rem 0.6rem" }}
-                      disabled={cond < 10 || isPaused || missionsFull}
-                      onClick={() => openMissionPicker(npc.npcId)}
-                    >
-                      {missionsFull ? "派遣已滿" : "派遣任務"}
-                    </button>
+                    <div style={{ display: "flex", gap: "0.4rem" }}>
+                      <button
+                        className="btn-primary"
+                        style={{ fontSize: "0.75rem", padding: "0.2rem 0.6rem" }}
+                        disabled={cond < 10 || isPaused || missionsFull}
+                        onClick={() => openMissionPicker(npc.npcId)}
+                      >
+                        {missionsFull ? "派遣已滿" : "派遣任務"}
+                      </button>
+                      <button
+                        style={{
+                          fontSize: "0.75rem",
+                          padding: "0.2rem 0.6rem",
+                          background: "#4338ca",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                        }}
+                        disabled={cond < 10 || isPaused || missionsFull || !equippedWeapon}
+                        onClick={() => openTrainingPicker(npc.npcId)}
+                        title={!equippedWeapon ? "需裝備武器" : ""}
+                      >
+                        {missionsFull ? "派遣已滿" : "自主修練"}
+                      </button>
+                    </div>
                   )}
                 </div>
               )}

@@ -390,6 +390,16 @@ module.exports = {
     CONCURRENT_LIMIT: 2,       // 同時派遣任務上限
   },
 
+  // Season 11: NPC 自主修練
+  NPC_TRAINING: {
+    TYPES: [
+      { id: "quick_training",     name: "快速修練", duration: 2,  profGain: 20, learnChanceMult: 3.0, condCost: 5,  expReward: 15 },
+      { id: "intensive_training", name: "集中修練", duration: 6,  profGain: 40, learnChanceMult: 5.0, condCost: 10, expReward: 40 },
+    ],
+    FLOOR_MULT: 0.3,    // 每有效樓層（currentFloor - 3）增加 30% 收益
+    // 無死亡風險、無 Col 收益、需裝備武器、共用 CONCURRENT_LIMIT
+  },
+
   // Season 3.5: 鍛造師親自冒險
   SOLO_ADV: {
     // 鍛造師基礎素質

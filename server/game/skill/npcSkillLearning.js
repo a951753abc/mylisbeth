@@ -13,14 +13,15 @@ const SKILL_CFG = config.SKILL;
  * @param {number} npcIdx - hiredNpcs 中的索引
  * @param {object} npc - hiredNpc 子文件
  * @param {object} weapon - NPC 使用的武器
+ * @param {number|null} [overrideChance=null] - 覆蓋學習機率（修練用）
  * @returns {{ learned: boolean, skillId?: string, skillName?: string } | null}
  */
-async function tryNpcLearnSkill(userId, npcIdx, npc, weapon) {
+async function tryNpcLearnSkill(userId, npcIdx, npc, weapon, overrideChance = null) {
   const weaponType = resolveWeaponType(weapon);
   if (!weaponType) return null;
 
   const qualityMult = SKILL_CFG.NPC_QUALITY_LEARN_MULT[npc.quality] || 1.0;
-  const learnChance = SKILL_CFG.NPC_LEARN_CHANCE * qualityMult;
+  const learnChance = overrideChance ?? (SKILL_CFG.NPC_LEARN_CHANCE * qualityMult);
 
   if (!roll.d100Check(learnChance)) {
     return null;

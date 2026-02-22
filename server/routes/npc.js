@@ -13,6 +13,8 @@ const {
   startMission,
   checkMissions,
   getMissionPreviews,
+  startTraining,
+  getTrainingPreviews,
 } = require("../game/npc/mission.js");
 const db = require("../db.js");
 const config = require("../game/config.js");
@@ -139,6 +141,43 @@ router.get("/mission/types", ensureAuth, async (req, res) => {
     res.json({ missions: previews, activeMissions, concurrentLimit });
   } catch (err) {
     console.error("取得任務預覽失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// POST /api/npc/training/start — 派遣 NPC 進行修練
+router.post("/training/start", ensureAuth, ensureNotPaused, async (req, res) => {
+  try {
+    const { npcId, trainingType } = req.body;
+    if (!npcId) return res.status(400).json({ error: "請提供 npcId" });
+    if (!trainingType) return res.status(400).json({ error: "請選擇修練類型" });
+    const result = await startTraining(req.user.discordId, npcId, trainingType);
+    if (result.error) return res.status(400).json(result);
+    logAction(req.user.discordId, req.gameUser?.name, "npc:training", { npcId, trainingType });
+    res.json(result);
+  } catch (err) {
+    console.error("開始修練失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// GET /api/npc/training/types — 修練預覽
+router.get("/training/types", ensureAuth, async (req, res) => {
+  try {
+    const { npcId } = req.query;
+    if (!npcId) return res.status(400).json({ error: "請提供 npcId" });
+    const user = await db.findOne("user", { userId: req.user.discordId });
+    if (!user) return res.status(404).json({ error: "角色不存在" });
+
+    const npc = (user.hiredNpcs || []).find((n) => n.npcId === npcId);
+    if (!npc) return res.status(404).json({ error: "找不到該 NPC" });
+
+    const previews = getTrainingPreviews(npc, user.weaponStock || [], user.currentFloor || 1);
+    const activeMissions = (user.hiredNpcs || []).filter((n) => n.mission).length;
+    const concurrentLimit = config.NPC_MISSIONS.CONCURRENT_LIMIT ?? 2;
+    res.json({ trainings: previews, activeMissions, concurrentLimit });
+  } catch (err) {
+    console.error("取得修練預覽失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
   }
 });
