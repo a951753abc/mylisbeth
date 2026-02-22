@@ -93,6 +93,7 @@ module.exports = function (user) {
       type: npc.mission.type,
       name: npc.mission.name,
       endsAt: npc.mission.endsAt,
+      isTraining: npc.mission.isTraining || false,
     } : null,
     // Season 9: 劍技系統
     learnedSkills: npc.learnedSkills || [],
