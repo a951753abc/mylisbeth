@@ -325,6 +325,133 @@ router.delete("/:userId/relics/:relicId", async (req, res) => {
   }
 });
 
+// POST /api/admin/players/:userId/npcs/:npcId/fire — 解雇 NPC
+router.post("/:userId/npcs/:npcId/fire", async (req, res) => {
+  try {
+    const { userId, npcId } = req.params;
+    const user = await db.findOne("user", { userId });
+    if (!user) return res.status(404).json({ error: "找不到玩家" });
+
+    const hired = user.hiredNpcs || [];
+    const npc = hired.find((n) => n.npcId === npcId);
+    if (!npc) return res.status(400).json({ error: "玩家未雇用此 NPC" });
+
+    await db.update("user", { userId }, { $pull: { hiredNpcs: { npcId } } });
+    await db.update("npc", { npcId }, { $set: { status: "available", hiredBy: null } });
+
+    logAction(userId, user.name, "admin:fire_npc", {
+      npcId,
+      npcName: npc.name,
+      adminUser: req.session.admin.username,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("解雇 NPC 失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// POST /api/admin/players/:userId/npcs/:npcId/heal — 治療 NPC（回滿體力）
+router.post("/:userId/npcs/:npcId/heal", async (req, res) => {
+  try {
+    const { userId, npcId } = req.params;
+    const user = await db.findOne("user", { userId });
+    if (!user) return res.status(404).json({ error: "找不到玩家" });
+
+    const hired = user.hiredNpcs || [];
+    const npcIdx = hired.findIndex((n) => n.npcId === npcId);
+    if (npcIdx === -1) return res.status(400).json({ error: "玩家未雇用此 NPC" });
+
+    await db.update(
+      "user",
+      { userId },
+      { $set: { [`hiredNpcs.${npcIdx}.condition`]: 100 } },
+    );
+
+    logAction(userId, user.name, "admin:heal_npc", {
+      npcId,
+      npcName: hired[npcIdx].name,
+      previousCondition: hired[npcIdx].condition,
+      adminUser: req.session.admin.username,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("治療 NPC 失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// POST /api/admin/players/:userId/npcs/:npcId/kill — 殺死 NPC
+router.post("/:userId/npcs/:npcId/kill", async (req, res) => {
+  try {
+    const { userId, npcId } = req.params;
+    const user = await db.findOne("user", { userId });
+    if (!user) return res.status(404).json({ error: "找不到玩家" });
+
+    const hired = user.hiredNpcs || [];
+    const npc = hired.find((n) => n.npcId === npcId);
+    if (!npc) return res.status(400).json({ error: "玩家未雇用此 NPC" });
+
+    await db.update("user", { userId }, { $pull: { hiredNpcs: { npcId } } });
+    await db.update(
+      "npc",
+      { npcId },
+      { $set: { status: "dead", hiredBy: null, diedAt: Date.now(), causeOfDeath: "admin_kill" } },
+    );
+
+    logAction(userId, user.name, "admin:kill_npc", {
+      npcId,
+      npcName: npc.name,
+      adminUser: req.session.admin.username,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("殺死 NPC 失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// PATCH /api/admin/players/:userId/npcs/:npcId — 修改 NPC 屬性
+router.patch("/:userId/npcs/:npcId", async (req, res) => {
+  try {
+    const { userId, npcId } = req.params;
+    const { condition, level, exp } = req.body;
+
+    const user = await db.findOne("user", { userId });
+    if (!user) return res.status(404).json({ error: "找不到玩家" });
+
+    const hired = user.hiredNpcs || [];
+    const npcIdx = hired.findIndex((n) => n.npcId === npcId);
+    if (npcIdx === -1) return res.status(400).json({ error: "玩家未雇用此 NPC" });
+
+    const updates = {};
+    if (condition !== undefined) updates[`hiredNpcs.${npcIdx}.condition`] = Math.max(0, Math.min(100, parseInt(condition)));
+    if (level !== undefined) updates[`hiredNpcs.${npcIdx}.level`] = Math.max(1, parseInt(level));
+    if (exp !== undefined) updates[`hiredNpcs.${npcIdx}.exp`] = Math.max(0, parseInt(exp));
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "未提供任何修改欄位" });
+    }
+
+    await db.update("user", { userId }, { $set: updates });
+
+    logAction(userId, user.name, "admin:modify_npc", {
+      npcId,
+      npcName: hired[npcIdx].name,
+      changes: { condition, level, exp },
+      adminUser: req.session.admin.username,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("修改 NPC 失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
 // DELETE /api/admin/players/:userId — 強制刪除玩家
 router.delete("/:userId", async (req, res) => {
   try {
