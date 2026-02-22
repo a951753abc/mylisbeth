@@ -16,9 +16,58 @@ router.post("/create", ensureAuth, async (req, res) => {
   }, "建立角色失敗");
 });
 
-// Mine
+// Mine（支援連續挖礦選項）
 router.post("/mine", ensureAuth, async (req, res) => {
-  await handleRoute(res, () => move([null, "mine"], req.user.discordId), "挖礦失敗");
+  const { staminaBudget, autoSell1Star, autoSell2Star } = req.body || {};
+  const options = {};
+  if (Number.isInteger(staminaBudget) && staminaBudget > 0) {
+    options.staminaBudget = Math.min(staminaBudget, 100);
+  }
+  if (autoSell1Star === true) options.autoSell1Star = true;
+  if (autoSell2Star === true) options.autoSell2Star = true;
+  const hasOptions = Object.keys(options).length > 0;
+  await handleRoute(res, () => move([null, "mine", hasOptions ? options : undefined], req.user.discordId), "挖礦失敗");
+});
+
+// Mine preview（礦脈探測 LV6，純讀取不消耗）
+router.get("/mine/preview", ensureAuth, async (req, res) => {
+  try {
+    const userId = req.user.discordId;
+    const user = await db.findOne("user", { userId });
+    if (!user) return res.status(400).json({ error: "角色不存在" });
+
+    const config = require("../../game/config.js");
+    const perks = config.MINE_PERKS || {};
+    const mineLevel = user.mineLevel ?? 1;
+    if (mineLevel < (perks.ORE_RADAR_LEVEL ?? 6)) {
+      return res.status(400).json({ error: `此功能需要挖礦等級 LV${perks.ORE_RADAR_LEVEL ?? 6}` });
+    }
+
+    const { getActiveFloor } = require("../../game/floor/activeFloor.js");
+    const itemCache = require("../../game/cache/itemCache.js");
+    const { getModifier } = require("../../game/title/titleModifier.js");
+    const { getFloorMinePool, getStarRates } = require("../../game/move/mine.js");
+
+    const currentFloor = getActiveFloor(user);
+    const allItems = itemCache.getAll();
+    const pool = getFloorMinePool(allItems, currentFloor);
+    const starMod = getModifier(user.title || null, "mineStarChance");
+    const starRates = getStarRates(mineLevel, starMod);
+
+    res.json({
+      floor: currentFloor,
+      mineLevel,
+      pool: pool.map((item) => ({
+        itemId: item.itemId,
+        name: item.name,
+        floorItem: !!item.floorItem,
+      })),
+      starRates,
+    });
+  } catch (err) {
+    console.error("礦脈探測失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
 });
 
 // Forge (支援 2~4 素材)

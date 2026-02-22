@@ -98,6 +98,11 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
                 +{result.colEarned} Col
               </div>
             )}
+            {result.autoSellCol > 0 && (
+              <div style={{ color: "var(--gold)", fontSize: "0.8rem" }}>
+                自動出售收入：+{result.autoSellCol} Col
+              </div>
+            )}
             {result.colSpent > 0 && (
               <div style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>
                 委託費：-{result.colSpent} Col
@@ -194,6 +199,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
         busy={busy}
         cooldownActive={cooldownActive}
         displayStamina={displayStamina}
+        mineLevel={user.mineLevel ?? 1}
       />
 
       <ForgeSection

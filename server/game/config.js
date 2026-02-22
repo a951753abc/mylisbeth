@@ -419,6 +419,17 @@ module.exports = {
     LEVEL_CAP_PER_FLOOR: 2,    // 修練等級上限 = effectiveFloor × 2
   },
 
+  // Season 12: 挖礦等級附加功能
+  MINE_PERKS: {
+    CONTINUOUS_MINING_LEVEL: 2,     // 連續挖礦解鎖等級
+    PRECISE_MINING_LEVEL: 4,        // 精準挖礦（自動售 ★1）解鎖等級
+    ORE_RADAR_LEVEL: 6,             // 礦脈探測解鎖等級
+    BULK_SELL_LEVEL: 8,             // 批量出售（自動售 ★2）解鎖等級
+    MASTER_EYE_LEVEL: 10,           // 大師之眼解鎖等級
+    MASTER_EYE_CHANCE: 10,          // 大師之眼觸發機率 (%)
+    BUDGET_OPTIONS: [6, 12, 18, 24, 30],  // 連續挖礦可選體力預算（0=全部）
+  },
+
   // Season 3.5: 鍛造師親自冒險
   SOLO_ADV: {
     // 鍛造師基礎素質

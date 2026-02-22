@@ -75,20 +75,27 @@ module.exports = async function (cmd, userOrId) {
   }
 
   // 體力檢查：挖礦/鍛造/修復才消耗（傳入稱號以套用修正）
-  // 多素材鍛造：每多 1 個素材 +2 體力消耗
-  let extraStaminaCost = 0;
-  if (cmd[1] === "forge" && Array.isArray(cmd[2]) && cmd[2].length > 2) {
-    extraStaminaCost = (cmd[2].length - 2) * 2;
-  }
-  const staminaResult = await checkAndConsumeStamina(userId, cmd[1], user.title || null, extraStaminaCost);
-  if (!staminaResult.ok) {
-    return { error: staminaResult.error };
+  // 連續挖礦：mine handler 內部管理體力
+  const isBatchMine = cmd[1] === "mine" && cmd[2]?.staminaBudget > 0;
+
+  let staminaResult = { ok: true };
+  if (!isBatchMine) {
+    // 多素材鍛造：每多 1 個素材 +2 體力消耗
+    let extraStaminaCost = 0;
+    if (cmd[1] === "forge" && Array.isArray(cmd[2]) && cmd[2].length > 2) {
+      extraStaminaCost = (cmd[2].length - 2) * 2;
+    }
+    staminaResult = await checkAndConsumeStamina(userId, cmd[1], user.title || null, extraStaminaCost);
+    if (!staminaResult.ok) {
+      return { error: staminaResult.error };
+    }
   }
 
-  const actionResult = await cmdList[cmd[1]](cmd, user);
+  const actionResult = await cmdList[cmd[1]](cmd, user, isBatchMine ? null : staminaResult);
 
   // 將體力值附加到回傳結果（前端可即時更新顯示）
-  if (staminaResult.cost !== undefined && actionResult && !actionResult.error) {
+  // 批次挖礦由 mine handler 自行附帶體力資訊
+  if (!isBatchMine && staminaResult.cost !== undefined && actionResult && !actionResult.error) {
     actionResult.staminaCost = staminaResult.cost;
     actionResult.stamina = staminaResult.stamina;
     actionResult.lastStaminaRegenAt = staminaResult.lastStaminaRegenAt;

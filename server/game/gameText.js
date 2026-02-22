@@ -20,6 +20,10 @@ module.exports = {
     OBTAINED: "獲得[{star}]{name}",
     EXP_GAIN: "經驗值增加 {exp} 點",
     LEVEL_UP: "{type}等級提升",
+    BATCH_SUMMARY: "【連續挖礦】共 {iterations} 次，消耗 {stamina} 點體力",
+    AUTO_SELL_1: "【精準挖礦】自動出售 ★ 素材 ×{count}，獲得 {col} Col",
+    AUTO_SELL_2: "【批量出售】自動出售 ★★ 素材 ×{count}，獲得 {col} Col",
+    RECIPE_HINT: "【大師之眼】{materialName} 可鍛造：{recipes}",
   },
 
   // === 鍛造 ===
