@@ -141,10 +141,15 @@ module.exports.createWeapon = async function (materials, weaponName, user, optio
     forge1: materials[0].itemId,
     forge2: materials[1].itemId,
   };
-  let weapon = await db.findOne("weapon", query);
-  const recipeMatched = !!weapon;
-  if (!weapon) {
-    // 素材屬性加權武器類型選取（所有素材參與）
+  const recipe = await db.findOne("weapon", query);
+  const recipeMatched = !!recipe;
+  let weapon;
+  if (recipe) {
+    // 配方命中 — 用 category.json 基礎數值 + 配方的 name/type
+    const baseWeapon = randWeapon.find((w) => w.type === recipe.type) || randWeapon[0];
+    weapon = { ...baseWeapon, name: recipe.name, type: recipe.type };
+  } else {
+    // 無配方 — 素材屬性加權武器類型選取（所有素材參與）
     const matStats = materials.map((m) => getStatName(m.itemId));
     const weights = calcWeaponTypeWeights(matStats);
     const selectedType = selectWeaponType(weights);
