@@ -5,6 +5,7 @@ const { logAction } = require("../../game/logging/actionLogger.js");
 const { getAllSkills } = require("../../game/skill/skillRegistry.js");
 const { getNpcSlotCount } = require("../../game/skill/skillSlot.js");
 const { getAllWeaponTypes } = require("../../game/weapon/weaponType.js");
+const { INNATE_POOLS } = require("../../game/weapon/innateEffect.js");
 
 // GET /api/admin/players?search=&page=1&limit=20
 router.get("/", async (req, res) => {
@@ -63,6 +64,28 @@ router.get("/skill-definitions", async (req, res) => {
     res.json({ skills, weaponTypes });
   } catch (err) {
     console.error("取得技能定義失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// GET /api/admin/players/innate-definitions — 固有效果定義（Admin 用）
+router.get("/innate-definitions", (req, res) => {
+  try {
+    // 扁平化所有武器類型的效果池，以 id+value 去重（同 id 不同數值保留）
+    const seen = new Set();
+    const effects = [];
+    for (const [, pool] of Object.entries(INNATE_POOLS)) {
+      for (const item of pool) {
+        const key = `${item.id}:${JSON.stringify(item.effect.value)}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          effects.push({ id: item.id, name: item.name, effect: item.effect });
+        }
+      }
+    }
+    res.json({ effects });
+  } catch (err) {
+    console.error("取得固有效果定義失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
   }
 });
@@ -256,7 +279,7 @@ router.patch("/:userId/weapons/:index", async (req, res) => {
       return res.status(400).json({ error: "無效的武器索引" });
     }
 
-    const { weaponName, name, atk, def, agi, cri, hp, durability, maxDurability, buff } = req.body;
+    const { weaponName, name, atk, def, agi, cri, hp, durability, maxDurability, buff, innateEffects } = req.body;
     const updates = {};
     const prefix = `weaponStock.${index}`;
 
@@ -286,6 +309,22 @@ router.patch("/:userId/weapons/:index", async (req, res) => {
       updates[`${prefix}.${field}`] = parsed;
     }
 
+    // 固有效果
+    if (innateEffects !== undefined) {
+      if (!Array.isArray(innateEffects)) {
+        return res.status(400).json({ error: "innateEffects 必須為陣列" });
+      }
+      if (innateEffects.length > 2) {
+        return res.status(400).json({ error: "固有效果最多 2 個" });
+      }
+      for (const ie of innateEffects) {
+        if (!ie.id || !ie.name || !ie.effect || !ie.effect.type) {
+          return res.status(400).json({ error: "每個固有效果必須包含 id, name, effect.type" });
+        }
+      }
+      updates[`${prefix}.innateEffects`] = innateEffects;
+    }
+
     // 耐久不能超過最大耐久
     const newDur = updates[`${prefix}.durability`];
     const newMaxDur = updates[`${prefix}.maxDurability`];
@@ -305,7 +344,7 @@ router.patch("/:userId/weapons/:index", async (req, res) => {
     logAction(userId, user.name, "admin:edit_weapon", {
       index,
       weaponName: previous.weaponName,
-      changes: { weaponName, name, atk, def, agi, cri, hp, durability, maxDurability, buff },
+      changes: { weaponName, name, atk, def, agi, cri, hp, durability, maxDurability, buff, innateEffects },
       adminUser: req.session.admin.username,
     });
 

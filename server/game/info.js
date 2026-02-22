@@ -58,6 +58,7 @@ module.exports = function (user) {
             (value.hp || 0) +
             (value.maxDurability || value.durability || 0),
         renameCount: value.renameCount || 0,
+        innateEffects: value.innateEffects || [],
       });
     });
   }
@@ -201,6 +202,7 @@ module.exports = function (user) {
         rarityColor: rarity.color,
         totalScore,
         sealedAt: w.sealedAt,
+        innateEffects: w.innateEffects || [],
       };
     }),
   };

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import WeaponInnateDisplay from "./WeaponInnateDisplay.jsx";
 
 export default function InventoryPanel({ user, onUserUpdate }) {
   const [renamingIdx, setRenamingIdx] = useState(null);
@@ -331,6 +332,7 @@ export default function InventoryPanel({ user, onUserUpdate }) {
                   <div className="value">{weapon.durability}</div>
                 </div>
               </div>
+              <WeaponInnateDisplay innateEffects={weapon.innateEffects} />
             </div>
           ))
         )}

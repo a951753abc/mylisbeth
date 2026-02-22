@@ -32,6 +32,9 @@ export default function PlayerDetail() {
   const [skillDefs, setSkillDefs] = useState([]);
   const [weaponTypeDefs, setWeaponTypeDefs] = useState([]);
 
+  // 固有效果定義
+  const [innateEffectDefs, setInnateEffectDefs] = useState([]);
+
   // 展開/折疊區塊
   const [sections, setSections] = useState({ items: true, weapons: true, relics: true, npcs: true });
 
@@ -59,6 +62,10 @@ export default function PlayerDetail() {
         setSkillDefs(data.skills || []);
         setWeaponTypeDefs(data.weaponTypes || []);
       })
+      .catch(() => {});
+    fetch("/api/admin/players/innate-definitions", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => setInnateEffectDefs(data.effects || []))
       .catch(() => {});
   }, []);
 
@@ -201,6 +208,7 @@ export default function PlayerDetail() {
       durability: w.durability ?? 0,
       maxDurability: w.maxDurability ?? w.durability ?? 0,
       buff: w.buff ?? 0,
+      innateEffects: w.innateEffects ? w.innateEffects.map((ie) => ({ ...ie })) : [],
     });
   }
 
@@ -472,6 +480,50 @@ export default function PlayerDetail() {
                           />
                         </label>
                       </div>
+                      <div style={{ marginBottom: 8 }}>
+                        <span style={{ color: "#a0a0b0", fontSize: 11 }}>固有效果</span>
+                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
+                          {(editWeaponData.innateEffects || []).map((ie, ieIdx) => (
+                            <span key={ieIdx} style={styles.innateBadge}>
+                              {ie.name}
+                              <button
+                                onClick={() => setEditWeaponData({
+                                  ...editWeaponData,
+                                  innateEffects: editWeaponData.innateEffects.filter((_, k) => k !== ieIdx),
+                                })}
+                                style={styles.innateRemoveBtn}
+                              >
+                                x
+                              </button>
+                            </span>
+                          ))}
+                          {(editWeaponData.innateEffects || []).length < 2 && (
+                            <select
+                              onChange={(e) => {
+                                if (e.target.value === "") return;
+                                const def = innateEffectDefs[parseInt(e.target.value, 10)];
+                                if (!def) return;
+                                setEditWeaponData({
+                                  ...editWeaponData,
+                                  innateEffects: [...(editWeaponData.innateEffects || []), { id: def.id, name: def.name, effect: def.effect }],
+                                });
+                                e.target.value = "";
+                              }}
+                              style={{ ...styles.select, fontSize: 11, padding: "2px 6px" }}
+                            >
+                              <option value="">+ 新增效果</option>
+                              {innateEffectDefs
+                                .filter((d) => !(editWeaponData.innateEffects || []).some((ie) => ie.id === d.id && JSON.stringify(ie.effect) === JSON.stringify(d.effect)))
+                                .map((d) => {
+                                  const idx = innateEffectDefs.indexOf(d);
+                                  return (
+                                    <option key={idx} value={idx}>{d.name} ({formatInnateEffect(d.effect)})</option>
+                                  );
+                                })}
+                            </select>
+                          )}
+                        </div>
+                      </div>
                       <div style={{ display: "flex", gap: 8 }}>
                         <button style={styles.btn} onClick={handleSaveWeapon}>儲存</button>
                         <button style={styles.smallBtn} onClick={() => { setEditWeaponIdx(null); setEditWeaponData(null); }}>取消</button>
@@ -502,6 +554,15 @@ export default function PlayerDetail() {
                         <StatBadge label="HP" value={w.hp} />
                         <StatBadge label="DUR" value={`${w.durability}/${w.maxDurability ?? w.durability}`} />
                       </div>
+                      {w.innateEffects && w.innateEffects.length > 0 && (
+                        <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
+                          {w.innateEffects.map((ie, ieIdx) => (
+                            <span key={ieIdx} style={styles.innateBadge} title={formatInnateEffect(ie.effect)}>
+                              {ie.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -681,6 +742,22 @@ export default function PlayerDetail() {
   );
 }
 
+const EFFECT_LABELS = {
+  damage_mult: "傷害倍率", agi_boost: "敏捷加成", def_boost: "防禦加成",
+  atk_boost: "攻擊加成", cri_boost: "暴擊強化", lifesteal: "生命吸取",
+  ignore_def: "無視防禦", stun: "暈眩機率", evasion_boost: "閃避加成",
+  damage_reduction: "傷害減免", counter: "反擊機率", initiative: "先手攻擊",
+};
+
+function formatInnateEffect(effect) {
+  const label = EFFECT_LABELS[effect.type] || effect.type;
+  if (typeof effect.value === "boolean") return label;
+  if (effect.value <= 1 && effect.type !== "stun" && effect.type !== "counter") {
+    return `${label} ${effect.value > 0 ? "+" : ""}${Math.round(effect.value * 100)}%`;
+  }
+  return `${label} +${effect.value}`;
+}
+
 function InfoItem({ label, value }) {
   return (
     <div style={styles.infoItem}>
@@ -851,6 +928,25 @@ const styles = {
     display: "flex",
     gap: 8,
     marginTop: 6,
+  },
+  innateBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 4,
+    padding: "2px 8px",
+    background: "rgba(168, 85, 247, 0.15)",
+    borderRadius: 4,
+    color: "#a855f7",
+    fontSize: 11,
+  },
+  innateRemoveBtn: {
+    background: "transparent",
+    border: "none",
+    color: "#e94560",
+    cursor: "pointer",
+    fontSize: 11,
+    padding: 0,
+    lineHeight: 1,
   },
   editLabel: {
     display: "flex",
