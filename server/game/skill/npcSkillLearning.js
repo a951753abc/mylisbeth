@@ -34,7 +34,8 @@ async function tryNpcLearnSkill(userId, npcIdx, npc, weapon, overrideChance = nu
   ));
 
   // 過濾已學會的和熟練度不足的
-  const npcProf = npc.weaponProficiency || 0;
+  const profMap = npc.weaponProficiency || {};
+  const npcProf = (typeof profMap === "number") ? profMap : (profMap[weaponType] || 0);
   const candidates = availableSkills.filter(
     (s) => !alreadyLearned.has(s.id) && npcProf >= s.requiredProficiency,
   );

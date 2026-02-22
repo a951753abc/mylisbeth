@@ -99,8 +99,11 @@ module.exports = function (user) {
     // Season 9: 劍技系統
     learnedSkills: npc.learnedSkills || [],
     equippedSkills: npc.equippedSkills || [],
-    proficientType: npc.proficientType || null,
-    weaponProficiency: npc.weaponProficiency || 0,
+    weaponProficiency: typeof npc.weaponProficiency === "object"
+      ? (npc.weaponProficiency || {})
+      : (npc.proficientType && npc.weaponProficiency
+        ? { [npc.proficientType]: npc.weaponProficiency }
+        : {}),
   }));
 
   const mineLevel = user.mineLevel ?? 1;

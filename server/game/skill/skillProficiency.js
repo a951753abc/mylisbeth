@@ -91,21 +91,31 @@ async function awardNpcProficiency(userId, npcIdx, weapon, gainKey, multiplier =
   const gain = Math.max(0, Math.round(rawGain * multiplier));
   if (gain <= 0) return { profGained: 0, weaponType };
 
-  const profPath = `hiredNpcs.${npcIdx}.weaponProficiency`;
+  // per-weapon-type 熟練度路徑
+  const profPath = `hiredNpcs.${npcIdx}.weaponProficiency.${weaponType}`;
 
-  await db.update(
+  // 原子增加熟練度（上限 MAX_PROFICIENCY，含索引安全守衛）
+  const updated = await db.findOneAndUpdate(
     "user",
-    { userId },
-    {
-      $inc: { [profPath]: gain },
-      $set: { [`hiredNpcs.${npcIdx}.proficientType`]: weaponType },
-    },
+    { userId, [profPath]: { $lt: SKILL_CFG.MAX_PROFICIENCY } },
+    { $inc: { [profPath]: gain } },
+    { returnDocument: "after" },
   );
 
-  // cap
-  const user = await db.findOne("user", { userId });
-  const npc = (user?.hiredNpcs || [])[npcIdx];
-  if (npc && (npc.weaponProficiency || 0) > SKILL_CFG.MAX_PROFICIENCY) {
+  if (!updated) {
+    // 已滿或索引不存在 → 嘗試 cap
+    await db.update(
+      "user",
+      { userId, [profPath]: { $gt: SKILL_CFG.MAX_PROFICIENCY } },
+      { $set: { [profPath]: SKILL_CFG.MAX_PROFICIENCY } },
+    );
+    return { profGained: 0, weaponType };
+  }
+
+  // cap 超出值
+  const npc = (updated.hiredNpcs || [])[npcIdx];
+  const currentProf = (npc?.weaponProficiency || {})[weaponType] || 0;
+  if (currentProf > SKILL_CFG.MAX_PROFICIENCY) {
     await db.update(
       "user",
       { userId },
@@ -113,7 +123,10 @@ async function awardNpcProficiency(userId, npcIdx, weapon, gainKey, multiplier =
     );
   }
 
-  return { profGained: gain, weaponType };
+  return {
+    profGained: Math.min(gain, SKILL_CFG.MAX_PROFICIENCY - (currentProf - gain)),
+    weaponType,
+  };
 }
 
 /**

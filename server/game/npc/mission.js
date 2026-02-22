@@ -315,7 +315,9 @@ function getTrainingPreviews(npc, weapons, currentFloor) {
   // 封頂計算
   const profCap = effectiveFloor * (TRAINING.PROF_CAP_PER_FLOOR || 100);
   const levelCap = effectiveFloor * (TRAINING.LEVEL_CAP_PER_FLOOR || 2);
-  const currentProf = npc.weaponProficiency || 0;
+  const currentProf = weaponType
+    ? ((npc.weaponProficiency || {})[weaponType] || 0)
+    : 0;
   const currentLevel = npc.level || 1;
   const atProfCap = currentProf >= profCap;
   const atLevelCap = currentLevel >= levelCap;
@@ -485,7 +487,7 @@ async function resolveTraining(userId, npcIdx, npc) {
   if (equippedWeapon) {
     const weaponType = resolveWeaponType(equippedWeapon);
     if (weaponType) {
-      const currentProf = currentNpc.weaponProficiency || 0;
+      const currentProf = ((currentNpc.weaponProficiency || {})[weaponType]) || 0;
 
       if (currentProf >= profCap) {
         // 已達修練熟練度上限
@@ -498,8 +500,7 @@ async function resolveTraining(userId, npcIdx, npc) {
 
         await db.update("user", { userId }, {
           $set: {
-            [`hiredNpcs.${npcIdx}.weaponProficiency`]: newProf,
-            [`hiredNpcs.${npcIdx}.proficientType`]: weaponType,
+            [`hiredNpcs.${npcIdx}.weaponProficiency.${weaponType}`]: newProf,
           },
         });
 

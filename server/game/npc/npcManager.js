@@ -92,8 +92,11 @@ async function hireNpc(userId, npcId) {
     // Season 9: 劍技系統（高品質 NPC 可能自帶初始技能）
     learnedSkills: npcDoc.learnedSkills || [],
     equippedSkills: npcDoc.equippedSkills || [],
-    weaponProficiency: typeof npcDoc.weaponProficiency === "object" ? npcDoc.weaponProficiency : (npcDoc.weaponProficiency || 0),
-    proficientType: npcDoc.proficientType || null,
+    weaponProficiency: typeof npcDoc.weaponProficiency === "object"
+      ? (npcDoc.weaponProficiency || {})
+      : (npcDoc.proficientType && npcDoc.weaponProficiency
+        ? { [npcDoc.proficientType]: npcDoc.weaponProficiency }
+        : {}),
   };
   const pushResult = await db.findOneAndUpdate(
     "user",

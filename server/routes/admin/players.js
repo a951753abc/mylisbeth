@@ -580,11 +580,28 @@ router.patch("/:userId/npcs/:npcId", async (req, res) => {
   }
 });
 
-// PATCH /api/admin/players/:userId/npcs/:npcId/proficiency — 修改 NPC 熟練度
+// PATCH /api/admin/players/:userId/npcs/:npcId/proficiency — 修改 NPC 熟練度（per-weapon-type map）
 router.patch("/:userId/npcs/:npcId/proficiency", async (req, res) => {
   try {
     const { userId, npcId } = req.params;
-    const { weaponProficiency, proficientType } = req.body;
+    const { weaponProficiency } = req.body;
+
+    if (typeof weaponProficiency !== "object" || weaponProficiency === null || Array.isArray(weaponProficiency)) {
+      return res.status(400).json({ error: "weaponProficiency 必須是物件" });
+    }
+
+    const validTypes = getAllWeaponTypes();
+    const cleaned = {};
+    for (const [wType, val] of Object.entries(weaponProficiency)) {
+      if (!validTypes.includes(wType)) {
+        return res.status(400).json({ error: `無效的武器類型: ${wType}` });
+      }
+      const prof = parseInt(val);
+      if (isNaN(prof) || prof < 0 || prof > 1000) {
+        return res.status(400).json({ error: `${wType} 的熟練度必須在 0-1000 之間` });
+      }
+      if (prof > 0) cleaned[wType] = prof;
+    }
 
     const user = await db.findOne("user", { userId });
     if (!user) return res.status(404).json({ error: "找不到玩家" });
@@ -593,34 +610,14 @@ router.patch("/:userId/npcs/:npcId/proficiency", async (req, res) => {
     const npcIdx = hired.findIndex((n) => n.npcId === npcId);
     if (npcIdx === -1) return res.status(400).json({ error: "玩家未雇用此 NPC" });
 
-    const updates = {};
-
-    if (weaponProficiency !== undefined) {
-      const prof = parseInt(weaponProficiency);
-      if (isNaN(prof) || prof < 0 || prof > 1000) {
-        return res.status(400).json({ error: "weaponProficiency 必須在 0-1000 之間" });
-      }
-      updates[`hiredNpcs.${npcIdx}.weaponProficiency`] = prof;
-    }
-
-    if (proficientType !== undefined) {
-      const validTypes = getAllWeaponTypes();
-      if (proficientType !== null && !validTypes.includes(proficientType)) {
-        return res.status(400).json({ error: `無效的武器類型: ${proficientType}` });
-      }
-      updates[`hiredNpcs.${npcIdx}.proficientType`] = proficientType;
-    }
-
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ error: "未提供任何修改欄位" });
-    }
-
-    await db.update("user", { userId }, { $set: updates });
+    await db.update("user", { userId }, {
+      $set: { [`hiredNpcs.${npcIdx}.weaponProficiency`]: cleaned },
+    });
 
     logAction(userId, user.name, "admin:modify_npc_proficiency", {
       npcId,
       npcName: hired[npcIdx].name,
-      changes: { weaponProficiency, proficientType },
+      changes: { weaponProficiency: cleaned },
       adminUser: req.session.admin.username,
     });
 

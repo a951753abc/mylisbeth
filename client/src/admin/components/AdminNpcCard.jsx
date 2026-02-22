@@ -17,10 +17,13 @@ const WEAPON_TYPE_NAMES = {
 const qualityColors = { S: "#ff9800", A: "#e94560", B: "#4caf50", C: "#a0a0b0" };
 
 export default function AdminNpcCard({ npc, weapons, userId, skillDefs, weaponTypes, onRefresh, setMsg }) {
-  const [profForm, setProfForm] = useState({
-    weaponProficiency: npc.weaponProficiency || 0,
-    proficientType: npc.proficientType || "",
+  const [profMap, setProfMap] = useState(() => {
+    const raw = npc.weaponProficiency;
+    if (typeof raw === "object" && raw !== null) return { ...raw };
+    if (typeof raw === "number" && raw > 0 && npc.proficientType) return { [npc.proficientType]: raw };
+    return {};
   });
+  const [addProfType, setAddProfType] = useState("");
   const [addSkillId, setAddSkillId] = useState("");
 
   const condColor = npc.condition >= 70 ? "#4caf50" : npc.condition >= 30 ? "#ff9800" : "#e94560";
@@ -69,19 +72,23 @@ export default function AdminNpcCard({ npc, weapons, userId, skillDefs, weaponTy
 
   async function handleSaveProficiency() {
     setMsg("");
+    // 過濾掉值為 0 的項目
+    const cleaned = {};
+    for (const [k, v] of Object.entries(profMap)) {
+      const val = parseInt(v) || 0;
+      if (val > 0) cleaned[k] = Math.min(val, 1000);
+    }
     try {
       const res = await fetch(`/api/admin/players/${userId}/npcs/${npc.npcId}/proficiency`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          weaponProficiency: parseInt(profForm.weaponProficiency) || 0,
-          proficientType: profForm.proficientType || null,
-        }),
+        body: JSON.stringify({ weaponProficiency: cleaned }),
       });
       const data = await res.json();
       if (!res.ok) { setMsg(data.error); return; }
       setMsg("熟練度已更新");
+      setProfMap(cleaned);
       onRefresh();
     } catch {
       setMsg("操作失敗");
@@ -169,43 +176,64 @@ export default function AdminNpcCard({ npc, weapons, userId, skillDefs, weaponTy
 
       {/* ──── 熟練度編輯 ──── */}
       <div style={styles.subsection}>
-        <div style={{ fontSize: 12, color: "#a5b4fc", fontWeight: "bold", marginBottom: 6 }}>武器熟練度</div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+          <span style={{ fontSize: 12, color: "#a5b4fc", fontWeight: "bold" }}>武器熟練度</span>
+          <button style={styles.smallBtn} onClick={handleSaveProficiency}>儲存</button>
+        </div>
+        {/* 已有的熟練度列表 */}
+        {Object.entries(profMap).map(([wType, val]) => (
+          <div key={wType} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 4 }}>
+            <span style={{ fontSize: 11, color: "#a5b4fc", minWidth: 56 }}>
+              {WEAPON_TYPE_NAMES[wType] || wType}
+            </span>
+            <input
+              type="number"
+              min="0"
+              max="1000"
+              style={{ ...styles.input, width: 60 }}
+              value={val}
+              onChange={(e) => setProfMap({ ...profMap, [wType]: e.target.value })}
+            />
+            <div style={{ flex: 1, height: 4, background: "#0f3460", borderRadius: 2, overflow: "hidden" }}>
+              <div style={{ width: `${Math.min(100, ((parseInt(val) || 0) / 1000) * 100)}%`, height: "100%", background: "#818cf8", borderRadius: 2 }} />
+            </div>
+            <button
+              style={{ ...styles.skillRemoveBtn, fontSize: 11 }}
+              onClick={() => {
+                const next = { ...profMap };
+                delete next[wType];
+                setProfMap(next);
+              }}
+              title="移除"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        {/* 新增武器類型 */}
+        <div style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 4 }}>
           <select
             style={{ ...styles.input, width: 120 }}
-            value={profForm.proficientType}
-            onChange={(e) => setProfForm({ ...profForm, proficientType: e.target.value })}
+            value={addProfType}
+            onChange={(e) => setAddProfType(e.target.value)}
           >
-            <option value="">— 無 —</option>
-            {(weaponTypes || []).map((wt) => (
+            <option value="">— 新增類型 —</option>
+            {(weaponTypes || []).filter((wt) => !(wt in profMap)).map((wt) => (
               <option key={wt} value={wt}>{WEAPON_TYPE_NAMES[wt] || wt}</option>
             ))}
           </select>
-          <input
-            type="number"
-            min="0"
-            max="1000"
-            style={{ ...styles.input, width: 70 }}
-            value={profForm.weaponProficiency}
-            onChange={(e) => setProfForm({ ...profForm, weaponProficiency: e.target.value })}
-          />
-          <span style={{ fontSize: 11, color: "#a0a0b0" }}>/ 1000</span>
-          <button style={styles.smallBtn} onClick={handleSaveProficiency}>儲存</button>
-        </div>
-        {/* Progress bar */}
-        <div style={{
-          height: 4,
-          background: "#0f3460",
-          borderRadius: 2,
-          marginTop: 4,
-          overflow: "hidden",
-        }}>
-          <div style={{
-            width: `${Math.min(100, ((npc.weaponProficiency || 0) / 1000) * 100)}%`,
-            height: "100%",
-            background: "#818cf8",
-            borderRadius: 2,
-          }} />
+          <button
+            style={styles.smallBtn}
+            disabled={!addProfType}
+            onClick={() => {
+              if (addProfType) {
+                setProfMap({ ...profMap, [addProfType]: 0 });
+                setAddProfType("");
+              }
+            }}
+          >
+            +
+          </button>
         </div>
       </div>
 

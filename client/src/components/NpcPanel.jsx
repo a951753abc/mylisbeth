@@ -455,17 +455,25 @@ export default function NpcPanel({ user, onRefresh }) {
               {/* 武器熟練度 + 劍技 */}
               <div style={{ marginTop: "0.4rem" }}>
                 {/* 熟練度進度條 */}
-                {npc.proficientType ? (
-                  <ProficiencyBar
-                    label={`武器熟練度（${WEAPON_TYPE_NAMES[npc.proficientType] || npc.proficientType}）`}
-                    value={npc.weaponProficiency || 0}
-                    max={1000}
-                  />
-                ) : (
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.3rem" }}>
-                    武器熟練度：尚未確定武器類型
-                  </div>
-                )}
+                {(() => {
+                  const profMap = npc.weaponProficiency || {};
+                  const profEntries = Object.entries(profMap).filter(([, v]) => v > 0);
+                  if (profEntries.length === 0) {
+                    return (
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.3rem" }}>
+                        武器熟練度：尚無紀錄
+                      </div>
+                    );
+                  }
+                  return profEntries.map(([wType, val]) => (
+                    <ProficiencyBar
+                      key={wType}
+                      label={`${WEAPON_TYPE_NAMES[wType] || wType} 熟練度`}
+                      value={val}
+                      max={1000}
+                    />
+                  ));
+                })()}
 
                 {/* 劍技列表 */}
                 {(npc.learnedSkills || []).length > 0 || (npc.equippedSkills || []).length > 0 ? (
@@ -528,7 +536,7 @@ export default function NpcPanel({ user, onRefresh }) {
                   </>
                 ) : (
                   <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", fontStyle: "italic" }}>
-                    {!npc.proficientType
+                    {Object.keys(npc.weaponProficiency || {}).length === 0
                       ? "裝備武器後派遣冒險或進行修練，即可累積武器熟練度並學習劍技"
                       : "尚未學會任何劍技。累積熟練度後有機會在戰鬥中自動學會"
                     }

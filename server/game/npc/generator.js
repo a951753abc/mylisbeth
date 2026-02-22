@@ -91,7 +91,7 @@ function generateNpc(index, serverSeed = "lisbeth") {
     monthlyCost: NPC_CFG.MONTHLY_WAGE[quality],
     learnedSkills: initialSkills,
     equippedSkills: initialSkills.map((id) => ({ skillId: id, mods: [] })),
-    proficientType,
+    weaponProficiency: proficientType ? { [proficientType]: 50 } : {},
   };
 }
 
