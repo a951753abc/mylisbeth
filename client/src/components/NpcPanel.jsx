@@ -39,6 +39,7 @@ export default function NpcPanel({ user, onRefresh }) {
   const [missionResults, setMissionResults] = useState([]);
   const [countdowns, setCountdowns] = useState({});
   const [concurrentLimit, setConcurrentLimit] = useState(2);
+  const [trainingLimit, setTrainingLimit] = useState(2);
   const [skillMap, setSkillMap] = useState({});
   const [trainingPicker, setTrainingPicker] = useState(null);
   const [trainingTypes, setTrainingTypes] = useState([]);
@@ -149,7 +150,7 @@ export default function NpcPanel({ user, onRefresh }) {
       const res = await fetch(`/api/npc/training/types?npcId=${npcId}`, { credentials: "include" });
       const data = await res.json();
       setTrainingTypes(data.trainings || []);
-      if (data.concurrentLimit != null) setConcurrentLimit(data.concurrentLimit);
+      if (data.trainingLimit != null) setTrainingLimit(data.trainingLimit);
     } catch {
       setMessage("❌ 無法載入修練列表");
     }
@@ -194,8 +195,10 @@ export default function NpcPanel({ user, onRefresh }) {
     );
   }
 
-  const activeMissionCount = npcs.filter((n) => n.mission).length;
+  const activeMissionCount = npcs.filter((n) => n.mission && !n.mission.isTraining).length;
+  const activeTrainingCount = npcs.filter((n) => n.mission?.isTraining).length;
   const missionsFull = activeMissionCount >= concurrentLimit;
+  const trainingFull = activeTrainingCount >= trainingLimit;
 
   const hasCompletedMissions = npcs.some(
     (n) => n.mission && Date.now() >= n.mission.endsAt,
@@ -218,11 +221,17 @@ export default function NpcPanel({ user, onRefresh }) {
       </div>
 
       <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.3rem" }}>
-        任務派遣：
+        任務：
         <span style={{ color: missionsFull ? "#f44336" : "var(--gold)" }}>
           {activeMissionCount}/{concurrentLimit}
         </span>
         {missionsFull && <span style={{ color: "#f44336" }}>（已滿）</span>}
+        <span style={{ margin: "0 0.4rem" }}>|</span>
+        修練：
+        <span style={{ color: trainingFull ? "#f44336" : "#a5b4fc" }}>
+          {activeTrainingCount}/{trainingLimit}
+        </span>
+        {trainingFull && <span style={{ color: "#f44336" }}>（已滿）</span>}
       </div>
 
       {isPaused && (
@@ -609,7 +618,7 @@ export default function NpcPanel({ user, onRefresh }) {
                                 background: "var(--card-bg)",
                                 borderRadius: "4px",
                                 fontSize: "0.8rem",
-                                opacity: t.hasWeapon ? 1 : 0.5,
+                                opacity: !t.hasWeapon || (t.atProfCap && t.atLevelCap) ? 0.5 : 1,
                               }}
                             >
                               <div>
@@ -619,9 +628,13 @@ export default function NpcPanel({ user, onRefresh }) {
                                 </span>
                                 <br />
                                 <span style={{ fontSize: "0.75rem" }}>
-                                  <span style={{ color: "#a5b4fc" }}>熟練度 +{t.profGain}</span>
-                                  {" | "}學技 <span style={{ color: "#c084fc" }}>{t.learnChance}%</span>
-                                  {" | "}EXP +{t.expReward}
+                                  <span style={{ color: t.atProfCap ? "#f44336" : "#a5b4fc" }}>
+                                    熟練度 {t.atProfCap ? `已滿 (${t.profCap})` : `+${t.profGain}`}
+                                  </span>
+                                  {" | "}學技 <span style={{ color: t.atProfCap ? "#888" : "#c084fc" }}>{t.atProfCap ? "—" : `${t.learnChance}%`}</span>
+                                  {" | "}<span style={{ color: t.atLevelCap ? "#f44336" : undefined }}>
+                                    EXP {t.atLevelCap ? `已滿 (Lv${t.levelCap})` : `+${t.expReward}`}
+                                  </span>
                                   {" | "}體力 -{t.condCost}%
                                 </span>
                                 {!t.hasWeapon && (
@@ -629,11 +642,16 @@ export default function NpcPanel({ user, onRefresh }) {
                                     需裝備武器
                                   </span>
                                 )}
+                                {t.atProfCap && t.atLevelCap && (
+                                  <span style={{ color: "#f44336", fontSize: "0.7rem", marginLeft: "0.3rem" }}>
+                                    已達修練上限
+                                  </span>
+                                )}
                               </div>
                               <button
                                 className="btn-primary"
                                 style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem", whiteSpace: "nowrap" }}
-                                disabled={!t.hasWeapon || busy === `training_${npc.npcId}` || cond < 10 || isPaused || missionsFull}
+                                disabled={!t.hasWeapon || busy === `training_${npc.npcId}` || cond < 10 || isPaused || trainingFull || (t.atProfCap && t.atLevelCap)}
                                 onClick={() => handleStartTraining(npc.npcId, t.id)}
                               >
                                 修練
@@ -669,11 +687,11 @@ export default function NpcPanel({ user, onRefresh }) {
                           borderRadius: "4px",
                           cursor: "pointer",
                         }}
-                        disabled={cond < 10 || isPaused || missionsFull || !equippedWeapon}
+                        disabled={cond < 10 || isPaused || trainingFull || !equippedWeapon}
                         onClick={() => openTrainingPicker(npc.npcId)}
                         title={!equippedWeapon ? "需裝備武器" : ""}
                       >
-                        {missionsFull ? "派遣已滿" : "自主修練"}
+                        {trainingFull ? "修練已滿" : "自主修練"}
                       </button>
                     </div>
                   )}

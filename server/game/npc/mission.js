@@ -71,8 +71,8 @@ async function startMission(userId, npcId, missionType) {
   // 檢查是否已在任務中
   if (npc.mission) return { error: formatText("NPC.ON_MISSION", { npcName: npc.name }) };
 
-  // 同時派遣任務上限（快速前檢）
-  const activeMissions = hired.filter((n) => n.mission).length;
+  // 同時派遣任務上限（只計算非修練任務）
+  const activeMissions = hired.filter((n) => n.mission && !n.mission.isTraining).length;
   const concurrentLimit = MISSIONS.CONCURRENT_LIMIT ?? 2;
   if (activeMissions >= concurrentLimit) {
     return { error: formatText("NPC.MISSION_LIMIT", { limit: concurrentLimit }) };
@@ -98,7 +98,7 @@ async function startMission(userId, npcId, missionType) {
     floor: getActiveFloor(user),
   };
 
-  // 原子性寫入：同時驗證該 NPC 未在任務中 + 活躍任務數未超上限
+  // 原子性寫入：同時驗證該 NPC 未在任務中 + 非修練任務數未超上限
   const updateResult = await db.findOneAndUpdate(
     "user",
     {
@@ -106,7 +106,19 @@ async function startMission(userId, npcId, missionType) {
       [`hiredNpcs.${npcIdx}.mission`]: null,
       $expr: {
         $lt: [
-          { $size: { $filter: { input: "$hiredNpcs", cond: { $ne: ["$$this.mission", null] } } } },
+          {
+            $size: {
+              $filter: {
+                input: "$hiredNpcs",
+                cond: {
+                  $and: [
+                    { $ne: ["$$this.mission", null] },
+                    { $ne: ["$$this.mission.isTraining", true] },
+                  ],
+                },
+              },
+            },
+          },
           concurrentLimit,
         ],
       },
@@ -300,20 +312,39 @@ function getTrainingPreviews(npc, weapons, currentFloor) {
   const floorMult = 1 + (effectiveFloor - 1) * (TRAINING.FLOOR_MULT || 0.3);
   const qualityMult = config.SKILL.NPC_QUALITY_LEARN_MULT[npc.quality] || 1.0;
 
-  return TRAINING.TYPES.map((type) => ({
-    id: type.id,
-    name: type.name,
-    duration: type.duration,
-    durationMinutes: type.duration * 5,
-    profGain: Math.round(type.profGain * floorMult),
-    learnChance: Math.round(
-      config.SKILL.NPC_LEARN_CHANCE * type.learnChanceMult * qualityMult,
-    ),
-    condCost: type.condCost,
-    expReward: Math.round(type.expReward * floorMult),
-    hasWeapon,
-    weaponType,
-  }));
+  // 封頂計算
+  const profCap = effectiveFloor * (TRAINING.PROF_CAP_PER_FLOOR || 100);
+  const levelCap = effectiveFloor * (TRAINING.LEVEL_CAP_PER_FLOOR || 2);
+  const currentProf = npc.weaponProficiency || 0;
+  const currentLevel = npc.level || 1;
+  const atProfCap = currentProf >= profCap;
+  const atLevelCap = currentLevel >= levelCap;
+
+  return TRAINING.TYPES.map((type) => {
+    const rawProfGain = Math.round(type.profGain * floorMult);
+    const effectiveProfGain = atProfCap ? 0 : Math.min(rawProfGain, profCap - currentProf);
+    const rawExpReward = Math.round(type.expReward * floorMult);
+    const effectiveExpReward = atLevelCap ? 0 : rawExpReward;
+
+    return {
+      id: type.id,
+      name: type.name,
+      duration: type.duration,
+      durationMinutes: type.duration * 5,
+      profGain: effectiveProfGain,
+      learnChance: atProfCap ? 0 : Math.round(
+        config.SKILL.NPC_LEARN_CHANCE * type.learnChanceMult * qualityMult,
+      ),
+      condCost: type.condCost,
+      expReward: effectiveExpReward,
+      hasWeapon,
+      weaponType,
+      atProfCap,
+      atLevelCap,
+      profCap,
+      levelCap,
+    };
+  });
 }
 
 /**
@@ -335,10 +366,11 @@ async function startTraining(userId, npcId, trainingType) {
 
   if (npc.mission) return { error: formatText("NPC.ON_MISSION", { npcName: npc.name }) };
 
-  const activeMissions = hired.filter((n) => n.mission).length;
-  const concurrentLimit = MISSIONS.CONCURRENT_LIMIT ?? 2;
-  if (activeMissions >= concurrentLimit) {
-    return { error: formatText("NPC.MISSION_LIMIT", { limit: concurrentLimit }) };
+  // 修練獨立上限（只計算修練任務）
+  const activeTrainings = hired.filter((n) => n.mission?.isTraining).length;
+  const trainingLimit = config.NPC_TRAINING.CONCURRENT_LIMIT ?? 2;
+  if (activeTrainings >= trainingLimit) {
+    return { error: formatText("NPC.TRAINING_LIMIT", { limit: trainingLimit }) };
   }
 
   if ((npc.condition ?? 100) < 10) {
@@ -369,6 +401,7 @@ async function startTraining(userId, npcId, trainingType) {
     isTraining: true,
   };
 
+  // 原子性寫入：修練任務數未超上限
   const updateResult = await db.findOneAndUpdate(
     "user",
     {
@@ -376,8 +409,20 @@ async function startTraining(userId, npcId, trainingType) {
       [`hiredNpcs.${npcIdx}.mission`]: null,
       $expr: {
         $lt: [
-          { $size: { $filter: { input: "$hiredNpcs", cond: { $ne: ["$$this.mission", null] } } } },
-          concurrentLimit,
+          {
+            $size: {
+              $filter: {
+                input: "$hiredNpcs",
+                cond: {
+                  $and: [
+                    { $ne: ["$$this.mission", null] },
+                    { $eq: ["$$this.mission.isTraining", true] },
+                  ],
+                },
+              },
+            },
+          },
+          trainingLimit,
         ],
       },
     },
@@ -385,7 +430,7 @@ async function startTraining(userId, npcId, trainingType) {
     { returnDocument: "after" },
   );
   if (!updateResult) {
-    return { error: formatText("NPC.MISSION_LIMIT_OR_CHANGED", { limit: concurrentLimit }) };
+    return { error: formatText("NPC.TRAINING_LIMIT", { limit: trainingLimit }) };
   }
 
   return {
@@ -429,37 +474,47 @@ async function resolveTraining(userId, npcIdx, npc) {
   const effectiveFloor = Math.max(1, trainingFloor - 3);
   const floorMult = 1 + (effectiveFloor - 1) * (config.NPC_TRAINING.FLOOR_MULT || 0.3);
 
+  // 封頂計算
+  const TRAINING = config.NPC_TRAINING;
+  const profCap = effectiveFloor * (TRAINING.PROF_CAP_PER_FLOOR || 100);
+  const levelCap = effectiveFloor * (TRAINING.LEVEL_CAP_PER_FLOOR || 2);
+
   let profResult = null;
   let skillResult = null;
 
   if (equippedWeapon) {
     const weaponType = resolveWeaponType(equippedWeapon);
     if (weaponType) {
-      // 獎勵熟練度（樓層加成）
-      const profGain = Math.round(trainingDef.profGain * floorMult);
-      const profPath = `hiredNpcs.${npcIdx}.weaponProficiency`;
       const currentProf = currentNpc.weaponProficiency || 0;
-      const newProf = Math.min(config.SKILL.MAX_PROFICIENCY, currentProf + profGain);
 
-      await db.update("user", { userId }, {
-        $set: {
-          [profPath]: newProf,
-          [`hiredNpcs.${npcIdx}.proficientType`]: weaponType,
-        },
-      });
+      if (currentProf >= profCap) {
+        // 已達修練熟練度上限
+        profResult = { profGained: 0, weaponType, atCap: true };
+      } else {
+        // 獎勵熟練度（樓層加成，封頂）
+        const rawProfGain = Math.round(trainingDef.profGain * floorMult);
+        const cappedProfGain = Math.min(rawProfGain, profCap - currentProf);
+        const newProf = Math.min(config.SKILL.MAX_PROFICIENCY, currentProf + cappedProfGain);
 
-      profResult = { profGained: newProf - currentProf, weaponType };
-    }
+        await db.update("user", { userId }, {
+          $set: {
+            [`hiredNpcs.${npcIdx}.weaponProficiency`]: newProf,
+            [`hiredNpcs.${npcIdx}.proficientType`]: weaponType,
+          },
+        });
 
-    // 增強的技能學習（使用 overrideChance）
-    const qualityMult = config.SKILL.NPC_QUALITY_LEARN_MULT[currentNpc.quality] || 1.0;
-    const learnChance = config.SKILL.NPC_LEARN_CHANCE * trainingDef.learnChanceMult * qualityMult;
+        profResult = { profGained: newProf - currentProf, weaponType, atCap: newProf >= profCap };
 
-    // 重新讀取最新 NPC 資料（熟練度已更新）
-    const refreshed = await db.findOne("user", { userId });
-    const refreshedNpc = (refreshed?.hiredNpcs || [])[npcIdx];
-    if (refreshedNpc) {
-      skillResult = await tryNpcLearnSkill(userId, npcIdx, refreshedNpc, equippedWeapon, learnChance);
+        // 增強的技能學習（僅在未達熟練度上限時）
+        const qualityMult = config.SKILL.NPC_QUALITY_LEARN_MULT[currentNpc.quality] || 1.0;
+        const learnChance = config.SKILL.NPC_LEARN_CHANCE * trainingDef.learnChanceMult * qualityMult;
+
+        const refreshed = await db.findOne("user", { userId });
+        const refreshedNpc = (refreshed?.hiredNpcs || [])[npcIdx];
+        if (refreshedNpc) {
+          skillResult = await tryNpcLearnSkill(userId, npcIdx, refreshedNpc, equippedWeapon, learnChance);
+        }
+      }
     }
   }
 
@@ -467,15 +522,28 @@ async function resolveTraining(userId, npcIdx, npc) {
   const condLoss = trainingDef.condCost;
   const newCond = Math.max(0, (currentNpc.condition ?? 100) - condLoss);
 
-  // NPC EXP（樓層加成）
-  const expGain = Math.round(trainingDef.expReward * floorMult);
-  const currentExp = currentNpc.exp || 0;
+  // NPC EXP（樓層加成，封頂）
   const currentLevel = currentNpc.level || 1;
-  const expNeeded = getExpToNextLevel(currentLevel);
-  const totalExp = currentExp + expGain;
-  const levelUp = totalExp >= expNeeded;
-  const finalExp = levelUp ? totalExp - expNeeded : totalExp;
-  const finalLevel = levelUp ? currentLevel + 1 : currentLevel;
+  let expGain;
+  let finalExp;
+  let finalLevel;
+  let levelUp;
+
+  if (currentLevel >= levelCap) {
+    // 已達修練等級上限
+    expGain = 0;
+    finalExp = currentNpc.exp || 0;
+    finalLevel = currentLevel;
+    levelUp = false;
+  } else {
+    expGain = Math.round(trainingDef.expReward * floorMult);
+    const currentExp = currentNpc.exp || 0;
+    const expNeeded = getExpToNextLevel(currentLevel);
+    const totalExp = currentExp + expGain;
+    levelUp = totalExp >= expNeeded;
+    finalExp = levelUp ? totalExp - expNeeded : totalExp;
+    finalLevel = levelUp ? Math.min(levelCap, currentLevel + 1) : currentLevel;
+  }
 
   await db.update("user", { userId }, {
     $set: {
@@ -497,6 +565,8 @@ async function resolveTraining(userId, npcIdx, npc) {
     expGained: expGain,
     levelUp,
     newLevel: finalLevel,
+    atProfCap: profResult?.atCap || false,
+    atLevelCap: currentLevel >= levelCap,
   };
 }
 

@@ -136,7 +136,7 @@ router.get("/mission/types", ensureAuth, async (req, res) => {
     if (!npc) return res.status(404).json({ error: "找不到該 NPC" });
 
     const previews = getMissionPreviews(npc, user.currentFloor || 1, user.title || null);
-    const activeMissions = (user.hiredNpcs || []).filter((n) => n.mission).length;
+    const activeMissions = (user.hiredNpcs || []).filter((n) => n.mission && !n.mission.isTraining).length;
     const concurrentLimit = config.NPC_MISSIONS.CONCURRENT_LIMIT ?? 2;
     res.json({ missions: previews, activeMissions, concurrentLimit });
   } catch (err) {
@@ -173,9 +173,9 @@ router.get("/training/types", ensureAuth, async (req, res) => {
     if (!npc) return res.status(404).json({ error: "找不到該 NPC" });
 
     const previews = getTrainingPreviews(npc, user.weaponStock || [], user.currentFloor || 1);
-    const activeMissions = (user.hiredNpcs || []).filter((n) => n.mission).length;
-    const concurrentLimit = config.NPC_MISSIONS.CONCURRENT_LIMIT ?? 2;
-    res.json({ trainings: previews, activeMissions, concurrentLimit });
+    const activeTrainings = (user.hiredNpcs || []).filter((n) => n.mission?.isTraining).length;
+    const trainingLimit = config.NPC_TRAINING?.CONCURRENT_LIMIT ?? 2;
+    res.json({ trainings: previews, activeTrainings, trainingLimit });
   } catch (err) {
     console.error("取得修練預覽失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });

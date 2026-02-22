@@ -165,6 +165,7 @@ module.exports = {
     MISSION_LIMIT_OR_CHANGED: "同時派遣任務已達上限（{limit} 個），或 NPC 狀態已變更。",
     TRAINING_NO_WEAPON: "{npcName} 沒有裝備武器，無法進行修練",
     INVALID_TRAINING: "無效的修練類型",
+    TRAINING_LIMIT: "修練派遣已達上限（{limit} 個）",
   },
 
   // === 體力 ===

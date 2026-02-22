@@ -396,8 +396,10 @@ module.exports = {
       { id: "quick_training",     name: "快速修練", duration: 2,  profGain: 20, learnChanceMult: 3.0, condCost: 5,  expReward: 15 },
       { id: "intensive_training", name: "集中修練", duration: 6,  profGain: 40, learnChanceMult: 5.0, condCost: 10, expReward: 40 },
     ],
-    FLOOR_MULT: 0.3,    // 每有效樓層（currentFloor - 3）增加 30% 收益
-    // 無死亡風險、無 Col 收益、需裝備武器、共用 CONCURRENT_LIMIT
+    FLOOR_MULT: 0.3,           // 每有效樓層（currentFloor - 3）增加 30% 收益
+    CONCURRENT_LIMIT: 2,       // 修練獨立上限（與任務分開）
+    PROF_CAP_PER_FLOOR: 100,   // 修練熟練度上限 = effectiveFloor × 100
+    LEVEL_CAP_PER_FLOOR: 2,    // 修練等級上限 = effectiveFloor × 2
   },
 
   // Season 3.5: 鍛造師親自冒險
