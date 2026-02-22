@@ -97,7 +97,7 @@ router.get("/recipes", ensureAuth, async (req, res) => {
         forge2: r.forge2,
         forge2Name: itemMap[r.forge2] || r.forge2,
       })),
-      discovered: discovered.size,
+      discovered: filtered.length,
       total: allRecipes.length,
     };
   }, "配方查詢失敗");

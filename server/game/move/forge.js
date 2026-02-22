@@ -106,13 +106,6 @@ module.exports = async function (cmd, rawUser) {
     await db.update("user", { userId: user.userId }, { $set: { forgeInspiration: false } });
   }
 
-  // 記錄已發現配方（配方書用）
-  if (thisWeapon.recipeMatched && thisWeapon.recipeKey) {
-    await db.update("user", { userId: user.userId }, {
-      $addToSet: { discoveredRecipes: thisWeapon.recipeKey },
-    });
-  }
-
   const rarity = calculateRarity(thisWeapon);
   thisWeapon.rarity = rarity.id;
   thisWeapon.rarityLabel = rarity.label;
@@ -123,6 +116,12 @@ module.exports = async function (cmd, rawUser) {
     thisWeapon.text += formatText("FORGE.WEAPON_BROKEN", { weaponName: thisWeapon.weaponName });
     await increment(user.userId, "weaponsBroken");
   } else {
+    // 記錄已發現配方（武器存活才記錄）
+    if (thisWeapon.recipeMatched && thisWeapon.recipeKey) {
+      await db.update("user", { userId: user.userId }, {
+        $addToSet: { discoveredRecipes: thisWeapon.recipeKey },
+      });
+    }
     const updated = await db.findOneAndUpdate(
       "user",
       { userId: user.userId },
