@@ -22,6 +22,19 @@ const client = new MongoClient(uri);
 //
 // 基礎素材 itemId：1=HP素材, 2=ATK素材, 3=DEF素材, 4=AGI素材, 5=耐久素材
 
+// ──────────────────────────────────────
+// 基礎素材（itemId 1~5）
+// 這些素材從 Discord bot 時代就存在，但從未被 seed 進 item 集合。
+// 補充進去讓 itemCache 能正確回傳名稱，也讓挖礦池能包含基礎素材。
+// ──────────────────────────────────────
+const BASE_ITEMS = [
+  { itemId: "1", name: "命の結晶",     mainStat: "hp",         baseItem: true, floorItem: false },
+  { itemId: "2", name: "鉄鉱石",       mainStat: "atk",        baseItem: true, floorItem: false },
+  { itemId: "3", name: "堅岩石",       mainStat: "def",        baseItem: true, floorItem: false },
+  { itemId: "4", name: "風切り羽",     mainStat: "agi",        baseItem: true, floorItem: false },
+  { itemId: "5", name: "玄鉄の欠片",   mainStat: "durability", baseItem: true, floorItem: false },
+];
+
 const RECIPES = [
   // ═══════════════════════════════════
   // 基礎素材配方（itemId 1~5 互相組合）
@@ -143,6 +156,23 @@ async function run() {
 
   console.log("=== 武器配方種子腳本 開始 ===\n");
 
+  // 0. 補充基礎素材到 item 集合
+  console.log("[0] 補充基礎素材...");
+  for (const mat of BASE_ITEMS) {
+    const result = await db.collection("item").updateOne(
+      { itemId: mat.itemId },
+      { $set: mat },
+      { upsert: true },
+    );
+    if (result.upsertedCount > 0) {
+      console.log(`  + ${mat.name} (itemId: ${mat.itemId}, ${mat.mainStat})`);
+    } else {
+      console.log(`  - ${mat.name} 已存在`);
+    }
+  }
+
+  // 1. 寫入配方
+  console.log("\n[1] 寫入武器配方...");
   let upserted = 0;
   let unchanged = 0;
 
