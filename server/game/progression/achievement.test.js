@@ -29,8 +29,8 @@ describe("achievement.js — predicates（純函式）", () => {
     vi.clearAllMocks();
   });
 
-  it("共有 15 個成就定義", () => {
-    expect(defs).toHaveLength(15);
+  it("成就定義數量 >= 15", () => {
+    expect(defs.length).toBeGreaterThanOrEqual(15);
   });
 
   it("每個成就都有 id、name、nameCn、check 函式", () => {

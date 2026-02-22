@@ -36,7 +36,8 @@ ADMIN_USER=admin ADMIN_PASS=your_password node server/scripts/seed-admin.js
 node server/scripts/init-admin-indexes.js
 ```
 
-No test framework or linter is configured. No CI pipeline exists.
+Test framework: Vitest (backend `npm test`, client `npm run test:client`).
+Coverage: `npm run test:coverage` (threshold: 18% functions / 14% lines — baseline, raise incrementally).
 
 ## Architecture
 
