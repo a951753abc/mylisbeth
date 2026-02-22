@@ -175,11 +175,14 @@ export default function NpcPanel({ user, onRefresh }) {
         credentials: "include",
       });
       const data = await res.json();
-      if (data.results && data.results.length > 0) {
+      if (!res.ok) {
+        setMessage(`❌ ${data.error || "結算失敗"}`);
+      } else if (data.results && data.results.length > 0) {
         setMissionResults(data.results);
         if (onRefresh) onRefresh();
       } else {
         setMessage("目前沒有已完成的任務");
+        if (onRefresh) onRefresh();
       }
     } catch {
       setMessage("❌ 結算失敗");

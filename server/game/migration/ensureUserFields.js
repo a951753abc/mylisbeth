@@ -173,6 +173,14 @@ module.exports = async function ensureUserFields(user) {
       npcPatched = true;
       patched = { ...patched, mission: null };
     }
+    // 遷移 NPC weaponProficiency: number → per-weapon-type object
+    if (typeof npc.weaponProficiency === "number") {
+      npcPatched = true;
+      const profObj = npc.proficientType && npc.weaponProficiency > 0
+        ? { [npc.proficientType]: npc.weaponProficiency }
+        : {};
+      patched = { ...patched, weaponProficiency: profObj };
+    }
     return patched;
   });
   if (npcPatched) {

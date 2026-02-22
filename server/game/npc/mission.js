@@ -13,6 +13,7 @@ const { formatText, getText } = require("../textManager.js");
 const { resolveWeaponType } = require("../weapon/weaponType.js");
 const { getExpToNextLevel } = require("./npcStats.js");
 const { tryNpcLearnSkill } = require("../skill/npcSkillLearning.js");
+const { ensureNpcProfMap } = require("../skill/skillProficiency.js");
 
 const MISSIONS = config.NPC_MISSIONS;
 
@@ -518,7 +519,11 @@ async function resolveTraining(userId, npcIdx, npc) {
   if (equippedWeapon) {
     weaponType = resolveWeaponType(equippedWeapon);
     if (weaponType) {
-      const currentProf = ((currentNpc.weaponProficiency || {})[weaponType]) || 0;
+      // 確保舊格式已遷移為物件
+      await ensureNpcProfMap(userId, npcIdx);
+      const refreshedForProf = await db.findOne("user", { userId });
+      const profNpc = (refreshedForProf?.hiredNpcs || [])[npcIdx];
+      const currentProf = ((profNpc?.weaponProficiency || {})[weaponType]) || 0;
 
       if (currentProf >= profCap) {
         profResult = { profGained: 0, weaponType, atCap: true };
