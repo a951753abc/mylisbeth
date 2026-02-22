@@ -12,7 +12,13 @@ router.get('/callback',
         const clientUrl = process.env.NODE_ENV === 'production'
             ? '/'
             : 'http://localhost:5173/';
-        res.redirect(clientUrl);
+        // 確保 session 寫入 MongoDB 後再 redirect，防止 race condition
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error after Discord OAuth:', err);
+            }
+            res.redirect(clientUrl);
+        });
     }
 );
 
@@ -26,7 +32,13 @@ router.get('/google/callback',
         const clientUrl = process.env.NODE_ENV === 'production'
             ? '/'
             : 'http://localhost:5173/';
-        res.redirect(clientUrl);
+        // 確保 session 寫入 MongoDB 後再 redirect，防止 race condition
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error after Google OAuth:', err);
+            }
+            res.redirect(clientUrl);
+        });
     }
 );
 
@@ -36,7 +48,14 @@ router.post('/logout', (req, res) => {
         if (err) {
             return res.status(500).json({ error: '登出失敗' });
         }
-        res.json({ success: true });
+        // 完全銷毀 session 並清除 cookie，避免殘留 session 影響下次登入
+        req.session.destroy((destroyErr) => {
+            if (destroyErr) {
+                console.error('Session destroy error:', destroyErr);
+            }
+            res.clearCookie('connect.sid');
+            res.json({ success: true });
+        });
     });
 });
 
