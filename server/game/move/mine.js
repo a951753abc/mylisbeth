@@ -10,6 +10,7 @@ const { getModifier } = require("../title/titleModifier.js");
 const itemCache = require("../cache/itemCache.js");
 const { checkAndConsumeStamina } = require("../stamina/staminaCheck.js");
 const { awardCol } = require("../economy/col.js");
+const { getActiveFloor } = require("../floor/activeFloor.js");
 
 const drawLevelList = [
   // Lv1: 4% ★★★, 20% ★★
@@ -95,21 +96,29 @@ module.exports = async function (cmd, rawUser, staminaInfo) {
   const autoSell1Star = mineLevel >= (perks.PRECISE_MINING_LEVEL ?? 4) && !!options.autoSell1Star;
   const autoSell2Star = mineLevel >= (perks.BULK_SELL_LEVEL ?? 8) && !!options.autoSell2Star;
   const isBatch = staminaBudget > 0;
+  const doAutoSell = autoSell1Star || autoSell2Star;
 
-  const { getActiveFloor } = require("../floor/activeFloor.js");
   const currentFloor = getActiveFloor(user);
   const allItems = itemCache.getAll();
   const minePool = getFloorMinePool(allItems, currentFloor);
   const starMod = getModifier(user.title || null, "mineStarChance");
   const nowItems = itemLimit + mineLevel;
 
+  // 自動售出用共用變數
+  const priceMod = doAutoSell ? getModifier(user.title || null, "shopSellPrice") : 1;
+  const starMults = config.SHOP?.MATERIAL_STAR_MULT || { 1: 1, 2: 3, 3: 6 };
+
   let text = "";
   let iterations = 0;
   let totalStaminaSpent = 0;
   let lastStamina = null;
   let lastStaminaRegenAt = null;
-  const minedItems = []; // 記錄所有挖到的素材 { itemId, itemName, itemLevel }
+  const minedItems = [];
   let levelUpText = "";
+  let sell1Col = 0;
+  let sell1Count = 0;
+  let sell2Col = 0;
+  let sell2Count = 0;
 
   // 安全上限防止無限迴圈
   const maxIterations = 50;
@@ -117,25 +126,20 @@ module.exports = async function (cmd, rawUser, staminaInfo) {
   while (iterations < maxIterations) {
     // --- 體力檢查 ---
     if (isBatch) {
-      // 批次模式：mine.js 自行管理體力
       const staminaResult = await checkAndConsumeStamina(user.userId, "mine", user.title || null);
       if (!staminaResult.ok) {
         if (iterations === 0) return { error: staminaResult.error };
-        break; // 已挖過至少一次，優雅停止
+        break;
       }
       totalStaminaSpent += staminaResult.cost;
       lastStamina = staminaResult.stamina;
       lastStaminaRegenAt = staminaResult.lastStaminaRegenAt;
     } else if (iterations > 0) {
-      // 單次模式不會進入第二輪
-      break;
-    } else {
-      // 單次模式第一輪：體力已由 move.js 扣除
-      if (staminaInfo) {
-        totalStaminaSpent = staminaInfo.cost || 0;
-        lastStamina = staminaInfo.stamina;
-        lastStaminaRegenAt = staminaInfo.lastStaminaRegenAt;
-      }
+      break; // 單次模式不進入第二輪
+    } else if (staminaInfo) {
+      totalStaminaSpent = staminaInfo.cost || 0;
+      lastStamina = staminaInfo.stamina;
+      lastStaminaRegenAt = staminaInfo.lastStaminaRegenAt;
     }
 
     // --- 倉庫容量檢查 ---
@@ -149,18 +153,38 @@ module.exports = async function (cmd, rawUser, staminaInfo) {
       if (iterations === 0) {
         return { error: formatText("MINE.CAPACITY_FULL", { current: currentCount, max: nowItems }) };
       }
-      break; // 已挖過，倉庫滿了停止
+      break;
     }
 
     // --- 挖礦填充 ---
+    const iterationMined = [];
     let count = currentCount;
     while (nowItems > count) {
       const mine = { ...minePool[Math.floor(Math.random() * minePool.length)] };
       mine.level = drawItemLevel(mineLevel, starMod);
       text += formatText("MINE.OBTAINED", { star: mine.level.text, name: mine.name }) + "\n";
       await db.saveItemToUser(user.userId, mine);
-      minedItems.push({ itemId: mine.itemId, itemName: mine.name, itemLevel: mine.level.itemLevel });
+      iterationMined.push({ itemId: mine.itemId, itemName: mine.name, itemLevel: mine.level.itemLevel });
       count++;
+    }
+    minedItems.push(...iterationMined);
+
+    // --- 迭代內自動售出（釋放倉庫空間供下一輪使用）---
+    if (doAutoSell && isBatch) {
+      const sellTargets = iterationMined.filter((m) => {
+        if (autoSell1Star && m.itemLevel === 1) return true;
+        if (autoSell2Star && m.itemLevel === 2) return true;
+        return false;
+      });
+      for (const si of sellTargets) {
+        const starMult = starMults[si.itemLevel] || 1;
+        const price = Math.max(1, Math.round(roll.d6() * starMult * priceMod));
+        const removed = await db.atomicIncItem(user.userId, si.itemId, si.itemLevel, si.itemName, -1);
+        if (removed) {
+          if (si.itemLevel === 1) { sell1Col += price; sell1Count++; }
+          else { sell2Col += price; sell2Count++; }
+        }
+      }
     }
 
     // --- 經驗與升級 ---
@@ -171,49 +195,39 @@ module.exports = async function (cmd, rawUser, staminaInfo) {
     if (isBatch && totalStaminaSpent >= staminaBudget) break;
   }
 
-  // --- 統計（一次行動 = 一次統計）---
-  await increment(user.userId, "totalMines");
+  // --- 統計（批次模式按實際迭代次數計算）---
+  await increment(user.userId, "totalMines", iterations);
   await checkAndAward(user.userId);
 
-  // --- 自動售出（精準挖礦 / 批量出售）---
-  let autoSellCol = 0;
-  let autoSellCount = 0;
-  if (autoSell1Star || autoSell2Star) {
+  // --- 單次模式的自動售出（非批次時在迴圈結束後一次性處理）---
+  if (doAutoSell && !isBatch) {
     const sellTargets = minedItems.filter((m) => {
       if (autoSell1Star && m.itemLevel === 1) return true;
       if (autoSell2Star && m.itemLevel === 2) return true;
       return false;
     });
-
-    const priceMod = getModifier(user.title || null, "shopSellPrice");
-    const starMults = config.SHOP?.MATERIAL_STAR_MULT || { 1: 1, 2: 3, 3: 6 };
-    let sell1Col = 0;
-    let sell1Count = 0;
-    let sell2Col = 0;
-    let sell2Count = 0;
-
-    for (const item of sellTargets) {
-      const starMult = starMults[item.itemLevel] || 1;
+    for (const si of sellTargets) {
+      const starMult = starMults[si.itemLevel] || 1;
       const price = Math.max(1, Math.round(roll.d6() * starMult * priceMod));
-      const removed = await db.atomicIncItem(user.userId, item.itemId, item.itemLevel, item.itemName, -1);
+      const removed = await db.atomicIncItem(user.userId, si.itemId, si.itemLevel, si.itemName, -1);
       if (removed) {
-        autoSellCol += price;
-        autoSellCount++;
-        if (item.itemLevel === 1) { sell1Col += price; sell1Count++; }
+        if (si.itemLevel === 1) { sell1Col += price; sell1Count++; }
         else { sell2Col += price; sell2Count++; }
       }
     }
+  }
 
-    if (autoSellCol > 0) {
-      await awardCol(user.userId, autoSellCol);
-    }
-
-    if (sell1Count > 0) {
-      text += formatText("MINE.AUTO_SELL_1", { count: sell1Count, col: sell1Col }) + "\n";
-    }
-    if (sell2Count > 0) {
-      text += formatText("MINE.AUTO_SELL_2", { count: sell2Count, col: sell2Col }) + "\n";
-    }
+  // --- 自動售出 Col 發放 ---
+  const autoSellCol = sell1Col + sell2Col;
+  const autoSellCount = sell1Count + sell2Count;
+  if (autoSellCol > 0) {
+    await awardCol(user.userId, autoSellCol);
+  }
+  if (sell1Count > 0) {
+    text += formatText("MINE.AUTO_SELL_1", { count: sell1Count, col: sell1Col }) + "\n";
+  }
+  if (sell2Count > 0) {
+    text += formatText("MINE.AUTO_SELL_2", { count: sell2Count, col: sell2Col }) + "\n";
   }
 
   // --- 大師之眼（LV10）---
@@ -258,7 +272,6 @@ module.exports = async function (cmd, rawUser, staminaInfo) {
   if (recipeHint) {
     result.recipeHint = recipeHint;
   }
-  // 體力資訊（批次模式自行附帶）
   if (isBatch) {
     result.staminaCost = totalStaminaSpent;
     result.stamina = lastStamina;
@@ -289,7 +302,6 @@ function getStarRates(mineLevel, starMod = 1.0) {
   const baseList = drawLevelList[Math.min(mineLevel - 1, drawLevelList.length - 1)];
   const star3 = Math.min(99, Math.max(1, Math.round(baseList[0].less * starMod)));
   const star2 = baseList[1].less;
-  const star1 = 100 - star3 - (star2 - star3);
   return {
     star3,
     star2: star2 - star3,

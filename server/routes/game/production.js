@@ -6,6 +6,11 @@ const create = require("../../game/create.js");
 const db = require("../../db.js");
 const { validateName } = require("../../utils/sanitize.js");
 const { handleRoute } = require("./helpers.js");
+const config = require("../../game/config.js");
+const { getActiveFloor } = require("../../game/floor/activeFloor.js");
+const itemCache = require("../../game/cache/itemCache.js");
+const { getModifier } = require("../../game/title/titleModifier.js");
+const { getFloorMinePool, getStarRates } = require("../../game/move/mine.js");
 
 // Create character
 router.post("/create", ensureAuth, async (req, res) => {
@@ -21,7 +26,7 @@ router.post("/mine", ensureAuth, async (req, res) => {
   const { staminaBudget, autoSell1Star, autoSell2Star } = req.body || {};
   const options = {};
   if (Number.isInteger(staminaBudget) && staminaBudget > 0) {
-    options.staminaBudget = Math.min(staminaBudget, 100);
+    options.staminaBudget = Math.min(staminaBudget, config.STAMINA?.MAX ?? 100);
   }
   if (autoSell1Star === true) options.autoSell1Star = true;
   if (autoSell2Star === true) options.autoSell2Star = true;
@@ -31,22 +36,16 @@ router.post("/mine", ensureAuth, async (req, res) => {
 
 // Mine preview（礦脈探測 LV6，純讀取不消耗）
 router.get("/mine/preview", ensureAuth, async (req, res) => {
-  try {
+  await handleRoute(res, async () => {
     const userId = req.user.discordId;
     const user = await db.findOne("user", { userId });
-    if (!user) return res.status(400).json({ error: "角色不存在" });
+    if (!user) return { error: "角色不存在" };
 
-    const config = require("../../game/config.js");
     const perks = config.MINE_PERKS || {};
     const mineLevel = user.mineLevel ?? 1;
     if (mineLevel < (perks.ORE_RADAR_LEVEL ?? 6)) {
-      return res.status(400).json({ error: `此功能需要挖礦等級 LV${perks.ORE_RADAR_LEVEL ?? 6}` });
+      return { error: `此功能需要挖礦等級 LV${perks.ORE_RADAR_LEVEL ?? 6}` };
     }
-
-    const { getActiveFloor } = require("../../game/floor/activeFloor.js");
-    const itemCache = require("../../game/cache/itemCache.js");
-    const { getModifier } = require("../../game/title/titleModifier.js");
-    const { getFloorMinePool, getStarRates } = require("../../game/move/mine.js");
 
     const currentFloor = getActiveFloor(user);
     const allItems = itemCache.getAll();
@@ -54,7 +53,7 @@ router.get("/mine/preview", ensureAuth, async (req, res) => {
     const starMod = getModifier(user.title || null, "mineStarChance");
     const starRates = getStarRates(mineLevel, starMod);
 
-    res.json({
+    return {
       floor: currentFloor,
       mineLevel,
       pool: pool.map((item) => ({
@@ -63,11 +62,8 @@ router.get("/mine/preview", ensureAuth, async (req, res) => {
         floorItem: !!item.floorItem,
       })),
       starRates,
-    });
-  } catch (err) {
-    console.error("礦脈探測失敗:", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
+    };
+  }, "礦脈探測失敗");
 });
 
 // Forge (支援 2~4 素材)

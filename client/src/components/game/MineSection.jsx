@@ -52,12 +52,14 @@ export default function MineSection({ doAction, isDisabled, busy, cooldownActive
       const data = await res.json();
       if (data.error) {
         setPreview(null);
+        setShowPreview(false);
       } else {
         setPreview(data);
+        setShowPreview(true);
       }
-      setShowPreview(true);
     } catch {
       setPreview(null);
+      setShowPreview(false);
     }
     setPreviewLoading(false);
   }, [showPreview]);
