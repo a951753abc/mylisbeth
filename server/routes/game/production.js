@@ -11,6 +11,7 @@ const { getActiveFloor } = require("../../game/floor/activeFloor.js");
 const itemCache = require("../../game/cache/itemCache.js");
 const { getModifier } = require("../../game/title/titleModifier.js");
 const { getFloorMinePool, getStarRates } = require("../../game/move/mine.js");
+const weaponCache = require("../../game/cache/weaponCache.js");
 
 // Create character
 router.post("/create", ensureAuth, async (req, res) => {
@@ -85,11 +86,10 @@ router.get("/recipes", ensureAuth, async (req, res) => {
       itemMap[item.itemId] = item.name;
     }
 
-    const recipes = await db.find("weapon", {});
+    const recipes = weaponCache.getAll();
     return {
       recipes: recipes.map((r) => ({
         weaponName: r.name,
-        weaponType: r.type,
         forge1: r.forge1,
         forge1Name: itemMap[r.forge1] || r.forge1,
         forge2: r.forge2,

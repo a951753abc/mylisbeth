@@ -75,12 +75,11 @@ export default function ForgeSection({ user, doAction, isDisabled, displayStamin
         const res = await fetch("/api/game/recipes", { credentials: "include" });
         const data = await res.json();
         if (data.error) {
-          setRecipes([]);
-        } else {
-          setRecipes(data.recipes || []);
+          return; // 載入失敗，保持 recipes=null 讓下次點擊可重試
         }
+        setRecipes(data.recipes || []);
       } catch {
-        setRecipes([]);
+        return; // 網路錯誤，保持 recipes=null 讓下次點擊可重試
       } finally {
         setRecipeLoading(false);
       }
@@ -168,8 +167,8 @@ export default function ForgeSection({ user, doAction, isDisabled, displayStamin
                 </tr>
               </thead>
               <tbody>
-                {filteredRecipes.map((r, i) => (
-                  <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
+                {filteredRecipes.map((r) => (
+                  <tr key={`${r.forge1}-${r.forge2}`} style={{ borderBottom: "1px solid var(--border)" }}>
                     <td style={{ padding: "0.25rem 0.3rem", fontWeight: 600 }}>{r.weaponName}</td>
                     <td style={{ padding: "0.25rem 0.3rem" }}>{r.forge1Name}</td>
                     <td style={{ padding: "0.25rem 0.3rem" }}>{r.forge2Name}</td>

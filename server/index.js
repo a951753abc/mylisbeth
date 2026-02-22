@@ -11,6 +11,7 @@ const path = require("path");
 const db = require("./db.js");
 
 const itemCache = require("./game/cache/itemCache.js");
+const weaponCache = require("./game/cache/weaponCache.js");
 const authRoutes = require("./routes/auth.js");
 const userRoutes = require("./routes/user.js");
 const gameRoutes = require("./routes/game.js");
@@ -114,6 +115,7 @@ const PORT = process.env.PORT || 3000;
 async function start() {
   await db.connect();
   await itemCache.load();
+  await weaponCache.load();
   await configManager.loadOverrides();
   await textManager.loadOverrides();
 
