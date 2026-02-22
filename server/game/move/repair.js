@@ -1,7 +1,7 @@
 const db = require("../../db.js");
 const config = require("../config.js");
 const roll = require("../roll.js");
-const { deductCol } = require("../economy/col.js");
+const { deductCol, awardCol } = require("../economy/col.js");
 const { calculateRarity } = require("../weapon/rarity.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { getModifier } = require("../title/titleModifier.js");
@@ -89,7 +89,32 @@ module.exports = async function (cmd, rawUser) {
       );
       resultText = formatText("REPAIR.SUCCESS", { weaponName: thisWeapon.weaponName, amount: repairAmount, cost });
     } else {
-      resultText = formatText("REPAIR.FAILURE", { weaponName: thisWeapon.weaponName, cost });
+      // 失敗補償：返還部分 Col + 恢復少量耐久
+      const refundRate = config.REPAIR_FAIL_COL_REFUND ?? 0;
+      const refund = Math.floor(cost * refundRate);
+      if (refund > 0) {
+        await awardCol(user.userId, refund);
+      }
+      const failRepair = Math.min(
+        config.REPAIR_FAIL_DURABILITY ?? 0,
+        maxDurability - thisWeapon.durability,
+      );
+      if (failRepair > 0) {
+        const durPath = `weaponStock.${weaponIndex}.durability`;
+        await db.findOneAndUpdate(
+          "user",
+          { userId: user.userId },
+          { $inc: { [durPath]: failRepair } },
+          { returnDocument: "after" },
+        );
+        repairAmount = failRepair;
+      }
+      resultText = formatText("REPAIR.FAILURE_PARTIAL", {
+        weaponName: thisWeapon.weaponName,
+        cost,
+        refund,
+        amount: failRepair,
+      });
     }
 
     return {

@@ -85,11 +85,15 @@ module.exports.buffWeapon = function (cmd, user) {
     return thisWeapon;
   }
 
-  // 新成功率公式：20 + itemLevel*5 + forgeLevel*3 - buffCount*5
+  // 成功率公式：前段 -5/次、後段 -3/次（衰減懲罰）
+  const threshold = config.BUFF_HIGH_THRESHOLD ?? 5;
+  const penalty = buffCount <= threshold
+    ? buffCount * config.BUFF_COUNT_PENALTY
+    : threshold * config.BUFF_COUNT_PENALTY + (buffCount - threshold) * (config.BUFF_HIGH_PENALTY ?? 3);
   const basePer = config.BUFF_BASE_CHANCE
     + user.itemStock[cmd[3]].itemLevel * 5
     + forgeLevel * config.BUFF_FORGE_LEVEL_MULT
-    - buffCount * config.BUFF_COUNT_PENALTY;
+    - penalty;
   const per = Math.min(99, Math.max(1, Math.round(basePer * getModifier(title, "forgeBuffChance"))));
   let isBuff = false;
   if (roll.d100Check(per)) {
@@ -180,29 +184,46 @@ module.exports.createWeapon = async function (materials, weaponName, user, optio
       const per = 20 + totalLevel * 5;
       if (roll.d100Check(per)) {
         const perName = getStatName(materials[i].itemId);
+        const avgLevel = Math.round(totalLevel / sameIndices.length);
+        const starMult = config.FORGE_STAR_MULT?.[avgLevel] ?? 1;
+        const boost = Math.max(1, Math.round(forgeLevel * starMult));
         weapon.text += getText("FORGE.BUFF_SUCCESS") + "\n";
-        weapon.text += getStatBoostText(perName, forgeLevel);
-        applyStatBoost(weapon, perName, forgeLevel);
+        weapon.text += getStatBoostText(perName, boost);
+        applyStatBoost(weapon, perName, boost);
       }
     } else {
       const per = 20 + materials[i].itemLevel * 5;
       if (roll.d100Check(per)) {
         const perName = getStatName(materials[i].itemId);
+        const starMult = config.FORGE_STAR_MULT?.[materials[i].itemLevel] ?? 1;
+        const boost = Math.max(1, Math.round(forgeLevel * starMult));
         weapon.text += getText("FORGE.BUFF_SUCCESS") + "\n";
-        weapon.text += getStatBoostText(perName, forgeLevel);
-        applyStatBoost(weapon, perName, forgeLevel);
+        weapon.text += getStatBoostText(perName, boost);
+        applyStatBoost(weapon, perName, boost);
       }
     }
   }
 
-  // 3+ 素材額外加成：每多 1 個素材 +1 隨機屬性 × floor(forgeLevel/2)
+  // 固有效果額外加成（需在 3+ 素材區塊前宣告，因第 4 素材也會加算）
+  let innateChanceBonus = 0;
+
+  // 3+ 素材額外加成
   if (materials.length > 2) {
+    const extraCfg = config.FORGE_EXTRA_MAT || {};
+    const baseBonus = extraCfg.BASE_BONUS ?? 2;
     const extraCount = materials.length - 2;
-    const bonusPerExtra = Math.max(1, Math.floor(forgeLevel / 2));
+    const bonusPerExtra = Math.max(baseBonus, Math.floor(forgeLevel / 2));
     for (let e = 0; e < extraCount; e++) {
       const randomStat = weaponPer[Math.floor(Math.random() * weaponPer.length)];
       applyStatBoost(weapon, randomStat, bonusPerExtra);
       weapon.text += formatText("FORGE.EXTRA_MATERIAL_BONUS", { stat: randomStat, value: bonusPerExtra }) + "\n";
+    }
+    // 第 4 素材結構性加成：額外耐久 + 固有效果機率
+    if (materials.length >= 4) {
+      const durBonus = extraCfg.FOURTH_DURABILITY ?? 2;
+      applyStatBoost(weapon, "durability", durBonus);
+      weapon.text += formatText("FORGE.FOURTH_MAT_DURABILITY", { value: durBonus }) + "\n";
+      innateChanceBonus += extraCfg.FOURTH_INNATE_BONUS ?? 10;
     }
   }
 
@@ -237,7 +258,6 @@ module.exports.createWeapon = async function (materials, weaponName, user, optio
   }
 
   // 素材類型特殊加成
-  let innateChanceBonus = 0;
   for (const mat of materials) {
     const matType = mat.materialType || "";
     if (matType === "fabric" || matType === "leather") {

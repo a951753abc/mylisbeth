@@ -96,8 +96,23 @@ module.exports = {
   BUFF_BASE_CHANCE: 20,
   BUFF_MAX: 10,                    // 武器強化上限
   BUFF_FORGE_LEVEL_MULT: 3,       // 成功率公式：forgeLevel * 3（原本 * 10）
-  BUFF_COUNT_PENALTY: 5,          // 每次已強化 -5% 成功率
+  BUFF_COUNT_PENALTY: 5,          // 每次已強化 -5% 成功率（前段）
+  BUFF_HIGH_THRESHOLD: 5,         // buffCount > 此值時啟用衰減懲罰
+  BUFF_HIGH_PENALTY: 3,           // 高強化階段每次只扣 3%
   BUFF_HP_MULTIPLIER: 5,          // HP 屬性倍率（相對其他屬性）
+
+  // 鍛造素材星級加成倍率（乘以 forgeLevel）
+  FORGE_STAR_MULT: { 1: 1.0, 2: 1.5, 3: 2.0 },
+
+  // 3+ 素材額外加成
+  FORGE_EXTRA_MAT: {
+    BASE_BONUS: 2,                 // 保底加成量（舊 = 1）
+    FOURTH_DURABILITY: 2,          // 第 4 素材額外耐久
+    FOURTH_INNATE_BONUS: 10,       // 第 4 素材額外固有效果機率 (%)
+  },
+
+  // 稀有度計算中耐久度權重（0.5 = 只計入一半）
+  RARITY_DURABILITY_WEIGHT: 0.5,
 
   WEAPON_DAMAGE_CHANCE: {
     WIN: 50,
@@ -152,6 +167,8 @@ module.exports = {
     legendary: 800,
   },
   REPAIR_SUCCESS_RATE: 85,
+  REPAIR_FAIL_COL_REFUND: 0.5,    // 修復失敗時返還 Col 比例
+  REPAIR_FAIL_DURABILITY: 1,      // 修復失敗時仍恢復的耐久點數
 
   // Season 6: 冒險委託費（勝利時從獎勵扣 10%）
   COL_ADVENTURE_FEE_RATE: 0.10,

@@ -42,6 +42,7 @@ module.exports = {
     CRIT_FAIL: "{name}強化大失敗！\n武器數值{stat}降低了{value}",
     RARITY_UP: "稀有度提升為 {rarity}！",
     EXTRA_MATERIAL_BONUS: "追加素材加成：{stat} +{value}",
+    FOURTH_MAT_DURABILITY: "第四素材加成：耐久 +{value}",
     COMBO_BONUS: "✨ 組合加成：{text}",
     INSPIRATION: "鍛造靈感湧現！額外強化成功！",
     FABRIC_DURABILITY: "{name}（{type}）：耐久 +2",
@@ -141,6 +142,7 @@ module.exports = {
     COL_INSUFFICIENT: "Col 不足！修復 {weaponName}（{rarity}）需要 {cost} Col。",
     SUCCESS: "修復成功！{weaponName} 的耐久度恢復了 {amount} 點。（消耗 {cost} Col）",
     FAILURE: "修復失敗！{weaponName} 的耐久度沒有恢復。（消耗 {cost} Col 及素材）",
+    FAILURE_PARTIAL: "修復失敗！{weaponName} 勉強恢復了 {amount} 點耐久度。（消耗 {cost} Col，返還 {refund} Col）",
     UNKNOWN_ERROR: "修復過程中發生了未知錯誤，請稍後再試。",
   },
 

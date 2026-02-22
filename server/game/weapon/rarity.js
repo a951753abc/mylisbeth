@@ -1,17 +1,21 @@
+const config = require("../config.js");
+
 // Rarity tiers ordered from highest to lowest — first match wins
 const RARITY_TIERS = [
-  { id: "legendary", label: "傳說", color: "#f59e0b", minScore: 45 },
-  { id: "epic",      label: "史詩", color: "#a855f7", minScore: 35 },
-  { id: "rare",      label: "稀有", color: "#3b82f6", minScore: 28 },
-  { id: "fine",      label: "優良", color: "#22c55e", minScore: 20 },
+  { id: "legendary", label: "傳說", color: "#f59e0b", minScore: 42 },
+  { id: "epic",      label: "史詩", color: "#a855f7", minScore: 32 },
+  { id: "rare",      label: "稀有", color: "#3b82f6", minScore: 25 },
+  { id: "fine",      label: "優良", color: "#22c55e", minScore: 17 },
   { id: "common",    label: "普通", color: "#9ca3af", minScore: 0  },
 ];
 
 function calculateRarity(weapon) {
   // cri 越低越好（暴擊門檻），反轉為正向貢獻：14 - cri
-  // 使用 maxDurability（不隨戰鬥損耗變動）
+  // 使用 maxDurability（不隨戰鬥損耗變動），依權重折算
   const criContribution = Math.max(0, 14 - (weapon.cri || 10));
-  const durContribution = weapon.maxDurability || weapon.durability || 0;
+  const rawDur = weapon.maxDurability || weapon.durability || 0;
+  const durWeight = config.RARITY_DURABILITY_WEIGHT ?? 1;
+  const durContribution = Math.round(rawDur * durWeight);
   const totalScore =
     (weapon.atk || 0) +
     (weapon.def || 0) +
