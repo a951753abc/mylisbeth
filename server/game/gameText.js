@@ -158,6 +158,7 @@ module.exports = {
     FULL_CONDITION: "該 NPC 體力已滿",
     HEAL_COL_INSUFFICIENT: "Col 不足，治療需要 {cost} Col",
     WEAPON_NOT_FOUND: "武器編號 {index} 不存在",
+    WEAPON_ALREADY_EQUIPPED: "該武器已被其他冒險者裝備中",
     ON_MISSION: "{npcName} 正在執行任務中",
     MISSION_LIMIT: "同時派遣任務已達上限（{limit} 個）。請等待現有任務完成。",
     LOW_CONDITION: "{npcName} 體力過低，無法執行任務",

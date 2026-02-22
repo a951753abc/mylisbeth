@@ -269,6 +269,16 @@ async function equipWeapon(userId, npcId, weaponIndex) {
     return { error: formatText("NPC.WEAPON_NOT_FOUND", { index: weaponIndex }) };
   }
 
+  // 檢查是否已被其他 NPC 裝備
+  if (weaponIndex !== null) {
+    const alreadyEquipped = hired.some(
+      (n, i) => i !== npcIdx && n.equippedWeaponIndex === weaponIndex,
+    );
+    if (alreadyEquipped) {
+      return { error: getText("NPC.WEAPON_ALREADY_EQUIPPED") };
+    }
+  }
+
   await db.update(
     "user",
     { userId },

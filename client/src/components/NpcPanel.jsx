@@ -320,6 +320,11 @@ export default function NpcPanel({ user, onRefresh }) {
           const equippedWeapon = npc.equippedWeaponIndex != null
             ? weapons.find((w) => String(w.index) === String(npc.equippedWeaponIndex))
             : null;
+          // 其他 NPC 已裝備的武器 index 集合
+          const equippedByOthers = new Set(
+            npcs.filter((n) => n.npcId !== npc.npcId && n.equippedWeaponIndex != null)
+              .map((n) => String(n.equippedWeaponIndex)),
+          );
           const onMission = !!npc.mission;
           const missionDone = onMission && Date.now() >= npc.mission.endsAt;
           const cdMs = countdowns[npc.npcId] || (onMission ? Math.max(0, npc.mission.endsAt - Date.now()) : 0);
@@ -431,11 +436,14 @@ export default function NpcPanel({ user, onRefresh }) {
                   disabled={busy === `equip_${npc.npcId}` || onMission || isPaused}
                 >
                   <option value="">— 無裝備 —</option>
-                  {weapons.map((w) => (
-                    <option key={w.index} value={String(w.index)}>
-                      #{w.index} {w.rarityLabel ? `【${w.rarityLabel}】` : ""}{w.weaponName}
-                    </option>
-                  ))}
+                  {weapons.map((w) => {
+                    const inUse = equippedByOthers.has(String(w.index));
+                    return (
+                      <option key={w.index} value={String(w.index)} disabled={inUse}>
+                        #{w.index} {w.rarityLabel ? `【${w.rarityLabel}】` : ""}{w.weaponName}{inUse ? "（已裝備）" : ""}
+                      </option>
+                    );
+                  })}
                 </select>
                 {equippedWeapon && (
                   <span style={{ fontSize: "0.75rem", color: "var(--gold)" }}>
