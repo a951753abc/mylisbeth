@@ -41,13 +41,10 @@ export default function UpgradeSection({ user, doAction, isDisabled, displayStam
           <button
             className="btn-success"
             disabled={isDisabled || !upWeapon || !upMat}
-            onClick={async () => {
-              const data = await doAction("upgrade", {
-                weaponId: upWeapon,
-                materialId: upMat,
-              });
-              if (!data.error) setUpMat("");
-            }}
+            onClick={() => doAction("upgrade", {
+              weaponId: upWeapon,
+              materialId: upMat,
+            })}
           >
             強化
           </button>
