@@ -25,7 +25,6 @@ const DEFAULT_FIELDS = {
     totalColEarned: 0,
     // Season 4
     totalSoloAdventures: 0,
-    totalLoans: 0,
     // Season 5: PVP 決鬥
     totalDuelsPlayed: 0,
     duelKills: 0,
@@ -59,7 +58,6 @@ const DEFAULT_FIELDS = {
   debtCycleCount: 0,
   isInDebt: false,
   lastActionAt: null,
-  lastLoanAt: null,
   // Season 4: Boss 聖遺物
   bossRelics: [],
   // Season 3: 玩家體力值

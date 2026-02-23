@@ -8,23 +8,13 @@ function formatCountdown(ms) {
   return `${min}分 ${sec}秒`;
 }
 
-function calcPreviewChance(currentDebt, loanAmount, bill, perBill, cap) {
-  if (bill <= 0) return 0;
-  return Math.min(cap, Math.floor(((currentDebt + loanAmount) / bill) * perBill));
-}
-
-export default function SettlementPanel({ user, onRefresh, onBankruptcy }) {
+export default function SettlementPanel({ user, onRefresh }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [payAmount, setPayAmount] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [countdown, setCountdown] = useState(0);
-
-  // 借款相關
-  const [loanAmount, setLoanAmount] = useState("");
-  const [loanResult, setLoanResult] = useState(null);
-  const [loanBusy, setLoanBusy] = useState(false);
 
   const fetchSettlement = useCallback(async () => {
     try {
@@ -90,61 +80,11 @@ export default function SettlementPanel({ user, onRefresh, onBankruptcy }) {
     }
   };
 
-  const handleLoan = async () => {
-    const amount = parseInt(loanAmount, 10);
-    if (!amount || amount <= 0) return setLoanResult({ error: "請輸入有效的借款金額" });
-    setLoanBusy(true);
-    setLoanResult(null);
-    try {
-      const res = await fetch("/api/game/loan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ amount }),
-      });
-      const result = await res.json();
-      if (result.error) {
-        setLoanResult({ error: result.error });
-      } else if (result.bankruptcy) {
-        setLoanResult({
-          died: true,
-          roll: result.roll,
-          threshold: result.threshold,
-          amount: result.amount,
-        });
-        if (onBankruptcy) onBankruptcy(result.bankruptcyInfo);
-      } else {
-        setLoanResult({
-          survived: true,
-          roll: result.roll,
-          threshold: result.threshold,
-          amount: result.amount,
-          col: result.col,
-          debt: result.debt,
-        });
-        setLoanAmount("");
-        await fetchSettlement();
-        if (onRefresh) onRefresh();
-      }
-    } catch {
-      setLoanResult({ error: "借款失敗，請稍後再試" });
-    } finally {
-      setLoanBusy(false);
-    }
-  };
-
   if (loading) return <div className="card">載入帳單中...</div>;
   if (!data) return <div className="card error-msg">無法載入帳單</div>;
 
   const npcWages = (user.hiredNpcs || []).reduce((s, n) => s + (n.monthlyCost || n.weeklyCost || 0), 0);
   const floorTax = (user.currentFloor || 1) * 30;
-  const loan = data.loanInfo || {};
-
-  // 即時預覽破產機率
-  const previewAmount = parseInt(loanAmount, 10) || 0;
-  const previewChance = loan.canLoan && previewAmount > 0
-    ? calcPreviewChance(loan.currentDebt, previewAmount, loan.bill, loan.deathPerBill || 15, loan.deathCap || 90)
-    : 0;
 
   return (
     <div className="card">
@@ -267,124 +207,6 @@ export default function SettlementPanel({ user, onRefresh, onBankruptcy }) {
               一次還清（{data.debt} Col）
             </button>
           </div>
-        </div>
-      )}
-
-      {/* 擴大負債（借款）區 */}
-      {loan.canLoan && (
-        <div
-          style={{
-            background: "#44141433",
-            border: "1px solid #991b1b",
-            borderRadius: "6px",
-            padding: "0.8rem",
-            marginTop: "0.5rem",
-          }}
-        >
-          <div style={{ fontWeight: "bold", marginBottom: "0.5rem", color: "#fbbf24" }}>
-            擴大負債
-          </div>
-          <div style={{ fontSize: "0.8rem", color: "#d4d4d8", marginBottom: "0.5rem" }}>
-            向闇商人借款以獲取即時 Col。每次借款都需擲骰判定——負債越高，破產機率越大。
-            <br />
-            借款範圍：{loan.minLoan} ~ {loan.maxLoan} Col
-            {loan.currentDebt > 0 && (
-              <span>（目前負債：{loan.currentDebt} Col）</span>
-            )}
-          </div>
-
-          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
-            <input
-              type="number"
-              placeholder={`${loan.minLoan}~${loan.maxLoan}`}
-              value={loanAmount}
-              onChange={(e) => {
-                setLoanAmount(e.target.value);
-                setLoanResult(null);
-              }}
-              min={loan.minLoan}
-              max={loan.maxLoan}
-              style={{ width: "130px" }}
-            />
-            <button
-              className="btn-danger"
-              disabled={loanBusy || !loanAmount || previewAmount < loan.minLoan || previewAmount > loan.maxLoan}
-              onClick={handleLoan}
-            >
-              {loanBusy ? "擲骰中..." : "借款（賭命）"}
-            </button>
-          </div>
-
-          {/* 即時風險預覽 */}
-          {previewAmount >= loan.minLoan && previewAmount <= loan.maxLoan && (
-            <div style={{
-              marginTop: "0.4rem",
-              fontSize: "0.8rem",
-              padding: "0.4rem 0.6rem",
-              background: "#1a1a2e",
-              borderRadius: "4px",
-              border: `1px solid ${previewChance >= 60 ? "#dc2626" : previewChance >= 30 ? "#d97706" : "#4b5563"}`,
-            }}>
-              借 {previewAmount} Col 後總負債：{loan.currentDebt + previewAmount} Col
-              <br />
-              <span style={{
-                color: previewChance >= 60 ? "#ef4444" : previewChance >= 30 ? "#f59e0b" : "#10b981",
-                fontWeight: "bold",
-              }}>
-                破產機率：{previewChance}%
-              </span>
-              <span style={{ color: "#9ca3af", marginLeft: "0.5rem" }}>
-                （d100 擲出 ≤ {previewChance} 即死）
-              </span>
-            </div>
-          )}
-
-          {/* 借款結果 */}
-          {loanResult && (
-            <div style={{ marginTop: "0.5rem" }}>
-              {loanResult.error && (
-                <div className="error-msg">{loanResult.error}</div>
-              )}
-              {loanResult.survived && (
-                <div style={{
-                  background: "#14532d33",
-                  border: "1px solid #22c55e",
-                  borderRadius: "6px",
-                  padding: "0.5rem 0.7rem",
-                  color: "#86efac",
-                }}>
-                  <strong>倖存！</strong> 骰出 {loanResult.roll}（安全線 &gt; {loanResult.threshold}）
-                  <br />
-                  獲得 {loanResult.amount} Col。目前 Col：{loanResult.col}，負債：{loanResult.debt}
-                </div>
-              )}
-              {loanResult.died && (
-                <div style={{
-                  background: "#7f1d1d55",
-                  border: "1px solid #ef4444",
-                  borderRadius: "6px",
-                  padding: "0.5rem 0.7rem",
-                  color: "#fca5a5",
-                }}>
-                  <strong>破產！</strong> 骰出 {loanResult.roll}（死亡線 ≤ {loanResult.threshold}）
-                  <br />
-                  借款 {loanResult.amount} Col 的代價——角色已被永久刪除。
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 不可借款的原因 */}
-      {loan.canLoan === false && loan.reason && (
-        <div style={{
-          fontSize: "0.8rem",
-          color: "#6b7280",
-          marginTop: "0.5rem",
-          fontStyle: "italic",
-        }}>
-          {loan.reason}
         </div>
       )}
 

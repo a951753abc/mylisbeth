@@ -3,7 +3,6 @@ const router = express.Router();
 const { ensureAuth, ensureNotPaused } = require("../../middleware/auth.js");
 const db = require("../../db.js");
 const { calculateBill, payDebt } = require("../../game/economy/settlement.js");
-const { takeLoan, getLoanInfo } = require("../../game/economy/loan.js");
 const { sellItem, sellWeapon, sellSealedWeapon } = require("../../game/economy/shop.js");
 const { discardItem, discardWeapon } = require("../../game/economy/discard.js");
 const { getNextSettlementTime } = require("../../game/time/gameTime.js");
@@ -18,7 +17,6 @@ router.get("/settlement", ensureAuth, async (req, res) => {
     const user = await db.findOne("user", { userId: req.user.discordId });
     if (!user) return res.status(404).json({ error: "角色不存在" });
     const bill = calculateBill(user);
-    const loanInfo = getLoanInfo(user);
     res.json({
       bill,
       debt: user.debt || 0,
@@ -26,7 +24,6 @@ router.get("/settlement", ensureAuth, async (req, res) => {
       debtCycleCount: user.debtCycleCount || 0,
       nextSettlementAt: user.nextSettlementAt || null,
       col: user.col || 0,
-      loanInfo,
     });
   } catch (err) {
     console.error("取得帳單失敗:", err);
@@ -41,15 +38,6 @@ router.post("/pay-debt", ensureAuth, async (req, res) => {
     if (!amount || amount <= 0) return { error: "還款金額無效" };
     return await payDebt(req.user.discordId, amount);
   }, "還債失敗");
-});
-
-// Loan (擴大負債)
-router.post("/loan", ensureAuth, ensureNotPaused, async (req, res) => {
-  await handleRoute(res, async () => {
-    const { amount } = req.body;
-    if (!amount || amount <= 0) return { error: "借款金額無效" };
-    return await takeLoan(req.user.discordId, Math.floor(amount));
-  }, "借款失敗");
 });
 
 // Sell item

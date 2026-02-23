@@ -18,7 +18,6 @@ const VALID_STATS = [
   "laughingCoffinDefeats",
   // Season 4
   "totalSoloAdventures",
-  "totalLoans",
   // Season 5: PVP 決鬥
   "totalDuelsPlayed",
   "duelKills",

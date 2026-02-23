@@ -245,11 +245,6 @@ export default function Game({ user, onLogout }) {
     }
   }, [isPauseLoading, gameUser?.businessPaused, fetchUser]);
 
-  const handleBankruptcy = useCallback((info) => {
-    setBankruptcy(info);
-    setGameUser(null);
-  }, []);
-
   const handleBankruptcyDismiss = useCallback(() => {
     setBankruptcy(null);
     setLoading(true);
@@ -435,7 +430,6 @@ export default function Game({ user, onLogout }) {
           <SettlementPanel
             user={gameUser}
             onRefresh={fetchUser}
-            onBankruptcy={handleBankruptcy}
           />
         )}
         {tab === "shop" && (

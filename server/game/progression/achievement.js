@@ -256,14 +256,6 @@ const ACHIEVEMENTS = [
     check: (user) => (user.stats?.totalColEarned || 0) >= 10000,
     titleReward: "富豪",
   },
-  {
-    id: "first_loan",
-    name: "闇の契約",
-    nameCn: "闇之契約",
-    desc: "首次向闇商人借款",
-    check: (user) => (user.stats?.totalLoans || 0) >= 1,
-    titleReward: null,
-  },
   // Season 4.5: NPC 成長
   {
     id: "npc_lv10",

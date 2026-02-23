@@ -48,7 +48,6 @@ module.exports = async function (name, userId, provider = "discord") {
       totalShopSells: 0,
       laughingCoffinDefeats: 0,
       totalSoloAdventures: 0,
-      totalLoans: 0,
       // Season 5
       totalDuelsPlayed: 0,
       duelKills: 0,
@@ -66,7 +65,6 @@ module.exports = async function (name, userId, provider = "discord") {
     debtCycleCount: 0,
     isInDebt: false,
     lastActionAt: null,
-    lastLoanAt: null,
     // Season 3: 玩家體力值
     stamina: 100,
     maxStamina: 100,

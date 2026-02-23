@@ -215,7 +215,6 @@ mylisbeth/
 │       │   ├── bankruptcy.js       # 破產流程
 │       │   ├── shop.js             # 回收商店
 │       │   ├── market.js           # 佈告板交易
-│       │   ├── loan.js             # 貸款系統
 │       │   └── discard.js          # 素材/武器丟棄
 │       ├── floor/
 │       │   ├── floors.json         # 1-20 層定義資料
@@ -531,7 +530,6 @@ docker compose logs -f app
 |------|------|------|
 | GET | `/api/game/settlement` | 結算預覽（帳單明細、債務狀態） |
 | POST | `/api/game/pay-debt` | 手動償還債務 |
-| POST | `/api/game/loan` | 申請貸款 |
 | POST | `/api/game/sell-item` | 回收商店賣素材 |
 | POST | `/api/game/sell-weapon` | 回收商店賣武器 |
 | POST | `/api/game/pause-business` | 暫停/恢復營業 |
