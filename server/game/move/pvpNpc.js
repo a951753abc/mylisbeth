@@ -13,6 +13,7 @@ const { isNewbie } = require("../time/gameTime.js");
 const { getEffectiveStats, getCombinedBattleStats } = require("../npc/npcStats.js");
 const { killNpc, resolveNpcBattle } = require("../npc/npcManager.js");
 const { deductPvpStamina, deductWagers, buildCombatMods, validateDuelRequest, calcWagerPayout } = require("./pvpUtils.js");
+const { awardProficiency } = require("../skill/skillProficiency.js");
 
 const PVP = config.PVP;
 const MODES = PVP.MODES;
@@ -236,15 +237,19 @@ module.exports = async function (cmd, rawAttacker) {
   await increment(attacker.userId, "totalDuelsPlayed");
   if (playerWon) {
     await increment(attacker.userId, "totalPvpWins");
+    await awardProficiency(attacker.userId, attackerWeapon, "PVP_WIN");
     const expResult = await awardBattleExp(attacker.userId, config.BATTLE_LEVEL.EXP_PVP_WIN);
     if (expResult.leveled) {
       rewardText += `\n${attacker.name} 的戰鬥等級提升至 Lv.${expResult.newLevel}！`;
     }
   } else {
     await increment(attacker.userId, "totalPvpLosses");
+    if (!loserDied) {
+      await awardProficiency(attacker.userId, attackerWeapon, "PVP_LOSE");
+    }
   }
 
-  if (!loserDied || !npcDied) {
+  if (!loserDied) {
     await checkAndAward(attacker.userId);
   }
 
