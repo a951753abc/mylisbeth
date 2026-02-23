@@ -365,10 +365,16 @@ module.exports = async function bossAttack(cmd, rawUser) {
     const bossAtkBoost = getEffectiveBossAtk(bossData, [...activatedPhases, ...phaseCheck.newPhases]);
     const counterResult = bossCounterAttack({ bossData, bossAtkBoost, combined });
 
-    // NPC 戰鬥結算（以反擊結果取代固定 WIN）
-    // 閃避時不套用 bossAtkBoost 體力懲罰（Boss 沒打中就不應額外消耗體力）
-    const effectiveBossAtkBoostForCond = counterResult.dodged ? 0 : bossAtkBoost;
-    const npcResult = await resolveNpcBattle(user.userId, npcId, counterResult.outcome, BOSS_NPC_EXP_GAIN, user.title || null, effectiveBossAtkBoostForCond);
+    // NPC 戰鬥結算：比例式體力損耗（依實際傷害計算，非固定 bucket）
+    const { COND_DODGE, COND_MIN, COND_MAX, COND_PER_ATK_BOOST } = config.BOSS_COUNTER;
+    let bossCondLoss;
+    if (counterResult.dodged) {
+      bossCondLoss = COND_DODGE;
+    } else {
+      const damageRatio = Math.min(1, counterResult.counterDamage / counterResult.npcHp);
+      bossCondLoss = Math.round(COND_MIN + (COND_MAX - COND_MIN) * damageRatio) + bossAtkBoost * COND_PER_ATK_BOOST;
+    }
+    const npcResult = await resolveNpcBattle(user.userId, npcId, counterResult.outcome, BOSS_NPC_EXP_GAIN, user.title || null, 0, bossCondLoss);
 
     // npcEventText 只放次要事件（升級），反擊結果由 counterAttack 結構化物件傳遞
     let npcEventText = "";

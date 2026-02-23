@@ -151,9 +151,14 @@ module.exports = {
     ATK_MULT: 0.5,        // Boss 反擊 ATK 倍率
     AGI_BONUS: 4,         // Boss 反擊額外 AGI 加成（確保高 agi NPC 也有被命中的風險）
     BOSS_CRI: 11,         // 反擊暴擊門檻（d66 >= 11，約 8.3%）
-    WIN_THRESHOLD: 0.40,  // 傷害/HP < 40% → WIN
-    LOSE_THRESHOLD: 0.75, // 傷害/HP >= 75% → LOSE
+    WIN_THRESHOLD: 0.40,  // 傷害/HP < 40% → WIN（仍用於死亡判定）
+    LOSE_THRESHOLD: 0.75, // 傷害/HP >= 75% → LOSE（仍用於死亡判定）
     // 中間 40%~75% → DRAW
+    // 比例式體力損耗參數
+    COND_DODGE: 5,        // 閃避時最低疲勞
+    COND_MIN: 8,          // 命中時最低體力損耗（高於 COND_DODGE，被擦傷 > 完美閃避）
+    COND_MAX: 50,         // 命中時最高體力損耗（damageRatio = 100%）
+    COND_PER_ATK_BOOST: 3, // 每點 bossAtkBoost 額外體力損耗
   },
   FLOOR_MAX_EXPLORE: 5,
 

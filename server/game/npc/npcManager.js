@@ -173,9 +173,12 @@ async function healNpc(userId, npcId, healType) {
  * @param {string} npcId
  * @param {"WIN"|"LOSE"|"DRAW"} outcome
  * @param {number} expGain
- * @returns {{ survived: boolean, levelUp: boolean, died?: boolean }}
+ * @param {string|null} userTitle
+ * @param {number} bossAtkBoost - Boss phase 加成（僅冒險/PvP 預設模式使用）
+ * @param {number|null} condLossOverride - 覆蓋體力損耗值（Boss 戰比例計算用），傳入時忽略 bucket + bossAtkBoost
+ * @returns {{ survived: boolean, levelUp: boolean, died?: boolean, condBefore?: number, newCondition?: number }}
  */
-async function resolveNpcBattle(userId, npcId, outcome, expGain, userTitle = null, bossAtkBoost = 0) {
+async function resolveNpcBattle(userId, npcId, outcome, expGain, userTitle = null, bossAtkBoost = 0, condLossOverride = null) {
   const user = await db.findOne("user", { userId });
   if (!user) return { survived: false, died: false };
 
@@ -186,9 +189,15 @@ async function resolveNpcBattle(userId, npcId, outcome, expGain, userTitle = nul
   const npc = hired[npcIdx];
   // 套用 npcCondLoss 稱號修正
   const condLossMod = getModifier(userTitle, "npcCondLoss");
-  const baseCondLoss = NPC_CFG.CONDITION_LOSS[outcome] || 15;
-  // Boss phase atkBoost 額外增加體力損耗（每點 +3）
-  const condLoss = Math.max(1, Math.round((baseCondLoss + bossAtkBoost * 3) * condLossMod));
+  let condLoss;
+  if (condLossOverride != null) {
+    // Boss 戰：由呼叫端傳入比例計算好的體力損耗
+    condLoss = Math.max(1, Math.round(condLossOverride * condLossMod));
+  } else {
+    // 冒險/PvP：使用固定 bucket
+    const baseCondLoss = NPC_CFG.CONDITION_LOSS[outcome] || 15;
+    condLoss = Math.max(1, Math.round((baseCondLoss + bossAtkBoost * 3) * condLossMod));
+  }
   const newCond = Math.max(0, (npc.condition ?? 100) - condLoss);
 
   // 判斷死亡：敗北 + 體力 ≤ 閾值 → 套用 npcDeathChance 修正

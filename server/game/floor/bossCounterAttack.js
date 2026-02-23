@@ -9,7 +9,7 @@ const { ATK_MULT, AGI_BONUS, BOSS_CRI, WIN_THRESHOLD, LOSE_THRESHOLD } = config.
  * @param {object} params.bossData - floors.json 的 Boss 定義（含 atk, agi）
  * @param {number} params.bossAtkBoost - Phase 累計 atkBoost
  * @param {object} params.combined - NPC+武器合併數值（getCombinedBattleStats 結果，含 hp, atk, def, agi, cri）
- * @returns {{ hit: boolean, dodged: boolean, counterDamage: number, outcome: string, isCrit: boolean, logText: string }}
+ * @returns {{ hit: boolean, dodged: boolean, counterDamage: number, npcHp: number, outcome: string, isCrit: boolean, logText: string }}
  */
 function bossCounterAttack({ bossData, bossAtkBoost, combined }) {
   const effectiveBossAtk = Math.ceil((bossData.atk + bossAtkBoost) * ATK_MULT);
@@ -26,6 +26,7 @@ function bossCounterAttack({ bossData, bossAtkBoost, combined }) {
       hit: false,
       dodged: true,
       counterDamage: 0,
+      npcHp,
       outcome: "WIN",
       isCrit: false,
       logText: `Boss 反擊！${hitResult.text}`,
@@ -55,6 +56,7 @@ function bossCounterAttack({ bossData, bossAtkBoost, combined }) {
     hit: true,
     dodged: false,
     counterDamage,
+    npcHp,
     outcome,
     isCrit: damResult.isCrit,
     logText,
