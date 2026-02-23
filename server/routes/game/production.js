@@ -12,6 +12,7 @@ const itemCache = require("../../game/cache/itemCache.js");
 const { getModifier } = require("../../game/title/titleModifier.js");
 const { getFloorMinePool, getStarRates } = require("../../game/move/mine.js");
 const weaponCache = require("../../game/cache/weaponCache.js");
+const { getWeaponLockError } = require("../../game/weapon/weaponLock.js");
 
 // Create character
 router.post("/create", ensureAuth, async (req, res) => {
@@ -140,6 +141,12 @@ router.post("/rename-weapon", ensureAuth, async (req, res) => {
     if (isNaN(idx) || idx < 0) {
       return res.status(400).json({ error: "找不到該武器" });
     }
+    // 檢查是否被 NPC 裝備中
+    const user = await db.findOne("user", { userId });
+    if (!user) return res.status(404).json({ error: "角色不存在" });
+    const lockError = getWeaponLockError(user.hiredNpcs, idx);
+    if (lockError) return res.status(400).json({ error: lockError });
+
     const filter = {
       userId,
       [`weaponStock.${idx}`]: { $exists: true },

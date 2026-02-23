@@ -1,6 +1,7 @@
 const db = require("../../db.js");
 const config = require("../config.js");
 const { destroyWeapon } = require("../weapon/weapon.js");
+const { getWeaponLockError } = require("../weapon/weaponLock.js");
 
 const MAX_DISCARD_QTY = 99;
 
@@ -93,13 +94,9 @@ async function discardWeapon(userId, weaponIndex) {
   const weapon = weapons[weaponIndex];
   if (!weapon) return { error: "找不到該武器" };
 
-  // 檢查是否為 NPC 裝備中的武器
-  const isNpcEquipped = (user.hiredNpcs || []).some(
-    (n) => n.equippedWeaponIndex === weaponIndex,
-  );
-  if (isNpcEquipped) {
-    return { error: "該武器正被 NPC 裝備中，請先卸除" };
-  }
+  // 檢查是否被 NPC 裝備中
+  const lockError = getWeaponLockError(user.hiredNpcs, weaponIndex);
+  if (lockError) return { error: lockError };
 
   // 檢查是否為 PVP 防禦武器（只在明確設定時才擋）
   const defIdx = user.defenseWeaponIndex;
@@ -183,4 +180,4 @@ async function remapWeaponIndices(userId, removedIndex) {
   }
 }
 
-module.exports = { discardItem, discardWeapon };
+module.exports = { discardItem, discardWeapon, remapWeaponIndices };

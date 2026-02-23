@@ -4,6 +4,8 @@ const { formatText, getText } = require("../textManager.js");
 const { awardCol, deductCol } = require("./col.js");
 const { calculateRarity } = require("../weapon/rarity.js");
 const { destroyWeapon } = require("../weapon/weapon.js");
+const { getWeaponLockError } = require("../weapon/weaponLock.js");
+const { remapWeaponIndices } = require("./discard.js");
 const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const { getModifier } = require("../title/titleModifier.js");
@@ -87,9 +89,9 @@ async function listWeapon(userId, weaponIndex, totalPrice) {
   const weapon = (user.weaponStock || [])[weaponIndex];
   if (!weapon) return { error: getText("ECONOMY.MARKET_WEAPON_NOT_FOUND") };
 
-  // 檢查 NPC 是否裝備此武器
-  const isEquipped = (user.hiredNpcs || []).some((n) => n.equippedWeaponIndex === weaponIndex);
-  if (isEquipped) return { error: getText("ECONOMY.MARKET_WEAPON_NPC_EQUIPPED") };
+  // 檢查是否被 NPC 裝備中
+  const lockError = getWeaponLockError(user.hiredNpcs, weaponIndex);
+  if (lockError) return { error: lockError };
 
   // 手續費
   const feeMod = getModifier(user.title || null, "marketListingFee");
@@ -99,9 +101,10 @@ async function listWeapon(userId, weaponIndex, totalPrice) {
   const paid = await deductCol(userId, fee);
   if (!paid) return { error: formatText("ECONOMY.MARKET_COL_INSUFFICIENT", { fee }) };
 
-  // 銷毀武器（從 weaponStock 移除）
+  // 銷毀武器並重映射索引
   const rarity = calculateRarity(weapon);
   await destroyWeapon(userId, weaponIndex);
+  await remapWeaponIndices(userId, weaponIndex);
 
   const listing = {
     listingId: generateListingId(),

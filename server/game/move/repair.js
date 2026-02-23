@@ -3,6 +3,7 @@ const config = require("../config.js");
 const roll = require("../roll.js");
 const { deductCol, awardCol } = require("../economy/col.js");
 const { calculateRarity } = require("../weapon/rarity.js");
+const { getWeaponLockError } = require("../weapon/weaponLock.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { getModifier } = require("../title/titleModifier.js");
 const { formatText, getText } = require("../textManager.js");
@@ -33,6 +34,10 @@ module.exports = async function (cmd, rawUser) {
 
     const thisWeapon = user.weaponStock[weaponIndex];
     const thisMat = user.itemStock[matIndex];
+
+    // 檢查是否被 NPC 裝備中
+    const lockError = getWeaponLockError(user.hiredNpcs, weaponIndex);
+    if (lockError) return { error: lockError };
 
     // 耐久已滿則拒絕
     const maxDurability = thisWeapon.maxDurability || 12;

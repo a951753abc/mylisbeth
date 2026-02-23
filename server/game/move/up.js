@@ -5,6 +5,7 @@ const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
 const { calculateRarity } = require("../weapon/rarity.js");
+const { getWeaponLockError } = require("../weapon/weaponLock.js");
 const config = require("../config.js");
 const { formatText, getText } = require("../textManager.js");
 
@@ -24,6 +25,11 @@ module.exports = async function (cmd, rawUser) {
   if (!user.weaponStock || !user.weaponStock[weaponIdx]) {
     return { error: formatText("UPGRADE.WEAPON_NOT_FOUND", { index: weaponIdx }) };
   }
+
+  // 檢查是否被 NPC 裝備中
+  const lockError = getWeaponLockError(user.hiredNpcs, weaponIdx);
+  if (lockError) return { error: lockError };
+
   if (!user.itemStock || !user.itemStock[materialIdx]) {
     return { error: formatText("UPGRADE.MATERIAL_NOT_FOUND", { index: materialIdx }) };
   }

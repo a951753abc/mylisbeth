@@ -87,7 +87,7 @@ router.post("/equip", ensureAuth, ensureNotPaused, async (req, res) => {
   try {
     const { npcId, weaponIndex } = req.body;
     if (!npcId) return res.status(400).json({ error: "請提供 npcId" });
-    const idx = weaponIndex !== undefined ? weaponIndex : null;
+    const idx = weaponIndex != null ? parseInt(weaponIndex, 10) : null;
     const result = await equipWeapon(req.user.discordId, npcId, idx);
     if (result.error) return res.status(400).json(result);
     res.json(result);

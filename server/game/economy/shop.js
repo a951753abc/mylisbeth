@@ -3,10 +3,12 @@ const { d6 } = require("../roll.js");
 const { awardCol } = require("./col.js");
 const { calculateRarity } = require("../weapon/rarity.js");
 const { destroyWeapon } = require("../weapon/weapon.js");
+const { getWeaponLockError } = require("../weapon/weaponLock.js");
 const config = require("../config.js");
 const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const { getModifier } = require("../title/titleModifier.js");
+const { remapWeaponIndices } = require("./discard.js");
 
 /**
  * 出售素材（以 itemStock 陣列索引定位）
@@ -88,14 +90,19 @@ async function sellWeapon(userId, weaponIndex) {
   const weapon = (user.weaponStock || [])[weaponIndex];
   if (!weapon) return { error: "找不到該武器" };
 
+  // 檢查是否被 NPC 裝備中
+  const lockError = getWeaponLockError(user.hiredNpcs, weaponIndex);
+  if (lockError) return { error: lockError };
+
   // Season 6: 依稀有度定價（稀有度倍率 × d6 × 稱號修正）
   const rarity = calculateRarity(weapon);
   const priceMod = getModifier(user.title || null, "shopSellPrice");
   const rarityMult = (config.SHOP.WEAPON_RARITY_MULT || {})[rarity.id] || 1;
   const price = Math.max(1, Math.round(d6() * rarityMult * priceMod));
 
-  // 銷毀武器
+  // 銷毀武器並重映射索引
   await destroyWeapon(userId, weaponIndex);
+  await remapWeaponIndices(userId, weaponIndex);
 
   // 發放 Col + 統計
   await awardCol(userId, price);
