@@ -14,6 +14,7 @@ const { resolveWeaponType } = require("../weapon/weaponType.js");
 const { getExpToNextLevel } = require("./npcStats.js");
 const { tryNpcLearnSkill } = require("../skill/npcSkillLearning.js");
 const { ensureNpcProfMap } = require("../skill/skillProficiency.js");
+const { isNpcOnExpedition } = require("../expedition/expedition.js");
 
 const MISSIONS = config.NPC_MISSIONS;
 
@@ -71,6 +72,11 @@ async function startMission(userId, npcId, missionType) {
 
   // 檢查是否已在任務中
   if (npc.mission) return { error: formatText("NPC.ON_MISSION", { npcName: npc.name }) };
+
+  // 檢查是否正在遠征中
+  if (isNpcOnExpedition(user, npcId)) {
+    return { error: formatText("EXPEDITION.NPC_ON_EXPEDITION", { npcName: npc.name }) };
+  }
 
   // 同時派遣任務上限（只計算非修練任務）
   const activeMissions = hired.filter((n) => n.mission && !n.mission.isTraining).length;
@@ -398,6 +404,11 @@ async function startTraining(userId, npcId, trainingType) {
   const npc = hired[npcIdx];
 
   if (npc.mission) return { error: formatText("NPC.ON_MISSION", { npcName: npc.name }) };
+
+  // 檢查是否正在遠征中
+  if (isNpcOnExpedition(user, npcId)) {
+    return { error: formatText("EXPEDITION.NPC_ON_EXPEDITION", { npcName: npc.name }) };
+  }
 
   // 修練獨立上限（只計算修練任務）
   const activeTrainings = hired.filter((n) => n.mission?.isTraining).length;

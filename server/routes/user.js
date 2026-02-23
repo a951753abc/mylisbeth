@@ -9,6 +9,7 @@ const { getGameDaysSince } = require('../game/time/gameTime.js');
 const { regenStamina } = require('../game/stamina/staminaCheck.js');
 const ensureUserFields = require('../game/migration/ensureUserFields.js');
 const { checkMissions } = require('../game/npc/mission.js');
+const { checkExpedition } = require('../game/expedition/expedition.js');
 
 // Get current user game info
 router.get('/me', ensureAuth, async (req, res) => {
@@ -84,6 +85,13 @@ router.get('/me', ensureAuth, async (req, res) => {
             await checkMissions(user.userId);
         } catch (missionErr) {
             console.error(`[/api/me] checkMissions 失敗 userId=${user.userId}:`, missionErr);
+        }
+
+        // Season 13: 懶結算遠征（錯誤隔離：失敗不阻斷登入）
+        try {
+            await checkExpedition(user.userId);
+        } catch (expeditionErr) {
+            console.error(`[/api/me] checkExpedition 失敗 userId=${user.userId}:`, expeditionErr);
         }
 
         // 重新讀取最新資料

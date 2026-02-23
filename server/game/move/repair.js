@@ -35,8 +35,8 @@ module.exports = async function (cmd, rawUser) {
     const thisWeapon = user.weaponStock[weaponIndex];
     const thisMat = user.itemStock[matIndex];
 
-    // 檢查是否被 NPC 裝備中
-    const lockError = getWeaponLockError(user.hiredNpcs, weaponIndex);
+    // 檢查是否被 NPC 裝備中或遠征中
+    const lockError = getWeaponLockError(user.hiredNpcs, weaponIndex, user.activeExpedition);
     if (lockError) return { error: lockError };
 
     // 耐久已滿則拒絕

@@ -16,6 +16,7 @@ import ShopPanel from "../components/ShopPanel";
 import MarketPanel from "../components/MarketPanel";
 import SkillPanel from "../components/SkillPanel";
 import WarehousePanel from "../components/WarehousePanel";
+import ExpeditionPanel from "../components/ExpeditionPanel";
 
 const MOVE_COOLDOWN_SECONDS = 5;
 
@@ -46,6 +47,7 @@ const TAB_GROUPS = [
       { key: "shop", text: "商店" },
       { key: "market", text: "佈告板" },
       { key: "warehouse", text: "倉庫" },
+      { key: "expedition", text: "遠征" },
     ],
   },
   {
@@ -440,6 +442,9 @@ export default function Game({ user, onLogout }) {
         )}
         {tab === "warehouse" && (
           <WarehousePanel user={gameUser} onRefresh={fetchUser} />
+        )}
+        {tab === "expedition" && (
+          <ExpeditionPanel user={gameUser} onRefresh={fetchUser} />
         )}
       </div>
     </div>

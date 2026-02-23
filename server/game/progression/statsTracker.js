@@ -36,6 +36,9 @@ const VALID_STATS = [
   "mysteriousChestsOpened",
   "forgeInspirationReceived",
   "npcAwakenings",
+  // Season 13: 遠征
+  "totalExpeditions",
+  "expeditionsSucceeded",
 ];
 
 async function increment(userId, statName, amount = 1) {

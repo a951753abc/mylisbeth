@@ -26,8 +26,8 @@ module.exports = async function (cmd, rawUser) {
     return { error: formatText("UPGRADE.WEAPON_NOT_FOUND", { index: weaponIdx }) };
   }
 
-  // 檢查是否被 NPC 裝備中
-  const lockError = getWeaponLockError(user.hiredNpcs, weaponIdx);
+  // 檢查是否被 NPC 裝備中或遠征中
+  const lockError = getWeaponLockError(user.hiredNpcs, weaponIdx, user.activeExpedition);
   if (lockError) return { error: lockError };
 
   if (!user.itemStock || !user.itemStock[materialIdx]) {

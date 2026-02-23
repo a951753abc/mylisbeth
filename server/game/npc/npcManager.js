@@ -6,6 +6,7 @@ const { getExpToNextLevel } = require("./npcStats.js");
 const { getGameDaysSince } = require("../time/gameTime.js");
 const { getModifier } = require("../title/titleModifier.js");
 const { formatText, getText } = require("../textManager.js");
+const { isNpcOnExpedition } = require("../expedition/expedition.js");
 
 const NPC_CFG = config.NPC;
 
@@ -127,6 +128,11 @@ async function fireNpc(userId, npcId) {
   const hired = user.hiredNpcs || [];
   const npcEntry = hired.find((n) => n.npcId === npcId);
   if (!npcEntry) return { error: getText("NPC.NPC_NOT_FOUND") };
+
+  // 遠征中不可解雇
+  if (isNpcOnExpedition(user, npcId)) {
+    return { error: formatText("EXPEDITION.NPC_ON_EXPEDITION", { npcName: npcEntry.name }) };
+  }
 
   await db.update("user", { userId }, { $pull: { hiredNpcs: { npcId } } });
   await db.update("npc", { npcId }, { $set: { status: "available", hiredBy: null } });
@@ -276,6 +282,11 @@ async function equipWeapon(userId, npcId, weaponIndex) {
   const hired = user.hiredNpcs || [];
   const npcIdx = hired.findIndex((n) => n.npcId === npcId);
   if (npcIdx === -1) return { error: getText("NPC.NPC_NOT_FOUND") };
+
+  // 遠征中不可換裝
+  if (isNpcOnExpedition(user, npcId)) {
+    return { error: formatText("EXPEDITION.NPC_ON_EXPEDITION", { npcName: hired[npcIdx].name }) };
+  }
 
   if (weaponIndex !== null && !user.weaponStock?.[weaponIndex]) {
     return { error: formatText("NPC.WEAPON_NOT_FOUND", { index: weaponIndex }) };

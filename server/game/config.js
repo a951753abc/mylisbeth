@@ -99,7 +99,7 @@ module.exports = {
   BUFF_HP_MULTIPLIER: 5,          // HP 屬性倍率（相對其他屬性）
 
   // 鍛造素材星級加成倍率（乘以 forgeLevel）
-  FORGE_STAR_MULT: { 1: 1.0, 2: 1.5, 3: 2.0 },
+  FORGE_STAR_MULT: { 1: 1.0, 2: 1.5, 3: 2.0, 4: 3.0 },
 
   // 3+ 素材額外加成
   FORGE_EXTRA_MAT: {
@@ -402,13 +402,13 @@ module.exports = {
 
   // Season 3.5: 回收商店（Season 6: 依星級/稀有度定價）
   SHOP: {
-    MATERIAL_STAR_MULT: { 1: 1, 2: 3, 3: 6 },
+    MATERIAL_STAR_MULT: { 1: 1, 2: 3, 3: 6, 4: 12 },
     WEAPON_RARITY_MULT: { common: 1, fine: 3, rare: 8, epic: 20, legendary: 50 },
   },
 
   // Season 6: 佈告板掛賣系統
   MARKET: {
-    MATERIAL_BASE_PRICE: { 1: 5, 2: 15, 3: 40 },
+    MATERIAL_BASE_PRICE: { 1: 5, 2: 15, 3: 40, 4: 100 },
     WEAPON_BASE_PRICE: { common: 20, fine: 60, rare: 150, epic: 400, legendary: 1000 },
     NPC_BUY_THRESHOLD: 1.5,
     NPC_BUY_BASE_CHANCE: 30,
@@ -439,6 +439,55 @@ module.exports = {
     CONCURRENT_LIMIT: 2,       // 修練獨立上限（與任務分開）
     PROF_CAP_PER_FLOOR: 100,   // 修練熟練度上限 = effectiveFloor × 100
     LEVEL_CAP_PER_FLOOR: 2,    // 修練等級上限 = effectiveFloor × 2
+  },
+
+  // Season 13: 遠征系統
+  EXPEDITION: {
+    UNLOCK_ADV_LEVEL: 5,           // 冒險等級 5 解鎖
+    DURATION_MS: 60 * 1000,        // 60 秒
+    COOLDOWN_MS: 5 * 60 * 1000,    // 遠征冷卻 5 分鐘
+    MIN_NPCS: 1,                   // 最少派遣 1 NPC
+    MIN_CONDITION: 30,             // NPC 最低體力要求
+
+    // 迷宮定義（每 20 層開放一個）
+    DUNGEONS: [
+      { id: "abyss_labyrinth_1", name: "深淵迷宮", requiredFloor: 20, difficulty: 500 },
+    ],
+
+    // 戰力計算權重
+    POWER_WEIGHTS: {
+      npcAtk: 3.0, npcDef: 1.5, npcHp: 0.1, npcAgi: 2.0,
+      weaponAtk: 2.5, weaponDef: 1.0, weaponHp: 0.05, weaponAgi: 1.5, weaponCri: 1.0,
+    },
+    // NPC 品質倍率
+    QUALITY_POWER_MULT: { 見習: 0.6, 普通: 1.0, 優秀: 1.5, 精銳: 2.0, 傳說: 3.0 },
+
+    // 成功率公式: clamp(BASE + (power/difficulty - 1) * SCALE, MIN, MAX)
+    SUCCESS_BASE: 50,
+    SUCCESS_SCALE: 30,
+    SUCCESS_MIN: 10,
+    SUCCESS_MAX: 95,
+
+    // 耐久消耗（每把武器）
+    DURABILITY_LOSS_BASE: 5,       // 基礎耐久消耗
+    DURABILITY_LOSS_DICE: 8,       // + d8 隨機
+    DURABILITY_FAIL_MULT: 1.5,     // 失敗時耐久消耗 ×1.5
+
+    // NPC 風險
+    CONDITION_LOSS_SUCCESS: 20,    // 成功時體力損耗
+    CONDITION_LOSS_FAIL: 50,       // 失敗時體力損耗
+    DEATH_CHANCE_FAIL: 30,         // 失敗時死亡機率（condition <= 20 時）
+
+    // 獎勵
+    REWARDS: {
+      COL_BASE: 200,
+      COL_PER_NPC: 100,
+      FOUR_STAR_CHANCE: 60,         // 成功時 60% 獲得 ★★★★ 素材
+      THREE_STAR_CHANCE: 100,       // 成功時必定獲得 ★★★ 素材
+      QUALITY_UPGRADE_CHANCE: 8,    // 8% NPC 品質提升
+      RELIC_CHANCE: 5,              // 5% 獲得特殊聖遺物
+      NPC_SKILL_CHANCE: 15,         // 15% NPC 學會遠征技能
+    },
   },
 
   // Season 12: 鍛造等級附加功能

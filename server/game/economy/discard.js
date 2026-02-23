@@ -94,8 +94,8 @@ async function discardWeapon(userId, weaponIndex) {
   const weapon = weapons[weaponIndex];
   if (!weapon) return { error: "找不到該武器" };
 
-  // 檢查是否被 NPC 裝備中
-  const lockError = getWeaponLockError(user.hiredNpcs, weaponIndex);
+  // 檢查是否被 NPC 裝備中或遠征中
+  const lockError = getWeaponLockError(user.hiredNpcs, weaponIndex, user.activeExpedition);
   if (lockError) return { error: lockError };
 
   // 檢查是否為 PVP 防禦武器（只在明確設定時才擋）

@@ -174,6 +174,9 @@ module.exports = function (user) {
     adventureExp: user.adventureExp ?? 0,
     adventureExpNext: getAdvExpToNextLevel(adventureLevel),
     hireLimit: getHireLimit(adventureLevel),
+    // Season 13: 遠征
+    activeExpedition: user.activeExpedition ?? null,
+    lastExpeditionAt: user.lastExpeditionAt ?? null,
     // 倉庫摘要
     warehouse: (() => {
       const wh = user.warehouse || { built: false, level: 0, items: [], weapons: [] };

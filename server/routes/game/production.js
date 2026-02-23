@@ -145,7 +145,7 @@ router.post("/rename-weapon", ensureAuth, async (req, res) => {
     // 檢查是否被 NPC 裝備中
     const user = await db.findOne("user", { userId });
     if (!user) return res.status(404).json({ error: "角色不存在" });
-    const lockError = getWeaponLockError(user.hiredNpcs, idx);
+    const lockError = getWeaponLockError(user.hiredNpcs, idx, user.activeExpedition);
     if (lockError) return res.status(400).json({ error: lockError });
 
     const filter = {

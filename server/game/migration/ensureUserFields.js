@@ -47,6 +47,9 @@ const DEFAULT_FIELDS = {
     mysteriousChestsOpened: 0,
     forgeInspirationReceived: 0,
     npcAwakenings: 0,
+    // Season 13: 遠征
+    totalExpeditions: 0,
+    expeditionsSucceeded: 0,
   },
   // Season 3 fields
   gameCreatedAt: null,
@@ -104,6 +107,9 @@ const DEFAULT_FIELDS = {
   activeFloor: null, // null = 在前線（= currentFloor）
   // Season 11: 多登入管道
   provider: "discord",
+  // Season 13: 遠征系統
+  activeExpedition: null,
+  lastExpeditionAt: null,
 };
 
 module.exports = async function ensureUserFields(user) {

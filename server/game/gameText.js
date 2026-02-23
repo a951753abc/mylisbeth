@@ -228,6 +228,31 @@ module.exports = {
     RETRIEVE_WEAPON_SUCCESS: "已從倉庫取出武器【{name}】。",
   },
 
+  // === 遠征 ===
+  EXPEDITION: {
+    NOT_UNLOCKED: "遠征功能需要冒險等級 {level} 才能解鎖（目前等級：{current}）",
+    ON_COOLDOWN: "遠征冷卻中，還需等待 {seconds} 秒",
+    ALREADY_ACTIVE: "已有一支遠征隊伍正在進行中",
+    DUNGEON_LOCKED: "尚未解鎖此迷宮（需要攻略第 {floor} 層）",
+    NPC_BUSY: "{npcName} 正在執行任務或修練中，無法參加遠征",
+    NPC_LOW_CONDITION: "{npcName} 體力不足（需要 {required}%，目前 {current}%）",
+    NPC_ON_EXPEDITION: "{npcName} 正在遠征中，無法執行此操作",
+    WEAPON_ON_EXPEDITION: "該武器正在遠征中使用，無法執行此操作",
+    WEAPON_NOT_FOUND: "武器編號 {index} 不存在",
+    NO_NPCS: "至少需要派遣 {min} 位 NPC",
+    STARTED: "遠征隊伍已出發前往【{dungeon}】！預計 {seconds} 秒後返回。",
+    SUCCESS: "遠征成功！隊伍從【{dungeon}】凱旋歸來。",
+    FAIL: "遠征失敗...隊伍從【{dungeon}】狼狽撤退。",
+    NPC_DIED: "{npcName} 在遠征中壯烈犧牲了...",
+    WEAPON_DESTROYED: "武器【{weaponName}】在遠征中損壞殆盡，已無法修復。",
+    QUALITY_UPGRADED: "{npcName} 在遠征中突破極限！品質提升：{oldQuality} → {newQuality}",
+    RELIC_OBTAINED: "在迷宮深處發現了聖遺物：【{relicName}】！",
+    SKILL_LEARNED: "{npcName} 在遠征中領悟了新技能：【{skillName}】！",
+    FOUR_STAR_DROP: "獲得稀有素材 [★★★★]{itemName}",
+    THREE_STAR_DROP: "獲得素材 [★★★]{itemName}",
+    COL_REWARD: "獲得 {amount} Col",
+  },
+
   // === 隨機事件 ===
   EVENTS: {
     LC_NAME: "微笑棺木襲擊",

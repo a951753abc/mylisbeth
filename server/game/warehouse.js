@@ -318,8 +318,8 @@ async function storeWeapon(userId, weaponIndex) {
   const weapon = (user.weaponStock || [])[weaponIndex];
   if (!weapon) return { error: getText("WAREHOUSE.STORE_WEAPON_NOT_FOUND") };
 
-  // 檢查武器是否被 NPC 裝備
-  const lockError = getWeaponLockError(user.hiredNpcs, weaponIndex);
+  // 檢查武器是否被 NPC 裝備或遠征中
+  const lockError = getWeaponLockError(user.hiredNpcs, weaponIndex, user.activeExpedition);
   if (lockError) return { error: lockError };
 
   // 檢查是否為 PVP 防禦武器

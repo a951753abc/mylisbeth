@@ -89,8 +89,8 @@ async function listWeapon(userId, weaponIndex, totalPrice) {
   const weapon = (user.weaponStock || [])[weaponIndex];
   if (!weapon) return { error: getText("ECONOMY.MARKET_WEAPON_NOT_FOUND") };
 
-  // 檢查是否被 NPC 裝備中
-  const lockError = getWeaponLockError(user.hiredNpcs, weaponIndex);
+  // 檢查是否被 NPC 裝備中或遠征中
+  const lockError = getWeaponLockError(user.hiredNpcs, weaponIndex, user.activeExpedition);
   if (lockError) return { error: lockError };
 
   // 手續費

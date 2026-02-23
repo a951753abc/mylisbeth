@@ -1,0 +1,509 @@
+const db = require("../../db.js");
+const config = require("../config.js");
+const roll = require("../roll.js");
+const { getEffectiveStats } = require("../npc/npcStats.js");
+const { awardCol } = require("../economy/col.js");
+const { increment } = require("../progression/statsTracker.js");
+const { checkAndAward } = require("../progression/achievement.js");
+const { awardAdvExp } = require("../progression/adventureLevel.js");
+const { formatText, getText } = require("../textManager.js");
+const { generateRewards } = require("./rewards.js");
+
+const EXPEDITION = config.EXPEDITION;
+
+/**
+ * 檢查 NPC 是否正在遠征中
+ */
+function isNpcOnExpedition(user, npcId) {
+  if (!user.activeExpedition) return false;
+  return user.activeExpedition.npcs.some((n) => n.npcId === npcId);
+}
+
+/**
+ * 檢查武器是否正在遠征中使用
+ */
+function isWeaponOnExpedition(user, weaponIndex) {
+  if (!user.activeExpedition) return false;
+  return user.activeExpedition.npcs.some((n) =>
+    n.weaponIndices.includes(weaponIndex),
+  );
+}
+
+/**
+ * 取得遠征預覽資料（供前端顯示）
+ */
+function getExpeditionPreview(user) {
+  const advLevel = user.adventureLevel || 1;
+  const isUnlocked = advLevel >= EXPEDITION.UNLOCK_ADV_LEVEL;
+  const currentFloor = user.currentFloor || 1;
+
+  const dungeons = EXPEDITION.DUNGEONS.map((d) => ({
+    ...d,
+    unlocked: currentFloor > d.requiredFloor,
+  }));
+
+  const now = Date.now();
+  const cooldownRemaining = user.lastExpeditionAt
+    ? Math.max(0, user.lastExpeditionAt + EXPEDITION.COOLDOWN_MS - now)
+    : 0;
+
+  return {
+    isUnlocked,
+    unlockLevel: EXPEDITION.UNLOCK_ADV_LEVEL,
+    currentAdvLevel: advLevel,
+    dungeons,
+    activeExpedition: user.activeExpedition,
+    cooldownRemaining,
+    cooldownMs: EXPEDITION.COOLDOWN_MS,
+  };
+}
+
+/**
+ * 計算遠征隊伍總戰力
+ * @param {Array<{npc: object, weaponIndices: number[]}>} npcEntries
+ * @param {Array} weapons - user.weaponStock
+ * @returns {number}
+ */
+function calculatePower(npcEntries, weapons) {
+  const W = EXPEDITION.POWER_WEIGHTS;
+  let totalPower = 0;
+
+  for (const entry of npcEntries) {
+    const { npc, weaponIndices } = entry;
+    const effective = getEffectiveStats(npc);
+    if (!effective) continue;
+
+    const qualityMult = EXPEDITION.QUALITY_POWER_MULT[npc.quality] || 1.0;
+
+    // NPC 基礎戰力
+    const npcPower =
+      (effective.atk * W.npcAtk +
+        effective.def * W.npcDef +
+        effective.hp * W.npcHp +
+        effective.agi * W.npcAgi) *
+      qualityMult;
+
+    totalPower += npcPower;
+
+    // 武器戰力
+    for (const wIdx of weaponIndices) {
+      const w = weapons[wIdx];
+      if (!w) continue;
+      totalPower +=
+        (w.atk || 0) * W.weaponAtk +
+        (w.def || 0) * W.weaponDef +
+        (w.hp || 0) * W.weaponHp +
+        (w.agi || 0) * W.weaponAgi +
+        (w.cri || 0) * W.weaponCri;
+    }
+  }
+
+  return Math.round(totalPower);
+}
+
+/**
+ * 計算成功率
+ */
+function calculateSuccessRate(power, difficulty) {
+  const ratio = difficulty > 0 ? power / difficulty : 1;
+  const rate = EXPEDITION.SUCCESS_BASE + (ratio - 1) * EXPEDITION.SUCCESS_SCALE;
+  return Math.min(
+    EXPEDITION.SUCCESS_MAX,
+    Math.max(EXPEDITION.SUCCESS_MIN, Math.round(rate)),
+  );
+}
+
+/**
+ * 啟動遠征
+ * @param {string} userId
+ * @param {string} dungeonId
+ * @param {Array<{npcId: string, weaponIndices: number[]}>} npcWeaponMap
+ */
+async function startExpedition(userId, dungeonId, npcWeaponMap) {
+  const user = await db.findOne("user", { userId });
+  if (!user) return { error: getText("SYSTEM.CHAR_NOT_FOUND") };
+
+  // 暫停營業檢查
+  if (user.businessPaused) {
+    return { error: getText("SYSTEM.BUSINESS_PAUSED") };
+  }
+
+  // 冒險等級檢查
+  const advLevel = user.adventureLevel || 1;
+  if (advLevel < EXPEDITION.UNLOCK_ADV_LEVEL) {
+    return {
+      error: formatText("EXPEDITION.NOT_UNLOCKED", {
+        level: EXPEDITION.UNLOCK_ADV_LEVEL,
+        current: advLevel,
+      }),
+    };
+  }
+
+  // 無進行中遠征
+  if (user.activeExpedition) {
+    return { error: getText("EXPEDITION.ALREADY_ACTIVE") };
+  }
+
+  // 冷卻檢查
+  const now = Date.now();
+  if (user.lastExpeditionAt) {
+    const elapsed = now - user.lastExpeditionAt;
+    if (elapsed < EXPEDITION.COOLDOWN_MS) {
+      const remaining = Math.ceil((EXPEDITION.COOLDOWN_MS - elapsed) / 1000);
+      return {
+        error: formatText("EXPEDITION.ON_COOLDOWN", { seconds: remaining }),
+      };
+    }
+  }
+
+  // 迷宮驗證
+  const dungeon = EXPEDITION.DUNGEONS.find((d) => d.id === dungeonId);
+  if (!dungeon) {
+    return {
+      error: formatText("EXPEDITION.DUNGEON_LOCKED", { floor: "??" }),
+    };
+  }
+
+  const currentFloor = user.currentFloor || 1;
+  if (currentFloor <= dungeon.requiredFloor) {
+    return {
+      error: formatText("EXPEDITION.DUNGEON_LOCKED", {
+        floor: dungeon.requiredFloor,
+      }),
+    };
+  }
+
+  // NPC 數量檢查
+  if (!npcWeaponMap || npcWeaponMap.length < EXPEDITION.MIN_NPCS) {
+    return {
+      error: formatText("EXPEDITION.NO_NPCS", { min: EXPEDITION.MIN_NPCS }),
+    };
+  }
+
+  const hired = user.hiredNpcs || [];
+  const weapons = user.weaponStock || [];
+  const npcEntries = [];
+  const usedWeaponIndices = new Set();
+
+  for (const mapping of npcWeaponMap) {
+    const npcIdx = hired.findIndex((n) => n.npcId === mapping.npcId);
+    if (npcIdx === -1) return { error: getText("NPC.NPC_NOT_FOUND") };
+
+    const npc = hired[npcIdx];
+
+    // NPC 不可在任務/修練中
+    if (npc.mission) {
+      return {
+        error: formatText("EXPEDITION.NPC_BUSY", { npcName: npc.name }),
+      };
+    }
+
+    // 體力檢查
+    const condition = npc.condition ?? 100;
+    if (condition < EXPEDITION.MIN_CONDITION) {
+      return {
+        error: formatText("EXPEDITION.NPC_LOW_CONDITION", {
+          npcName: npc.name,
+          required: EXPEDITION.MIN_CONDITION,
+          current: condition,
+        }),
+      };
+    }
+
+    // 武器驗證（不可重複選取）
+    const validWeaponIndices = [];
+    for (const wIdx of mapping.weaponIndices || []) {
+      if (!weapons[wIdx]) {
+        return {
+          error: formatText("EXPEDITION.WEAPON_NOT_FOUND", { index: wIdx }),
+        };
+      }
+      if (usedWeaponIndices.has(wIdx)) {
+        return {
+          error: formatText("EXPEDITION.WEAPON_NOT_FOUND", { index: wIdx }),
+        };
+      }
+      usedWeaponIndices.add(wIdx);
+      validWeaponIndices.push(wIdx);
+    }
+
+    npcEntries.push({ npc, npcIdx, weaponIndices: validWeaponIndices });
+  }
+
+  // 計算戰力與成功率
+  const totalPower = calculatePower(npcEntries, weapons);
+  const successRate = calculateSuccessRate(totalPower, dungeon.difficulty);
+
+  const endsAt = now + EXPEDITION.DURATION_MS;
+
+  const expeditionData = {
+    dungeonId: dungeon.id,
+    dungeonName: dungeon.name,
+    startedAt: now,
+    endsAt,
+    npcs: npcEntries.map((e) => ({
+      npcId: e.npc.npcId,
+      npcName: e.npc.name,
+      npcIdx: e.npcIdx,
+      weaponIndices: e.weaponIndices,
+    })),
+    totalPower,
+    successRate,
+    difficulty: dungeon.difficulty,
+  };
+
+  // 原子寫入：僅在無進行中遠征時寫入
+  const updateResult = await db.findOneAndUpdate(
+    "user",
+    { userId, activeExpedition: null },
+    { $set: { activeExpedition: expeditionData } },
+    { returnDocument: "after" },
+  );
+
+  if (!updateResult) {
+    return { error: getText("EXPEDITION.ALREADY_ACTIVE") };
+  }
+
+  return {
+    success: true,
+    expedition: expeditionData,
+    message: formatText("EXPEDITION.STARTED", {
+      dungeon: dungeon.name,
+      seconds: Math.round(EXPEDITION.DURATION_MS / 1000),
+    }),
+  };
+}
+
+/**
+ * 結算遠征（懶結算）
+ *
+ * 流程：
+ * 1. 純計算階段（武器耐久、NPC 體力、死亡判定）
+ * 2. 原子 guard 防雙重結算
+ * 3. guard 成功後：一次性寫入完整的 weaponStock + hiredNpcs
+ * 4. 獎勵發放（在 guard 後，避免雙重獎勵）
+ */
+async function resolveExpedition(userId) {
+  const user = await db.findOne("user", { userId });
+  if (!user || !user.activeExpedition) return null;
+
+  const expedition = user.activeExpedition;
+  if (Date.now() < expedition.endsAt) return null;
+
+  // 判定成功
+  const isSuccess = roll.d100Check(expedition.successRate);
+
+  const hired = user.hiredNpcs || [];
+  const weapons = user.weaponStock || [];
+  const results = {
+    isSuccess,
+    dungeonName: expedition.dungeonName,
+    weaponsDestroyed: [],
+    npcsDied: [],
+    durabilityDamage: [],
+    conditionChanges: [],
+    rewards: null,
+  };
+
+  // ── 1. 純計算：武器耐久消耗 ──
+  const destroyedWeaponIndices = new Set();
+
+  for (const npcEntry of expedition.npcs) {
+    for (const wIdx of npcEntry.weaponIndices) {
+      if (!weapons[wIdx]) continue;
+
+      const baseLoss = EXPEDITION.DURABILITY_LOSS_BASE;
+      const diceLoss = Math.floor(Math.random() * EXPEDITION.DURABILITY_LOSS_DICE) + 1;
+      let totalLoss = baseLoss + diceLoss;
+
+      if (!isSuccess) {
+        totalLoss = Math.ceil(totalLoss * EXPEDITION.DURABILITY_FAIL_MULT);
+      }
+
+      const oldDurability = weapons[wIdx].durability || 0;
+      const newDurability = oldDurability - totalLoss;
+
+      results.durabilityDamage.push({
+        weaponName: weapons[wIdx].weaponName || weapons[wIdx].name,
+        weaponIndex: wIdx,
+        loss: totalLoss,
+        oldDurability,
+        newDurability: Math.max(0, newDurability),
+      });
+
+      if (newDurability <= 0) {
+        destroyedWeaponIndices.add(wIdx);
+        results.weaponsDestroyed.push({
+          weaponName: weapons[wIdx].weaponName || weapons[wIdx].name,
+          weaponIndex: wIdx,
+        });
+      }
+    }
+  }
+
+  // ── 2. 純計算：NPC 體力損耗與死亡判定 ──
+  const deadNpcIds = new Set();
+
+  for (const npcEntry of expedition.npcs) {
+    const npc = hired.find((n) => n.npcId === npcEntry.npcId);
+    if (!npc) continue;
+
+    const condLoss = isSuccess
+      ? EXPEDITION.CONDITION_LOSS_SUCCESS
+      : EXPEDITION.CONDITION_LOSS_FAIL;
+
+    const oldCond = npc.condition ?? 100;
+    const newCond = Math.max(0, oldCond - condLoss);
+
+    results.conditionChanges.push({
+      npcName: npc.name,
+      npcId: npc.npcId,
+      condLoss,
+      oldCondition: oldCond,
+      newCondition: newCond,
+    });
+
+    // 死亡判定：僅在失敗時，condition <= 20
+    if (!isSuccess && newCond <= config.NPC.DEATH_THRESHOLD) {
+      if (roll.d100Check(EXPEDITION.DEATH_CHANCE_FAIL)) {
+        deadNpcIds.add(npc.npcId);
+        results.npcsDied.push({ npcName: npc.name, npcId: npc.npcId });
+      }
+    }
+  }
+
+  // ── 3. 原子 guard：僅清除遠征狀態（防雙重結算） ──
+  // 使用 $type: "object" 取代 $ne: null（MongoDB 7 相容）
+  const guard = await db.findOneAndUpdate(
+    "user",
+    { userId, activeExpedition: { $type: "object" } },
+    { $set: { activeExpedition: null, lastExpeditionAt: Date.now() } },
+    { returnDocument: "after" },
+  );
+
+  if (!guard) return null;
+
+  // ── 4. 構建完整的 weaponStock（套用耐久 + 移除銷毀武器） ──
+  const updatedWeapons = weapons.map((w) => ({ ...w }));
+
+  // 套用耐久損耗
+  for (const dmg of results.durabilityDamage) {
+    if (!destroyedWeaponIndices.has(dmg.weaponIndex) && updatedWeapons[dmg.weaponIndex]) {
+      updatedWeapons[dmg.weaponIndex].durability = dmg.newDurability;
+    }
+  }
+
+  // 建立 oldIndex → newIndex 映射表（銷毀武器映射為 null）
+  const indexMap = {};
+  let shift = 0;
+  for (let i = 0; i < updatedWeapons.length; i++) {
+    if (destroyedWeaponIndices.has(i)) {
+      indexMap[i] = null;
+      shift++;
+    } else {
+      indexMap[i] = i - shift;
+    }
+  }
+
+  // 移除銷毀的武器
+  const finalWeapons = updatedWeapons.filter((_, i) => !destroyedWeaponIndices.has(i));
+
+  // ── 5. 構建完整的 hiredNpcs（更新體力 + 重映射武器索引 + 移除死亡 NPC） ──
+  // 使用 guard 返回的最新資料（已清除 activeExpedition）
+  const freshHired = (guard.hiredNpcs || []).map((npc) => {
+    const updated = { ...npc };
+
+    // 更新體力（以 npcId 匹配，不依賴陣列索引）
+    const condChange = results.conditionChanges.find((cc) => cc.npcId === npc.npcId);
+    if (condChange && !deadNpcIds.has(npc.npcId)) {
+      updated.condition = condChange.newCondition;
+    }
+
+    // 重映射 equippedWeaponIndex
+    if (updated.equippedWeaponIndex !== null && updated.equippedWeaponIndex !== undefined) {
+      const mapped = indexMap[updated.equippedWeaponIndex];
+      updated.equippedWeaponIndex = mapped ?? null;
+    }
+
+    return updated;
+  });
+
+  // 移除死亡 NPC
+  const survivingNpcs = freshHired.filter((n) => !deadNpcIds.has(n.npcId));
+
+  // 重映射 defenseWeaponIndex
+  const writeSet = {
+    weaponStock: finalWeapons,
+    hiredNpcs: survivingNpcs,
+  };
+
+  const defIdx = guard.defenseWeaponIndex;
+  if (defIdx !== null && defIdx !== undefined && destroyedWeaponIndices.size > 0) {
+    const mappedDef = indexMap[defIdx];
+    writeSet.defenseWeaponIndex = mappedDef ?? 0;
+  }
+
+  // 單次原子寫入完整陣列
+  await db.update("user", { userId }, { $set: writeSet });
+
+  // ── 6. NPC 死亡：更新 npc collection ──
+  for (const deadNpc of results.npcsDied) {
+    await db.update("npc", { npcId: deadNpc.npcId }, {
+      $set: { status: "dead", hiredBy: null, diedAt: Date.now(), causeOfDeath: `遠征失敗：${expedition.dungeonName}` },
+    });
+    await increment(userId, "npcDeaths");
+  }
+
+  // ── 7. 獎勵發放（在 guard 之後，防雙重獎勵） ──
+  if (isSuccess) {
+    const rewardUser = await db.findOne("user", { userId });
+    if (rewardUser) {
+      results.rewards = await generateRewards(rewardUser, expedition, rewardUser.hiredNpcs || []);
+    }
+  }
+
+  if (results.rewards?.col > 0) {
+    await awardCol(userId, results.rewards.col);
+  }
+
+  // ── 8. 統計追蹤 ──
+  await increment(userId, "totalExpeditions");
+  if (isSuccess) {
+    await increment(userId, "expeditionsSucceeded");
+  }
+
+  // ── 9. 冒險經驗 ──
+  const advExpAmount = isSuccess
+    ? config.ADV_LEVEL.EXP_MISSION_SUCCESS
+    : config.ADV_LEVEL.EXP_MISSION_FAIL;
+  const advExpResult = await awardAdvExp(userId, advExpAmount);
+  results.advExpGained = advExpAmount;
+  results.advLevelUp = advExpResult.levelUp;
+  results.advNewLevel = advExpResult.newLevel;
+
+  await checkAndAward(userId);
+
+  return results;
+}
+
+/**
+ * 檢查並結算到期遠征（懶結算 hook）
+ */
+async function checkExpedition(userId) {
+  const user = await db.findOne("user", { userId });
+  if (!user || !user.activeExpedition) return null;
+  if (Date.now() < user.activeExpedition.endsAt) return null;
+
+  return await resolveExpedition(userId);
+}
+
+module.exports = {
+  isNpcOnExpedition,
+  isWeaponOnExpedition,
+  getExpeditionPreview,
+  calculatePower,
+  calculateSuccessRate,
+  startExpedition,
+  resolveExpedition,
+  checkExpedition,
+};
