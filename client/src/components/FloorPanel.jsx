@@ -7,7 +7,8 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive,
   const [busy, setBusy] = useState(false);
   const [changingFloor, setChangingFloor] = useState(false);
   const [error, setError] = useState('');
-  const [result, setResult] = useState('');
+  const [result, setResult] = useState(null);
+  const [showBattleLog, setShowBattleLog] = useState(false);
   const [weaponId, setWeaponId] = useState('0');
   const [bossNpcId, setBossNpcId] = useState('');
   const [history, setHistory] = useState([]);
@@ -65,61 +66,14 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive,
   const handleBossAttack = async () => {
     setBusy(true);
     setError('');
-    setResult('');
+    setResult(null);
+    setShowBattleLog(false);
     try {
       const data = await onAction('boss-attack', { weaponId: parseInt(weaponId, 10), npcId: bossNpcId });
       if (data.error) {
         setError(data.error);
-      } else if (data.bossDefeated) {
-        let msg;
-        if (data.bossAlreadyProcessed) {
-          msg = `⚔️ ${data.npcName || '冒險者'} 對 ${data.bossName} 造成了 ${data.damage} 點傷害！\n💥 Boss 被其他玩家同時擊敗了！獎勵已由最後一擊的玩家獲得。`;
-        } else {
-          msg = `⚔️ ${data.npcName || '冒險者'} 對 ${data.bossName} 造成了 ${data.damage} 點傷害！\n💥 Boss 被擊敗了！ 第 ${data.floorNumber} 層攻略完成！MVP: ${data.mvp?.name || '—'}`;
-          if (data.lastAttackDrop) {
-            msg += `\n🗡️ Last Attack! 獲得聖遺物「${data.lastAttackDrop.nameCn}（${data.lastAttackDrop.name}）」！`;
-            if (data.laColBonus > 0) msg += ` +${data.laColBonus} Col`;
-          } else if (data.lastAttackAlreadyOwned) {
-            msg += `\n🗡️ Last Attack! 已擁有該聖遺物，獲得 +${data.laColBonus} Col`;
-          }
-          if (data.drops && data.drops.length > 0) {
-            msg += '\n🎁 掉落物：';
-            for (const d of data.drops) {
-              msg += `\n  ${d.playerName}: ${'★'.repeat(d.itemLevel)}${d.itemName}${d.isMvp ? ' (MVP保證掉落)' : ''}`;
-            }
-          }
-        }
-        if (data.counterAttack) {
-          if (data.counterAttack.dodged) {
-            msg += `\n🛡️ ${data.npcName} 閃避了 Boss 的反擊！`;
-          } else if (data.counterAttack.hit) {
-            msg += `\n💥 Boss 反擊！${data.npcName} 受到 ${data.counterAttack.counterDamage} 傷害${data.counterAttack.isCrit ? '（暴擊！）' : ''}`;
-          }
-          if (data.counterAttack.npcDied) {
-            msg += `\n⚠️ 💀 ${data.npcName} 在 Boss 的反擊中陣亡了！`;
-          } else if (data.counterAttack.condAfter != null) {
-            msg += `\n❤️ ${data.npcName} 體力：${data.counterAttack.condBefore}% → ${data.counterAttack.condAfter}%`;
-          }
-        }
-        if (data.npcEventText) msg += `\n${data.npcEventText}`;
-        setResult(msg);
-        await fetchFloor();
       } else {
-        let msg = `⚔️ ${data.npcName || '冒險者'} 對 ${data.bossName} 造成了 ${data.damage} 點傷害！剩餘 HP: ${data.bossHpRemaining?.toLocaleString()}`;
-        if (data.counterAttack) {
-          if (data.counterAttack.dodged) {
-            msg += `\n🛡️ ${data.npcName} 閃避了 Boss 的反擊！`;
-          } else if (data.counterAttack.hit) {
-            msg += `\n💥 Boss 反擊！${data.npcName} 受到 ${data.counterAttack.counterDamage} 傷害${data.counterAttack.isCrit ? '（暴擊！）' : ''}`;
-          }
-          if (data.counterAttack.npcDied) {
-            msg += `\n⚠️ 💀 ${data.npcName} 在 Boss 的反擊中陣亡了！`;
-          } else if (data.counterAttack.condAfter != null) {
-            msg += `\n❤️ ${data.npcName} 體力：${data.counterAttack.condBefore}% → ${data.counterAttack.condAfter}%`;
-          }
-        }
-        if (data.npcEventText) msg += `\n${data.npcEventText}`;
-        setResult(msg);
+        setResult(data);
         await fetchFloor();
       }
     } catch {
@@ -298,14 +252,111 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive,
             {result && (
               <div className="result-card-highlight" style={{
                 marginTop: '0.5rem',
-                color: 'var(--gold)',
-                fontWeight: 'bold',
-                whiteSpace: 'pre-line',
                 padding: '0.75rem',
                 borderRadius: '6px',
                 background: 'var(--bg-secondary)',
               }}>
-                {result}
+                {/* 傷害總結 */}
+                <div style={{ color: 'var(--gold)', fontWeight: 'bold' }}>
+                  ⚔️ {result.npcName || '冒險者'} 對 {result.bossName} 造成了 {result.damage} 點傷害！
+                  {result.bossDefeated
+                    ? result.bossAlreadyProcessed
+                      ? ' 💥 Boss 被其他玩家同時擊敗了！'
+                      : ` 💥 Boss 被擊敗了！第 ${result.floorNumber} 層攻略完成！MVP: ${result.mvp?.name || '—'}`
+                    : ` 剩餘 HP: ${result.bossHpRemaining?.toLocaleString()}`}
+                </div>
+                {/* Boss 擊敗獎勵 */}
+                {result.bossDefeated && !result.bossAlreadyProcessed && (
+                  <div style={{ marginTop: '0.3rem', fontSize: '0.9rem' }}>
+                    {result.lastAttackDrop && (
+                      <div style={{ color: '#ffd700' }}>🗡️ Last Attack! 獲得聖遺物「{result.lastAttackDrop.nameCn}（{result.lastAttackDrop.name}）」！{result.laColBonus > 0 && ` +${result.laColBonus} Col`}</div>
+                    )}
+                    {!result.lastAttackDrop && result.lastAttackAlreadyOwned && (
+                      <div>🗡️ Last Attack! 已擁有該聖遺物，獲得 +{result.laColBonus} Col</div>
+                    )}
+                    {result.drops && result.drops.length > 0 && (
+                      <div>🎁 掉落物：{result.drops.map((d, di) => (
+                        <div key={di} style={{ marginLeft: '1rem' }}>{d.playerName}: {'★'.repeat(d.itemLevel)}{d.itemName}{d.isMvp ? ' (MVP保證掉落)' : ''}</div>
+                      ))}</div>
+                    )}
+                  </div>
+                )}
+                {/* 劍技事件 */}
+                {result.skillEvents && result.skillEvents.length > 0 && (
+                  <div style={{ marginTop: '0.3rem' }}>
+                    {result.skillEvents.map((evt, si) => (
+                      <div key={si} style={{
+                        fontSize: '0.85rem', padding: '0.2rem 0.4rem', marginBottom: '0.2rem',
+                        borderLeft: `2px solid ${evt.color || '#a855f7'}`, background: 'rgba(168, 85, 247, 0.05)',
+                      }}>
+                        <span style={{ color: evt.color || '#a855f7', fontWeight: 'bold' }}>⚔️ {evt.attacker} 發動【{evt.skillName}】</span>
+                        {' → '}{evt.defender} {evt.damage} 傷害
+                        {evt.hitCount > 1 && ` (${evt.hitCount}hit)`}
+                        {evt.isCrit && <span style={{ color: 'var(--gold)' }}> 暴擊！</span>}
+                        {evt.stunned && <span style={{ color: 'var(--warning)' }}> 暈眩！</span>}
+                        {evt.chainCount > 0 && <span style={{ color: '#f97316' }}> Skill Connect ×{evt.chainCount}!</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* 戰鬥回合日誌（可摺疊） */}
+                {result.battleLog?.log && result.battleLog.log.length > 0 && (
+                  <div style={{ marginTop: '0.3rem' }}>
+                    <button
+                      onClick={() => setShowBattleLog(!showBattleLog)}
+                      style={{
+                        background: 'none', border: 'none', color: 'var(--text-secondary)',
+                        cursor: 'pointer', fontSize: '0.85rem', padding: 0, textDecoration: 'underline',
+                      }}
+                    >
+                      {showBattleLog ? '▼ 收合戰鬥日誌' : '▶ 展開戰鬥日誌'}
+                    </button>
+                    {showBattleLog && (
+                      <div style={{ marginTop: '0.3rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        {result.battleLog.log.map((entry, li) => {
+                          if (entry.type === 'round') {
+                            return <div key={li} style={{ marginTop: '0.3rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>── 第 {entry.number} 回合 ──</div>;
+                          }
+                          if (entry.type === 'attack') {
+                            return (
+                              <div key={li} style={{ marginLeft: '0.5rem' }}>
+                                {entry.hit
+                                  ? <span>{entry.attacker} → {entry.defender} <span style={{ color: 'var(--danger)' }}>{entry.damage} 傷害</span>{entry.isCrit && <span style={{ color: 'var(--gold)' }}> 暴擊！</span>}</span>
+                                  : <span style={{ color: 'var(--text-secondary)' }}>{entry.attacker} → {entry.defender} MISS</span>}
+                              </div>
+                            );
+                          }
+                          if (entry.type === 'skill_attack') {
+                            return (
+                              <div key={li} style={{ marginLeft: '0.5rem', color: '#a855f7' }}>
+                                ⚔️ {entry.attacker} 發動【{entry.skillName}】→ {entry.defender} {entry.damage} 傷害
+                                {entry.hitCount > 1 && ` (${entry.hitCount}hit)`}
+                              </div>
+                            );
+                          }
+                          if (entry.type === 'stun') {
+                            return <div key={li} style={{ marginLeft: '0.5rem', color: 'var(--warning)' }}>💫 {entry.target} 被暈眩了！</div>;
+                          }
+                          if (entry.type === 'heal') {
+                            return <div key={li} style={{ marginLeft: '0.5rem', color: 'var(--success)' }}>💚 {entry.target} 回復 {entry.value} HP</div>;
+                          }
+                          if (entry.type === 'end') {
+                            const outcomeText = entry.outcome === 'win' ? '🏆 勝利！' : entry.outcome === 'lose' ? '💀 敗北' : '⏱️ 平手';
+                            return <div key={li} style={{ marginTop: '0.3rem', fontWeight: 'bold', color: entry.outcome === 'win' ? 'var(--gold)' : entry.outcome === 'lose' ? 'var(--danger)' : 'var(--text-secondary)' }}>{outcomeText}</div>;
+                          }
+                          return null;
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* NPC 狀態 */}
+                {result.npcResult?.died ? (
+                  <div style={{ color: 'var(--danger)', fontWeight: 'bold', marginTop: '0.3rem' }}>💀 {result.npcName} 在 Boss 戰鬥中陣亡了！</div>
+                ) : result.condAfter != null && (
+                  <div style={{ color: 'var(--text-secondary)', marginTop: '0.3rem' }}>❤️ {result.npcName} 體力：{result.condBefore}% → {result.condAfter}%</div>
+                )}
+                {result.npcEventText && <div style={{ marginTop: '0.3rem' }}>{result.npcEventText}</div>}
               </div>
             )}
           </div>

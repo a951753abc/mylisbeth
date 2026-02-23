@@ -51,4 +51,35 @@ function buildPvpFighter(name, weapon, lvBonus, mods) {
   };
 }
 
-module.exports = { buildPvePlayerSide, buildPvpFighter };
+/**
+ * 建構 Boss fighter（供 PvE combat loop 使用）
+ * @param {object} bossData - floors.json 的 Boss 定義
+ * @param {number[]} activatedPhases - 已啟動的 phase 索引
+ * @param {number} remainingHp - Boss 實際剩餘 HP
+ */
+function buildBossFighter(bossData, activatedPhases, remainingHp) {
+  const { BOSS_COMBAT } = config;
+  let totalAtkBoost = 0;
+  let totalDefBoost = 0;
+  for (const idx of activatedPhases) {
+    const phase = bossData.phases?.[idx];
+    if (phase) {
+      totalAtkBoost += phase.atkBoost ?? 0;
+      totalDefBoost += phase.defBoost ?? phase.atkBoost ?? 0;
+    }
+  }
+
+  return {
+    name: bossData.name,
+    hp: remainingHp,
+    stats: {
+      atk: Math.max(1, Math.ceil((bossData.atk + totalAtkBoost) * BOSS_COMBAT.ATK_MULT)),
+      def: Math.max(0, bossData.def + totalDefBoost),
+      agi: (bossData.agi || 0) + (BOSS_COMBAT.AGI_BONUS || 0),
+      cri: BOSS_COMBAT.BOSS_CRI || 11,
+    },
+    innateEffects: [],
+  };
+}
+
+module.exports = { buildPvePlayerSide, buildPvpFighter, buildBossFighter };

@@ -160,6 +160,15 @@ module.exports = {
     COND_MAX: 50,         // 命中時最高體力損耗（damageRatio = 100%）
     COND_PER_ATK_BOOST: 3, // 每點 bossAtkBoost 額外體力損耗
   },
+  // Boss 5 回合循環戰鬥（取代單次反擊）
+  BOSS_COMBAT: {
+    ATK_MULT: 0.35,          // Boss ATK 倍率（5 回合分攤，比單次反擊 0.5 低）
+    AGI_BONUS: 4,             // Boss 額外 AGI 加成
+    BOSS_CRI: 11,             // Boss 暴擊門檻（d66 >= 11）
+    COND_MIN: 8,              // 最低體力損耗
+    COND_MAX: 55,             // 最高體力損耗（5 回合累計傷害更高，略高於舊的 50）
+    COND_PER_ATK_BOOST: 2,   // 每點 bossAtkBoost 額外體力損耗（降低，因 ATK 已分攤到多回合）
+  },
   FLOOR_MAX_EXPLORE: 5,
 
   // Season 2: 武器修復

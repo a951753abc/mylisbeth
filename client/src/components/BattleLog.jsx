@@ -153,7 +153,7 @@ export default function BattleLog({ logs }) {
             {log.action === 'boss-attack' && log.damage && (
               <div>
                 <span style={{ color: 'var(--danger)' }}>
-                  ⚔️ 對 {log.bossName} 造成 {log.damage} 傷害
+                  ⚔️ {log.npcName} 對 {log.bossName} 造成 {log.damage} 傷害
                 </span>
                 {log.bossDefeated ? (
                   <span style={{ color: 'var(--gold)', marginLeft: '0.5rem' }}>💥 Boss 已被擊敗！</span>
@@ -162,25 +162,29 @@ export default function BattleLog({ logs }) {
                     (剩餘 HP: {log.bossHpRemaining?.toLocaleString()})
                   </span>
                 )}
-                {log.counterAttack && (
-                  <div style={{ marginTop: '0.3rem', fontSize: '0.85rem' }}>
-                    {log.counterAttack.dodged ? (
-                      <span style={{ color: 'var(--success)' }}>🛡️ {log.npcName} 閃避了 Boss 的反擊！</span>
-                    ) : log.counterAttack.hit ? (
-                      <span style={{ color: 'var(--warning)' }}>
-                        💥 Boss 反擊！對 {log.npcName} 造成 {log.counterAttack.counterDamage} 傷害
-                        {log.counterAttack.isCrit && <span style={{ color: 'var(--danger)' }}> 暴擊！</span>}
-                      </span>
-                    ) : null}
-                    {log.counterAttack.npcDied ? (
-                      <div style={{ color: 'var(--danger)', fontWeight: 'bold' }}>
-                        💀 {log.npcName} 在 Boss 的反擊中陣亡了！
+                {/* 劍技事件 */}
+                {log.skillEvents && log.skillEvents.length > 0 && (
+                  <div style={{ marginTop: '0.3rem' }}>
+                    {log.skillEvents.map((evt, si) => (
+                      <div key={si} style={{
+                        fontSize: '0.85rem', padding: '0.2rem 0.4rem', marginBottom: '0.2rem',
+                        borderLeft: `2px solid ${evt.color || '#a855f7'}`, background: 'rgba(168, 85, 247, 0.05)',
+                      }}>
+                        <span style={{ color: evt.color || '#a855f7', fontWeight: 'bold' }}>⚔️ {evt.attacker} 發動【{evt.skillName}】</span>
+                        {' → '}{evt.defender} {evt.damage} 傷害
+                        {evt.hitCount > 1 && ` (${evt.hitCount}hit)`}
                       </div>
-                    ) : log.counterAttack.condAfter != null && (
-                      <div style={{ color: 'var(--text-secondary)' }}>
-                        ❤️ {log.npcName} 體力：{log.counterAttack.condBefore}% → {log.counterAttack.condAfter}%
-                      </div>
-                    )}
+                    ))}
+                  </div>
+                )}
+                {/* NPC 體力/死亡 */}
+                {log.npcResult?.died ? (
+                  <div style={{ color: 'var(--danger)', fontWeight: 'bold', marginTop: '0.3rem' }}>
+                    💀 {log.npcName} 在 Boss 戰鬥中陣亡了！
+                  </div>
+                ) : log.condAfter != null && (
+                  <div style={{ color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
+                    ❤️ {log.npcName} 體力：{log.condBefore}% → {log.condAfter}%
                   </div>
                 )}
               </div>
@@ -189,23 +193,12 @@ export default function BattleLog({ logs }) {
             {/* Boss damage socket event */}
             {log.action === 'boss:damage' && (
               <div style={{ color: 'var(--warning)' }}>
-                <div>{log.player} 對 Boss 造成 {log.damage} 傷害 | 剩餘 {log.bossHpRemaining?.toLocaleString()} HP</div>
-                {log.counterAttack && (
-                  <div style={{ fontSize: '0.85rem', marginTop: '0.2rem' }}>
-                    {log.counterAttack.dodged ? (
-                      <span style={{ color: 'var(--success)' }}>🛡️ {log.npcName} 閃避了反擊</span>
-                    ) : log.counterAttack.hit ? (
-                      <span>
-                        💥 Boss 反擊 {log.npcName}：{log.counterAttack.counterDamage} 傷害
-                        {log.counterAttack.isCrit && ' (暴擊)'}
-                        {log.counterAttack.npcDied && <span style={{ color: 'var(--danger)' }}> — 陣亡！</span>}
-                      </span>
-                    ) : null}
-                    {!log.counterAttack.npcDied && log.counterAttack.condAfter != null && (
-                      <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-                        ❤️ {log.npcName} 體力：{log.counterAttack.condBefore}% → {log.counterAttack.condAfter}%
-                      </div>
-                    )}
+                <div>{log.player} 的 {log.npcName} 對 Boss 造成 {log.damage} 傷害 | 剩餘 {log.bossHpRemaining?.toLocaleString()} HP</div>
+                {log.battleSummary && (
+                  <div style={{ fontSize: '0.85rem', marginTop: '0.2rem', color: 'var(--text-secondary)' }}>
+                    {log.battleSummary.rounds} 回合戰鬥
+                    {log.battleSummary.skillsUsed > 0 && ` | ${log.battleSummary.skillsUsed} 次劍技`}
+                    {log.battleSummary.npcDied && <span style={{ color: 'var(--danger)' }}> | NPC 陣亡</span>}
                   </div>
                 )}
               </div>

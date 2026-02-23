@@ -262,6 +262,7 @@ function _runLoopNoSkills(playerSide, enemySide, playerInnate, enemyInnate) {
     enemyName: enemySide.name, npcName: playerSide.name,
     initialHp: { npc: playerSide.hp, enemy: enemySide.hp },
     finalHp: {},
+    skillEvents: [],
   };
 
   while (playerSide.hp > 0 && enemySide.hp > 0 && round <= ROUND_LIMIT) {

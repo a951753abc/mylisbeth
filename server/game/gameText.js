@@ -129,6 +129,7 @@ module.exports = {
     NPC_REQUIRED: "Boss 戰必須選擇一位已雇用的 NPC 冒險者！",
     NPC_NOT_FOUND: "找不到該 NPC，請確認已雇用該冒險者。",
     NPC_LOW_CONDITION: "{npcName} 體力過低（< 10%），無法出戰！請先治療。",
+    NPC_ON_MISSION: "{npcName} 正在執行任務中，無法出戰。",
     NOT_AT_FRONTIER: "必須先回到前線才能挑戰 Boss！",
     EXPLORE_REMAINING: "尚未完成迷宮探索！還需要探索 {remaining} 次才能挑戰 Boss。",
     TIMEOUT_RESET: "Boss 挑戰時間已超過 72 小時，Boss 已重置！請重新挑戰。",

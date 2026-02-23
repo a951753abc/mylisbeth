@@ -1,38 +1,23 @@
 const db = require("../../db.js");
 const config = require("../config.js");
-const roll = require("../roll.js");
 const E = require("../../socket/events.js");
 const { getFloor, getFloorBoss } = require("./floorData.js");
 const { increment } = require("../progression/statsTracker.js");
 const ensureUserFields = require("../migration/ensureUserFields.js");
-const { getEffectiveStats, getCombinedBattleStats } = require("../npc/npcStats.js");
+const { getEffectiveStats } = require("../npc/npcStats.js");
 const { resolveNpcBattle } = require("../npc/npcManager.js");
-const { getCombinedModifier } = require("../title/titleModifier.js");
-const bossCounterAttack = require("./bossCounterAttack.js");
+const { getCombinedModifier, getModifier } = require("../title/titleModifier.js");
 const { awardAdvExp } = require("../progression/adventureLevel.js");
-const { awardProficiency, awardNpcProficiency } = require("../skill/skillProficiency.js");
-const { isAtFrontier } = require("./activeFloor.js");
+const { awardProficiency, awardNpcProficiency, getProfGainKey } = require("../skill/skillProficiency.js");
+const { isAtFrontier, getProficiencyMultiplier } = require("./activeFloor.js");
 const { distributeBossDrops, processLastAttackRelic, distributeBossColRewards } = require("./bossRewards.js");
 const { advanceFloor } = require("./floorAdvancement.js");
-const { buildInnateContext } = require("../battle/innateEffectCombat.js");
 const { formatText, getText } = require("../textManager.js");
-
-function calcDamage(atk, cri, def) {
-  let atkDam = 0;
-  for (let i = 0; i < atk; i++) {
-    atkDam += roll.d66();
-  }
-  let defSum = 0;
-  for (let i = 0; i < def; i++) {
-    defSum += roll.d66();
-  }
-  const MAX_CRIT_ROUNDS = 999;
-  for (let c = 0; c < MAX_CRIT_ROUNDS && roll.d66() >= cri; c++) {
-    atkDam += roll.d66();
-  }
-  const final = Math.max(1, atkDam - defSum);
-  return final;
-}
+const { bossBattleWithSkills } = require("../battle.js");
+const { getNpcEffectiveSkills } = require("../skill/skillSlot.js");
+const { buildSkillContext } = require("../skill/skillCombat.js");
+const { resolveWeaponType } = require("../weapon/weaponType.js");
+const { tryNpcLearnSkill } = require("../skill/npcSkillLearning.js");
 
 async function getOrInitServerState(floorNumber, bossData) {
   let state = await db.findOne("server_state", { _id: "aincrad" });
@@ -78,18 +63,6 @@ async function resetBoss(floorNumber, bossData) {
 
 // Boss 戰 NPC 經驗值（比冒險略高，因為 Boss 戰更危險）
 const BOSS_NPC_EXP_GAIN = 40;
-
-function getEffectiveBossDef(bossData, activatedPhases) {
-  let def = bossData.def;
-  for (const idx of activatedPhases) {
-    const phase = bossData.phases?.[idx];
-    if (phase) {
-      // 向後兼容：新版用 defBoost，舊版用 atkBoost
-      def += phase.defBoost ?? phase.atkBoost ?? 0;
-    }
-  }
-  return def;
-}
 
 function getEffectiveBossAtk(bossData, activatedPhases) {
   let totalAtkBoost = 0;
@@ -175,6 +148,11 @@ module.exports = async function bossAttack(cmd, rawUser) {
       return { error: formatText("BOSS.NPC_LOW_CONDITION", { npcName: hiredNpc.name }) };
     }
 
+    // 任務互斥鎖
+    if (hiredNpc.mission) {
+      return { error: formatText("BOSS.NPC_ON_MISSION", { npcName: hiredNpc.name }) };
+    }
+
     // 必須在前線樓層才能挑戰 Boss
     if (!isAtFrontier(user)) {
       return { error: getText("BOSS.NOT_AT_FRONTIER") };
@@ -230,35 +208,70 @@ module.exports = async function bossAttack(cmd, rawUser) {
     }
 
     const weapon = user.weaponStock[weaponIdx];
-
-    // 使用 NPC + 武器合成數值計算傷害（套用 bossDamage 稱號+聖遺物修正 + Phase 防禦加成）
-    const combined = getCombinedBattleStats(effectiveStats, weapon);
-    const bossDamageMod = getCombinedModifier(user.title || null, user.bossRelics || [], "bossDamage");
     const activatedPhases = state.bossStatus.activatedPhases || [];
+    // 首次攻擊時 state.bossStatus.active 仍為 false（上方 db.update 沒有 re-fetch），用 bossData.hp
+    const bossHpBefore = state.bossStatus.active
+      ? state.bossStatus.currentHp
+      : bossData.hp;
 
-    // 固有效果：套用被動 stat boost + 攻擊效果
-    const innateCtx = buildInnateContext(combined.innateEffects);
-    combined.atk += innateCtx.atkBoost;
-    combined.def += innateCtx.defBoost;
-    combined.agi += innateCtx.agiBoost;
-    if (innateCtx.criBoost > 0) {
-      combined.cri = Math.max(5, combined.cri - innateCtx.criBoost);
-    }
+    // ── 5 回合循環戰鬥（與冒險一致） ──
 
-    // 固有效果：破甲 — 降低 Boss 有效防禦
-    let effectiveBossDef = getEffectiveBossDef(bossData, activatedPhases);
-    if (innateCtx.ignoreDef > 0) {
-      effectiveBossDef = Math.max(0, Math.floor(effectiveBossDef * (1 - innateCtx.ignoreDef)));
-    }
+    // 組裝 NPC（同 adv.js）
+    const npcForBattle = {
+      name: hiredNpc.name,
+      hp: effectiveStats.hp,
+      isHiredNpc: true,
+      effectiveStats,
+    };
 
-    let damage = Math.max(1, Math.round(calcDamage(combined.atk, combined.cri, effectiveBossDef) * bossDamageMod));
+    const title = user.title || null;
+    const titleMods = {
+      battleAtk: getModifier(title, "battleAtk"),
+      battleDef: getModifier(title, "battleDef"),
+      battleAgi: getModifier(title, "battleAgi"),
+    };
 
-    // 固有效果：傷害倍率
-    if (innateCtx.damageMult !== 1.0) {
-      damage = Math.max(1, Math.floor(damage * innateCtx.damageMult));
-    }
+    // NPC 劍技上下文
+    const npcSkills = getNpcEffectiveSkills(hiredNpc, weapon);
+    const weaponType = resolveWeaponType(weapon);
+    const npcProf = hiredNpc.weaponProficiency || 0;
+    const skillCtx = npcSkills.length > 0
+      ? buildSkillContext(npcSkills, npcProf, weaponType)
+      : null;
 
-    // 原子減少 Boss HP
+    // 執行 5 回合戰鬥（Boss HP 使用實際剩餘值）
+    const battleResult = bossBattleWithSkills(
+      weapon, npcForBattle, bossData, activatedPhases,
+      Math.max(1, bossHpBefore), titleMods, skillCtx,
+    );
+
+    // 計算對 Boss 造成的傷害（不超過 Boss 剩餘 HP）
+    const bossDamageMod = getCombinedModifier(title, user.bossRelics || [], "bossDamage");
+    const rawDamage = Math.max(0, (battleResult.initialHp?.enemy || bossHpBefore) - Math.max(0, battleResult.finalHp?.enemy || 0));
+    // NPC 完全沒打中 Boss 時不扣 HP（rawDamage=0）；有命中則至少 1
+    const damage = rawDamage === 0 ? 0 : Math.max(1, Math.round(rawDamage * bossDamageMod));
+
+    // 判斷戰鬥結果
+    let outcomeKey;
+    if (battleResult.dead === 1) outcomeKey = "LOSE";
+    else if (battleResult.win === 1) outcomeKey = "WIN";
+    else outcomeKey = "DRAW";
+
+    // 體力損耗（比例制：依 NPC 受傷比計算）
+    const { COND_MIN, COND_MAX, COND_PER_ATK_BOOST } = config.BOSS_COMBAT;
+    const npcMaxHp = battleResult.initialHp?.npc || 1;
+    const npcFinalHp = Math.max(0, battleResult.finalHp?.npc || 0);
+    const damageRatio = Math.min(1, (npcMaxHp - npcFinalHp) / npcMaxHp);
+    const bossAtkBoost = getEffectiveBossAtk(bossData, activatedPhases);
+    const bossCondLoss = Math.round(COND_MIN + (COND_MAX - COND_MIN) * damageRatio)
+      + bossAtkBoost * COND_PER_ATK_BOOST;
+
+    const npcResult = await resolveNpcBattle(
+      user.userId, npcId, outcomeKey, BOSS_NPC_EXP_GAIN, title, 0, bossCondLoss,
+    );
+
+    // ── 原子減少 Boss HP ──
+
     const updatedState = await db.findOneAndUpdate(
       "server_state",
       { _id: "aincrad", "bossStatus.active": true },
@@ -285,7 +298,6 @@ module.exports = async function bossAttack(cmd, rawUser) {
       existingParticipant.gameCreatedAt !== userCreatedAt;
 
     if (isStaleEntry) {
-      // 移除舊角色的參與記錄，視為新參與者
       await db.update(
         "server_state",
         { _id: "aincrad" },
@@ -335,10 +347,11 @@ module.exports = async function bossAttack(cmd, rawUser) {
       );
     }
 
-    // Phase 檢查：HP% 降到閾值以下時啟動新 phase
-    const phaseCheck = checkPhaseActivation(bossData, remainingHp, totalHp, activatedPhases);
+    // Phase 檢查：使用原子更新後的最新 activatedPhases，避免併發重複廣播
+    const freshActivatedPhases = updatedState.bossStatus.activatedPhases || [];
+    const phaseCheck = checkPhaseActivation(bossData, remainingHp, totalHp, freshActivatedPhases);
     if (phaseCheck.newPhases.length > 0) {
-      const latestWeapon = getLatestWeapon(bossData, activatedPhases, phaseCheck.newPhases);
+      const latestWeapon = getLatestWeapon(bossData, freshActivatedPhases, phaseCheck.newPhases);
       await db.update(
         "server_state",
         { _id: "aincrad" },
@@ -352,31 +365,27 @@ module.exports = async function bossAttack(cmd, rawUser) {
     await increment(user.userId, "totalBossAttacks");
 
     // 發放武器熟練度（Boss 戰）
+    const profMult = getProficiencyMultiplier(user);
+    const profGainKey = getProfGainKey(outcomeKey, "boss");
     await awardProficiency(user.userId, weapon, "BOSS");
-    const bossNpcIdx = (user.hiredNpcs || []).findIndex((n) => n.npcId === npcId);
+    const bossNpcIdx = hired.findIndex((n) => n.npcId === npcId);
     if (bossNpcIdx >= 0) {
-      await awardNpcProficiency(user.userId, bossNpcIdx, weapon, "BOSS");
+      await awardNpcProficiency(user.userId, bossNpcIdx, weapon, profGainKey, profMult);
     }
 
     // 冒險等級經驗
     const advExpResult = await awardAdvExp(user.userId, config.ADV_LEVEL.EXP_BOSS_ATTACK);
 
-    // Boss 反擊計算
-    const bossAtkBoost = getEffectiveBossAtk(bossData, [...activatedPhases, ...phaseCheck.newPhases]);
-    const counterResult = bossCounterAttack({ bossData, bossAtkBoost, combined });
-
-    // NPC 戰鬥結算：比例式體力損耗（依實際傷害計算，非固定 bucket）
-    const { COND_DODGE, COND_MIN, COND_MAX, COND_PER_ATK_BOOST } = config.BOSS_COUNTER;
-    let bossCondLoss;
-    if (counterResult.dodged) {
-      bossCondLoss = COND_DODGE;
-    } else {
-      const damageRatio = Math.min(1, counterResult.counterDamage / counterResult.npcHp);
-      bossCondLoss = Math.round(COND_MIN + (COND_MAX - COND_MIN) * damageRatio) + bossAtkBoost * COND_PER_ATK_BOOST;
+    // NPC 自動學技（死亡時跳過）
+    let skillText = "";
+    if (!npcResult.died && bossNpcIdx >= 0) {
+      const npcLearnResult = await tryNpcLearnSkill(user.userId, bossNpcIdx, hiredNpc, weapon);
+      if (npcLearnResult && npcLearnResult.learned) {
+        skillText = formatText("ADVENTURE.NPC_LEARN_SKILL", { npcName: hiredNpc.name, skillName: npcLearnResult.skillName });
+      }
     }
-    const npcResult = await resolveNpcBattle(user.userId, npcId, counterResult.outcome, BOSS_NPC_EXP_GAIN, user.title || null, 0, bossCondLoss);
 
-    // npcEventText 只放次要事件（升級），反擊結果由 counterAttack 結構化物件傳遞
+    // npcEventText
     let npcEventText = "";
     if (npcResult.levelUp) {
       npcEventText = formatText("BOSS.NPC_LEVEL_UP", { npcName: hiredNpc.name, level: npcResult.newLevel });
@@ -384,19 +393,30 @@ module.exports = async function bossAttack(cmd, rawUser) {
     if (advExpResult.levelUp) {
       npcEventText += `${npcEventText ? "\n" : ""}${formatText("BOSS.ADV_LEVEL_UP", { level: advExpResult.newLevel })}`;
     }
+    if (skillText) {
+      npcEventText += `${npcEventText ? "\n" : ""}${skillText}`;
+    }
 
     const condBefore = npcResult.condBefore ?? (hiredNpc.condition ?? 100);
     const condAfter = npcResult.died ? null : (npcResult.newCondition ?? condBefore);
 
-    const counterAttackData = {
-      hit: counterResult.hit,
-      dodged: counterResult.dodged,
-      counterDamage: counterResult.counterDamage,
-      outcome: counterResult.outcome,
-      isCrit: counterResult.isCrit,
+    // 戰鬥日誌（不洩漏 Boss 精確 HP 到前端 log 中，只傳 NPC 相關資料）
+    const battleLog = {
+      win: battleResult.win,
+      dead: battleResult.dead,
+      npcName: battleResult.npcName,
+      enemyName: battleResult.enemyName,
+      log: battleResult.log,
+      initialHp: { npc: battleResult.initialHp?.npc || 0 },
+      finalHp: { npc: Math.max(0, battleResult.finalHp?.npc || 0) },
+    };
+
+    // 戰鬥摘要（給 socket 廣播用）
+    const battleSummary = {
+      rounds: (battleResult.log || []).filter((e) => e.type === "round").length,
+      npcDamageRatio: damageRatio,
       npcDied: !!npcResult.died,
-      condBefore,
-      condAfter,
+      skillsUsed: (battleResult.skillEvents || []).length,
     };
 
     const socketEvents = [
@@ -410,7 +430,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
           bossHpTotal: totalHp,
           floorNumber: currentFloor,
           bossName: bossData.name,
-          counterAttack: counterAttackData,
+          battleSummary,
         },
       },
       ...phaseCheck.phaseEvents,
@@ -495,7 +515,10 @@ module.exports = async function bossAttack(cmd, rawUser) {
           laColBonus: bossData.lastAttackDrop ? config.COL_BOSS_LA_BONUS : 0,
           npcName: hiredNpc.name,
           npcEventText,
-          counterAttack: counterAttackData,
+          battleLog,
+          skillEvents: battleResult.skillEvents || [],
+          condBefore,
+          condAfter,
           npcResult: buildNpcResultPayload(npcResult),
           socketEvents,
         };
@@ -511,7 +534,10 @@ module.exports = async function bossAttack(cmd, rawUser) {
         bossName: bossData.name,
         npcName: hiredNpc.name,
         npcEventText,
-        counterAttack: counterAttackData,
+        battleLog,
+        skillEvents: battleResult.skillEvents || [],
+        condBefore,
+        condAfter,
         npcResult: buildNpcResultPayload(npcResult),
         socketEvents,
       };
@@ -527,7 +553,10 @@ module.exports = async function bossAttack(cmd, rawUser) {
       bossName: bossData.name,
       npcName: hiredNpc.name,
       npcEventText,
-      counterAttack: counterAttackData,
+      battleLog,
+      skillEvents: battleResult.skillEvents || [],
+      condBefore,
+      condAfter,
       npcResult: buildNpcResultPayload(npcResult),
       socketEvents,
     };

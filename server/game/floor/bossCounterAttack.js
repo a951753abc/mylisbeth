@@ -1,3 +1,7 @@
+/**
+ * @deprecated Boss 戰已改為 5 回合循環戰鬥（見 bossAttack.js），此模組不再使用。
+ * 保留以避免破壞其他可能的引用。
+ */
 const config = require("../config.js");
 const battle = require("../battle.js");
 

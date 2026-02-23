@@ -3,7 +3,7 @@
  */
 const { getEneFromList, getEneFromFloor, eneExample } = require("./battle/enemyGenerator.js");
 const { hitCheck, damCheck } = require("./battle/combatCalc.js");
-const { buildPvePlayerSide, buildPvpFighter } = require("./battle/fighterBuilder.js");
+const { buildPvePlayerSide, buildPvpFighter, buildBossFighter } = require("./battle/fighterBuilder.js");
 const { runPveCombatLoop, runPveCombatLoopWithSkills } = require("./battle/pveCombat.js");
 const { runPvpCombatLoop, runPvpCombatLoopWithSkills } = require("./battle/pvpCombat.js");
 const { buildSkillContext } = require("./skill/skillCombat.js");
@@ -140,6 +140,14 @@ battleModule.pveBattleDirectWithSkills = async function (weapon, npc, enemyData,
   const battleResult = runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx);
   battleResult.category = enemyData.category || "[Event]";
   return battleResult;
+};
+
+battleModule.bossBattleWithSkills = function (
+  weapon, npc, bossData, activatedPhases, remainingHp, titleMods = {}, skillCtx = null,
+) {
+  const playerSide = buildPvePlayerSide(weapon, npc, titleMods);
+  const bossSide = buildBossFighter(bossData, activatedPhases, remainingHp);
+  return runPveCombatLoopWithSkills(playerSide, bossSide, skillCtx);
 };
 
 battleModule.hitCheck = hitCheck;
