@@ -88,6 +88,8 @@ const DEFAULT_FIELDS = {
   forgeInspiration: false,
   // Season 12: 配方書（已發現配方）
   discoveredRecipes: [],
+  // Season 12: 素材強化紀錄書
+  materialStatBook: {},
   // Season 9: 劍技系統
   weaponProficiency: {
     one_handed_sword: 0, two_handed_sword: 0, two_handed_axe: 0,

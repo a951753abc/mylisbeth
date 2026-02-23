@@ -108,6 +108,7 @@ module.exports.buffWeapon = function (cmd, user) {
     thisWeapon.text += getStatBoostText(perName, statBoost);
     applyStatBoost(thisWeapon, perName, statBoost);
     thisWeapon.buff = buffCount + 1;
+    thisWeapon.buffedStat = perName;
     isBuff = true;
   } else {
     thisWeapon.text += getText("FORGE.BUFF_FAIL") + "\n";
@@ -328,3 +329,5 @@ module.exports.destroyWeapon = async function (userId, weaponIndex) {
   await db.update("user", query, mod);
   await db.update("user", query, { $pull: { weaponStock: null } });
 };
+
+module.exports.getStatName = getStatName;

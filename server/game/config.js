@@ -423,6 +423,7 @@ module.exports = {
   // Season 12: 鍛造等級附加功能
   FORGE_PERKS: {
     RECIPE_BOOK_LEVEL: 2,             // 配方書解鎖等級
+    STAT_BOOK_LEVEL: 3,               // 素材強化紀錄書解鎖等級
   },
 
   // Season 12: 挖礦等級附加功能

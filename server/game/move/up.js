@@ -69,6 +69,30 @@ module.exports = async function (cmd, rawUser) {
     thisWeapon.text += formatText("FORGE.RARITY_UP", { rarity: rarity.label }) + "\n";
   }
 
+  // 素材強化紀錄書：記錄成功強化的素材→屬性（僅已知素材，跳過隨機 fallback）
+  let newStatDiscovery = null;
+  const buffedStat = thisWeapon.buffedStat;
+  delete thisWeapon.buffedStat; // 清除暫存欄位，避免寫入武器文件
+  const statBookLevel = config.FORGE_PERKS?.STAT_BOOK_LEVEL ?? 3;
+  if (buffedStat && (user.forgeLevel ?? 1) >= statBookLevel) {
+    const matId = material.itemId;
+    // 原子寫入：只在尚未記錄時標記為新發現
+    const fieldPath = `materialStatBook.${matId}`;
+    const inserted = await db.findOneAndUpdate(
+      "user",
+      { userId: user.userId, [fieldPath]: { $exists: false } },
+      { $set: { [fieldPath]: buffedStat } },
+    );
+    if (inserted) {
+      newStatDiscovery = { itemId: matId, itemName: material.itemName, stat: buffedStat };
+    } else {
+      // 已存在，仍覆蓋（確保資料一致）
+      await db.update("user", { userId: user.userId }, {
+        $set: { [fieldPath]: buffedStat },
+      });
+    }
+  }
+
   if (thisWeapon.durability <= 0) {
     thisWeapon.text += formatText("FORGE.WEAPON_BROKEN", { weaponName: thisWeapon.weaponName });
     await weapon.destroyWeapon(user.userId, weaponIdx);
@@ -89,7 +113,7 @@ module.exports = async function (cmd, rawUser) {
     weaponName = weaponName + "+" + thisWeapon.buff;
   }
 
-  return {
+  const result = {
     weapon: {
       weaponName,
       name: thisWeapon.name,
@@ -107,4 +131,8 @@ module.exports = async function (cmd, rawUser) {
     },
     text: thisWeapon.text,
   };
+  if (newStatDiscovery) {
+    result.newStatDiscovery = newStatDiscovery;
+  }
+  return result;
 };

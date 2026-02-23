@@ -168,6 +168,36 @@ router.post("/rename-weapon", ensureAuth, async (req, res) => {
   }
 });
 
+// Stat Book（素材強化紀錄書 LV3，純讀取不消耗）
+router.get("/stat-book", ensureAuth, async (req, res) => {
+  await handleRoute(res, async () => {
+    const userId = req.user.discordId;
+    const user = await db.findOne("user", { userId });
+    if (!user) return { error: "角色不存在" };
+
+    const forgeLevel = user.forgeLevel ?? 1;
+    const requiredLevel = config.FORGE_PERKS?.STAT_BOOK_LEVEL ?? 3;
+    if (forgeLevel < requiredLevel) {
+      return { error: `此功能需要鍛造等級 LV${requiredLevel}` };
+    }
+
+    const allItems = itemCache.getAll();
+    const itemMap = {};
+    for (const item of allItems) {
+      itemMap[item.itemId] = item.name;
+    }
+
+    const book = user.materialStatBook || {};
+    const entries = Object.entries(book).map(([itemId, stat]) => ({
+      itemId,
+      itemName: itemMap[itemId] || itemId,
+      stat,
+    }));
+
+    return { entries, total: entries.length };
+  }, "強化紀錄書查詢失敗");
+});
+
 // Upgrade
 router.post("/upgrade", ensureAuth, async (req, res) => {
   const { weaponId, materialId } = req.body;

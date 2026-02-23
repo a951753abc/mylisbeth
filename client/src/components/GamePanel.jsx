@@ -175,6 +175,19 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
               </div>
             )}
 
+            {result.newStatDiscovery && (
+              <div style={{
+                marginTop: "0.4rem",
+                padding: "0.3rem 0.5rem",
+                background: "var(--bg-hover)",
+                borderRadius: "4px",
+                fontSize: "0.8rem",
+                border: "1px solid var(--accent)",
+              }}>
+                紀錄書更新：<strong>{result.newStatDiscovery.itemName}</strong> → <strong style={{ color: "var(--accent)" }}>{{ hp: "HP", atk: "ATK", def: "DEF", agi: "AGI", cri: "CRI", durability: "耐久" }[result.newStatDiscovery.stat] || result.newStatDiscovery.stat}</strong>
+              </div>
+            )}
+
             {result.randomEvent && (
               <RandomEventDisplay event={result.randomEvent} />
             )}
