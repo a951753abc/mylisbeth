@@ -50,7 +50,7 @@ export default function UpgradeSection({ user, doAction, isDisabled, displayStam
       weaponId: upWeapon,
       materialId: upMat,
     });
-    // 強化成功發現新屬性時，更新本地紀錄書快取
+    // 強化成功發現新屬性時，更新本地記錄書快取
     if (data.newStatDiscovery && statBook) {
       setStatBook((prev) => {
         const exists = prev.some((e) => e.itemId === data.newStatDiscovery.itemId);
@@ -73,12 +73,12 @@ export default function UpgradeSection({ user, doAction, isDisabled, displayStam
               onClick={handleToggleStatBook}
               disabled={statBookLoading}
             >
-              {statBookLoading ? "載入中..." : showStatBook ? "收起紀錄書" : "強化紀錄書"}
+              {statBookLoading ? "載入中..." : showStatBook ? "收起記錄書" : "強化記錄書"}
             </button>
           )}
         </div>
 
-        {/* 強化紀錄書面板 */}
+        {/* 強化記錄書面板 */}
         {showStatBook && statBook && (
           <div style={{
             marginBottom: "0.6rem",

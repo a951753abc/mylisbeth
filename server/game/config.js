@@ -421,12 +421,13 @@ module.exports = {
   // Season 12: 鍛造等級附加功能
   FORGE_PERKS: {
     RECIPE_BOOK_LEVEL: 2,             // 配方書解鎖等級
-    STAT_BOOK_LEVEL: 3,               // 素材強化紀錄書解鎖等級
+    STAT_BOOK_LEVEL: 3,               // 素材強化記錄書解鎖等級
   },
 
   // Season 12: 挖礦等級附加功能
   MINE_PERKS: {
     CONTINUOUS_MINING_LEVEL: 2,     // 連續挖礦解鎖等級
+    MATERIAL_BOOK_LEVEL: 3,         // 素材記錄書解鎖等級
     PRECISE_MINING_LEVEL: 4,        // 精準挖礦（自動售 ★1）解鎖等級
     ORE_RADAR_LEVEL: 6,             // 礦脈探測解鎖等級
     BULK_SELL_LEVEL: 8,             // 批量出售（自動售 ★2）解鎖等級

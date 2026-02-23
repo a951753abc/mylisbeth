@@ -69,7 +69,7 @@ module.exports = async function (cmd, rawUser) {
     thisWeapon.text += formatText("FORGE.RARITY_UP", { rarity: rarity.label }) + "\n";
   }
 
-  // 素材強化紀錄書：記錄成功強化的素材→屬性（僅已知素材，跳過隨機 fallback）
+  // 素材強化記錄書：記錄成功強化的素材→屬性（僅已知素材，跳過隨機 fallback）
   let newStatDiscovery = null;
   const buffedStat = thisWeapon.buffedStat;
   delete thisWeapon.buffedStat; // 清除暫存欄位，避免寫入武器文件

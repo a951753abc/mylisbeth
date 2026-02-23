@@ -168,7 +168,46 @@ router.post("/rename-weapon", ensureAuth, async (req, res) => {
   }
 });
 
-// Stat Book（素材強化紀錄書 LV3，純讀取不消耗）
+// Material Floor Book（素材記錄書 挖礦LV3，純讀取不消耗）
+router.get("/material-book", ensureAuth, async (req, res) => {
+  await handleRoute(res, async () => {
+    const userId = req.user.discordId;
+    const user = await db.findOne("user", { userId });
+    if (!user) return { error: "角色不存在" };
+
+    const mineLevel = user.mineLevel ?? 1;
+    const requiredLevel = config.MINE_PERKS?.MATERIAL_BOOK_LEVEL ?? 3;
+    if (mineLevel < requiredLevel) {
+      return { error: `此功能需要挖礦等級 LV${requiredLevel}` };
+    }
+
+    const allItems = itemCache.getAll();
+    const itemMap = {};
+    for (const item of allItems) {
+      itemMap[item.itemId] = item.name;
+    }
+
+    const book = user.materialFloorBook || {};
+    const entries = Object.entries(book).map(([itemId, floors]) => ({
+      itemId,
+      itemName: itemMap[itemId] || itemId,
+      floors: Array.isArray(floors) ? [...floors].sort((a, b) => a - b) : [floors],
+    }));
+
+    // 按樓層分組顯示
+    const floorMap = {};
+    for (const entry of entries) {
+      for (const floor of entry.floors) {
+        if (!floorMap[floor]) floorMap[floor] = [];
+        floorMap[floor].push({ itemId: entry.itemId, itemName: entry.itemName });
+      }
+    }
+
+    return { entries, floorMap, total: entries.length };
+  }, "素材記錄書查詢失敗");
+});
+
+// Stat Book（素材強化記錄書 LV3，純讀取不消耗）
 router.get("/stat-book", ensureAuth, async (req, res) => {
   await handleRoute(res, async () => {
     const userId = req.user.discordId;
@@ -195,7 +234,7 @@ router.get("/stat-book", ensureAuth, async (req, res) => {
     }));
 
     return { entries, total: entries.length };
-  }, "強化紀錄書查詢失敗");
+  }, "強化記錄書查詢失敗");
 });
 
 // Upgrade

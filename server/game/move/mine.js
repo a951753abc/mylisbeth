@@ -205,6 +205,19 @@ module.exports = async function (cmd, rawUser, staminaInfo) {
     if (isBatch && totalStaminaSpent >= staminaBudget) break;
   }
 
+  // --- 記錄素材-樓層關係（素材記錄書，挖礦 LV3 解鎖）---
+  const materialBookLevel = perks.MATERIAL_BOOK_LEVEL ?? 3;
+  if (mineLevel >= materialBookLevel) {
+    const uniqueItemIds = [...new Set(minedItems.map((m) => m.itemId))];
+    if (uniqueItemIds.length > 0) {
+      const floorBookUpdate = {};
+      for (const itemId of uniqueItemIds) {
+        floorBookUpdate[`materialFloorBook.${itemId}`] = { $each: [currentFloor] };
+      }
+      await db.update("user", { userId: user.userId }, { $addToSet: floorBookUpdate });
+    }
+  }
+
   // --- 統計（批次模式按實際迭代次數計算）---
   await increment(user.userId, "totalMines", iterations);
   await checkAndAward(user.userId);

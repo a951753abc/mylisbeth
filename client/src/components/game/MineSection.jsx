@@ -12,6 +12,7 @@ const BUDGET_OPTIONS = [
 
 const PERK_LEVELS = {
   continuous: 2,
+  materialBook: 3,
   precise: 4,
   radar: 6,
   bulkSell: 8,
@@ -25,8 +26,12 @@ export default function MineSection({ doAction, isDisabled, busy, cooldownActive
   const [showPreview, setShowPreview] = useState(false);
   const [preview, setPreview] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [showMaterialBook, setShowMaterialBook] = useState(false);
+  const [materialBook, setMaterialBook] = useState(null);
+  const [materialBookLoading, setMaterialBookLoading] = useState(false);
 
   const canContinuous = mineLevel >= PERK_LEVELS.continuous;
+  const canMaterialBook = mineLevel >= PERK_LEVELS.materialBook;
   const canPrecise = mineLevel >= PERK_LEVELS.precise;
   const canRadar = mineLevel >= PERK_LEVELS.radar;
   const canBulkSell = mineLevel >= PERK_LEVELS.bulkSell;
@@ -64,9 +69,97 @@ export default function MineSection({ doAction, isDisabled, busy, cooldownActive
     setPreviewLoading(false);
   }, [showPreview]);
 
+  const fetchMaterialBook = useCallback(async () => {
+    if (showMaterialBook) {
+      setShowMaterialBook(false);
+      return;
+    }
+    setMaterialBookLoading(true);
+    try {
+      const res = await fetch("/api/game/material-book", { credentials: "include" });
+      const data = await res.json();
+      if (data.error) return;
+      setMaterialBook(data);
+      setShowMaterialBook(true);
+    } catch {
+      // silent
+    } finally {
+      setMaterialBookLoading(false);
+    }
+  }, [showMaterialBook]);
+
   return (
     <div className="card">
-      <h2>挖礦</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2>挖礦</h2>
+        {canMaterialBook && (
+          <button
+            className="btn-secondary"
+            style={{ padding: "0.2rem 0.6rem", fontSize: "0.75rem" }}
+            onClick={fetchMaterialBook}
+            disabled={materialBookLoading}
+          >
+            {materialBookLoading ? "載入中..." : showMaterialBook ? "收起記錄書" : "素材記錄書"}
+          </button>
+        )}
+      </div>
+
+      {/* 素材記錄書面板 */}
+      {showMaterialBook && materialBook && (
+        <div style={{
+          marginBottom: "0.6rem",
+          padding: "0.5rem",
+          background: "var(--bg-hover)",
+          borderRadius: "6px",
+          border: "1px solid var(--border)",
+          maxHeight: "300px",
+          overflowY: "auto",
+        }}>
+          {materialBook.total === 0 ? (
+            <div style={{ color: "var(--text-secondary)", fontSize: "0.8rem", textAlign: "center" }}>
+              尚未發現任何素材。挖礦後會自動記錄素材與樓層的關係。
+            </div>
+          ) : (
+            <>
+              {Object.entries(materialBook.floorMap)
+                .sort(([a], [b]) => Number(a) - Number(b))
+                .map(([floor, items]) => (
+                  <div key={floor} style={{ marginBottom: "0.4rem" }}>
+                    <div style={{
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      color: "var(--accent)",
+                      marginBottom: "0.2rem",
+                      borderBottom: "1px solid var(--border)",
+                      paddingBottom: "0.15rem",
+                    }}>
+                      第 {floor} 層
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
+                      {items.map((item) => (
+                        <span
+                          key={item.itemId}
+                          style={{
+                            padding: "0.1rem 0.4rem",
+                            borderRadius: "3px",
+                            background: "rgba(59,130,246,0.1)",
+                            border: "1px solid rgba(59,130,246,0.25)",
+                            fontSize: "0.7rem",
+                          }}
+                        >
+                          {item.itemName}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "0.3rem", textAlign: "right" }}>
+                已發現 {materialBook.total} 種素材
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* 連續挖礦 LV2：體力預算下拉 */}
       {canContinuous && (
@@ -187,7 +280,8 @@ export default function MineSection({ doAction, isDisabled, busy, cooldownActive
       {mineLevel < PERK_LEVELS.masterEye && (
         <div style={{ fontSize: "0.65rem", color: "var(--text-secondary)", marginTop: "0.5rem" }}>
           {mineLevel < PERK_LEVELS.continuous && <div>LV{PERK_LEVELS.continuous} 解鎖：連續挖礦</div>}
-          {mineLevel < PERK_LEVELS.precise && mineLevel >= PERK_LEVELS.continuous && <div>LV{PERK_LEVELS.precise} 解鎖：精準挖礦</div>}
+          {mineLevel < PERK_LEVELS.materialBook && mineLevel >= PERK_LEVELS.continuous && <div>LV{PERK_LEVELS.materialBook} 解鎖：素材記錄書</div>}
+          {mineLevel < PERK_LEVELS.precise && mineLevel >= PERK_LEVELS.materialBook && <div>LV{PERK_LEVELS.precise} 解鎖：精準挖礦</div>}
           {mineLevel < PERK_LEVELS.radar && mineLevel >= PERK_LEVELS.precise && <div>LV{PERK_LEVELS.radar} 解鎖：礦脈探測</div>}
           {mineLevel < PERK_LEVELS.bulkSell && mineLevel >= PERK_LEVELS.radar && <div>LV{PERK_LEVELS.bulkSell} 解鎖：批量出售</div>}
           {mineLevel < PERK_LEVELS.masterEye && mineLevel >= PERK_LEVELS.bulkSell && <div>LV{PERK_LEVELS.masterEye} 解鎖：大師之眼</div>}
