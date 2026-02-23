@@ -172,9 +172,13 @@ export default function BattleLog({ logs }) {
                         {log.counterAttack.isCrit && <span style={{ color: 'var(--danger)' }}> 暴擊！</span>}
                       </span>
                     ) : null}
-                    {log.counterAttack.npcDied && (
+                    {log.counterAttack.npcDied ? (
                       <div style={{ color: 'var(--danger)', fontWeight: 'bold' }}>
                         💀 {log.npcName} 在 Boss 的反擊中陣亡了！
+                      </div>
+                    ) : log.counterAttack.condAfter != null && (
+                      <div style={{ color: 'var(--text-secondary)' }}>
+                        ❤️ {log.npcName} 體力：{log.counterAttack.condBefore}% → {log.counterAttack.condAfter}%
                       </div>
                     )}
                   </div>
@@ -197,6 +201,11 @@ export default function BattleLog({ logs }) {
                         {log.counterAttack.npcDied && <span style={{ color: 'var(--danger)' }}> — 陣亡！</span>}
                       </span>
                     ) : null}
+                    {!log.counterAttack.npcDied && log.counterAttack.condAfter != null && (
+                      <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                        ❤️ {log.npcName} 體力：{log.counterAttack.condBefore}% → {log.counterAttack.condAfter}%
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

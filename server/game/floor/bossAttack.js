@@ -366,7 +366,9 @@ module.exports = async function bossAttack(cmd, rawUser) {
     const counterResult = bossCounterAttack({ bossData, bossAtkBoost, combined });
 
     // NPC 戰鬥結算（以反擊結果取代固定 WIN）
-    const npcResult = await resolveNpcBattle(user.userId, npcId, counterResult.outcome, BOSS_NPC_EXP_GAIN, user.title || null, bossAtkBoost);
+    // 閃避時不套用 bossAtkBoost 體力懲罰（Boss 沒打中就不應額外消耗體力）
+    const effectiveBossAtkBoostForCond = counterResult.dodged ? 0 : bossAtkBoost;
+    const npcResult = await resolveNpcBattle(user.userId, npcId, counterResult.outcome, BOSS_NPC_EXP_GAIN, user.title || null, effectiveBossAtkBoostForCond);
 
     // npcEventText 只放次要事件（升級），反擊結果由 counterAttack 結構化物件傳遞
     let npcEventText = "";
@@ -377,6 +379,9 @@ module.exports = async function bossAttack(cmd, rawUser) {
       npcEventText += `${npcEventText ? "\n" : ""}${formatText("BOSS.ADV_LEVEL_UP", { level: advExpResult.newLevel })}`;
     }
 
+    const condBefore = npcResult.condBefore ?? (hiredNpc.condition ?? 100);
+    const condAfter = npcResult.died ? null : (npcResult.newCondition ?? condBefore);
+
     const counterAttackData = {
       hit: counterResult.hit,
       dodged: counterResult.dodged,
@@ -384,6 +389,8 @@ module.exports = async function bossAttack(cmd, rawUser) {
       outcome: counterResult.outcome,
       isCrit: counterResult.isCrit,
       npcDied: !!npcResult.died,
+      condBefore,
+      condAfter,
     };
 
     const socketEvents = [

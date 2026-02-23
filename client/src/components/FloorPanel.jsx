@@ -97,6 +97,8 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive,
           }
           if (data.counterAttack.npcDied) {
             msg += `\n⚠️ 💀 ${data.npcName} 在 Boss 的反擊中陣亡了！`;
+          } else if (data.counterAttack.condAfter != null) {
+            msg += `\n❤️ ${data.npcName} 體力：${data.counterAttack.condBefore}% → ${data.counterAttack.condAfter}%`;
           }
         }
         if (data.npcEventText) msg += `\n${data.npcEventText}`;
@@ -112,6 +114,8 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive,
           }
           if (data.counterAttack.npcDied) {
             msg += `\n⚠️ 💀 ${data.npcName} 在 Boss 的反擊中陣亡了！`;
+          } else if (data.counterAttack.condAfter != null) {
+            msg += `\n❤️ ${data.npcName} 體力：${data.counterAttack.condBefore}% → ${data.counterAttack.condAfter}%`;
           }
         }
         if (data.npcEventText) msg += `\n${data.npcEventText}`;

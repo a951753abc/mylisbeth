@@ -222,7 +222,7 @@ async function resolveNpcBattle(userId, npcId, outcome, expGain, userTitle = nul
     },
   );
 
-  return { survived: true, levelUp: didLevelUp, newCondition: newCond, newLevel };
+  return { survived: true, levelUp: didLevelUp, condBefore: npc.condition ?? 100, newCondition: newCond, newLevel };
 }
 
 /**
