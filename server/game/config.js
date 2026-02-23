@@ -434,7 +434,8 @@ module.exports = {
     BULK_SELL_LEVEL: 8,             // 批量出售（自動售 ★2）解鎖等級
     MASTER_EYE_LEVEL: 10,           // 大師之眼解鎖等級
     MASTER_EYE_CHANCE: 10,          // 大師之眼觸發機率 (%)
-    BUDGET_OPTIONS: [6, 12, 18, 24, 30],  // 連續挖礦可選體力預算（0=全部）
+    BUDGET_OPTIONS: [6, 12, 18, 24, 30],  // 前端下拉預設選項
+    MAX_BUDGET: 200,                        // 連續挖礦體力預算上限（含「全部體力」）
   },
 
   // Season 3.5: 鍛造師親自冒險
