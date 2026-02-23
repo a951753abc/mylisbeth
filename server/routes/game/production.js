@@ -203,7 +203,16 @@ router.get("/material-book", ensureAuth, async (req, res) => {
       }
     }
 
-    return { entries, floorMap, total: entries.length };
+    // 計算每層的素材總數（供前端顯示 已發現/總數）
+    const currentFloor = getActiveFloor(user);
+    const highestFloor = user.currentFloor || 1;
+    const floorTotals = {};
+    for (let f = 1; f <= highestFloor; f++) {
+      const pool = getFloorMinePool(allItems, f);
+      floorTotals[f] = pool.length;
+    }
+
+    return { entries, floorMap, floorTotals, currentFloor, total: entries.length };
   }, "素材記錄書查詢失敗");
 });
 

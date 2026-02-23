@@ -119,45 +119,76 @@ export default function MineSection({ doAction, isDisabled, busy, cooldownActive
             <div style={{ color: "var(--text-secondary)", fontSize: "0.8rem", textAlign: "center" }}>
               尚未發現任何素材。挖礦後會自動記錄素材與樓層的關係。
             </div>
-          ) : (
-            <>
-              {Object.entries(materialBook.floorMap)
-                .sort(([a], [b]) => Number(a) - Number(b))
-                .map(([floor, items]) => (
-                  <div key={floor} style={{ marginBottom: "0.4rem" }}>
-                    <div style={{
-                      fontSize: "0.75rem",
-                      fontWeight: 600,
-                      color: "var(--accent)",
-                      marginBottom: "0.2rem",
-                      borderBottom: "1px solid var(--border)",
-                      paddingBottom: "0.15rem",
-                    }}>
-                      第 {floor} 層
-                    </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
-                      {items.map((item) => (
-                        <span
-                          key={item.itemId}
-                          style={{
-                            padding: "0.1rem 0.4rem",
-                            borderRadius: "3px",
-                            background: "rgba(59,130,246,0.1)",
-                            border: "1px solid rgba(59,130,246,0.25)",
-                            fontSize: "0.7rem",
-                          }}
-                        >
-                          {item.itemName}
+          ) : (() => {
+            const floorTotals = materialBook.floorTotals || {};
+            const currentFloor = materialBook.currentFloor;
+            const allFloors = [...new Set([
+              ...Object.keys(materialBook.floorMap).map(Number),
+              ...Object.keys(floorTotals).map(Number),
+            ])].sort((a, b) => a - b);
+            return (
+              <>
+                {allFloors.map((floor) => {
+                  const items = materialBook.floorMap[floor] || [];
+                  const total = floorTotals[floor] || 0;
+                  const discovered = items.length;
+                  const isCurrentFloor = floor === currentFloor;
+                  const allFound = total > 0 && discovered >= total;
+                  return (
+                    <div key={floor} style={{ marginBottom: "0.4rem" }}>
+                      <div style={{
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                        color: isCurrentFloor ? "var(--gold)" : "var(--accent)",
+                        marginBottom: "0.2rem",
+                        borderBottom: "1px solid var(--border)",
+                        paddingBottom: "0.15rem",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}>
+                        <span>
+                          第 {floor} 層{isCurrentFloor ? "（當前）" : ""}
                         </span>
-                      ))}
+                        <span style={{
+                          fontSize: "0.7rem",
+                          fontWeight: 400,
+                          color: allFound ? "#4ade80" : "var(--text-secondary)",
+                        }}>
+                          {discovered} / {total}
+                        </span>
+                      </div>
+                      {items.length > 0 ? (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
+                          {items.map((item) => (
+                            <span
+                              key={item.itemId}
+                              style={{
+                                padding: "0.1rem 0.4rem",
+                                borderRadius: "3px",
+                                background: "rgba(59,130,246,0.1)",
+                                border: "1px solid rgba(59,130,246,0.25)",
+                                fontSize: "0.7rem",
+                              }}
+                            >
+                              {item.itemName}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", fontStyle: "italic" }}>
+                          尚未發現
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
-              <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "0.3rem", textAlign: "right" }}>
-                已發現 {materialBook.total} 種素材
-              </div>
-            </>
-          )}
+                  );
+                })}
+                <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "0.3rem", textAlign: "right" }}>
+                  已發現 {materialBook.total} 種素材
+                </div>
+              </>
+            );
+          })()}
         </div>
       )}
 
