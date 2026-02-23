@@ -112,16 +112,19 @@ module.exports = async function (cmd, rawAttacker) {
       timestamp: now,
     });
     await checkAndAward(attacker.userId);
+    const unarmedText = formatText("PVP.UNARMED", { defender: defender.name, attacker: attacker.name });
     return {
-      battleLog: [],
+      battleLog: unarmedText,
       winner: attacker.name,
-      reward: formatText("PVP.UNARMED", { defender: defender.name, attacker: attacker.name }),
+      reward: unarmedText,
       attackerName: attacker.name,
       defenderName: defender.name,
       defenderId: defender.userId,
       duelMode: mode,
       stamina: staminaResult.stamina,
       staminaCost,
+      skillEvents: [],
+      detailLog: [],
     };
   }
 
