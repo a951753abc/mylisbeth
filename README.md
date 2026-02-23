@@ -23,7 +23,7 @@ SAO 風格 Web RPG 遊戲 — 扮演鍛造師莉茲貝特，打造武器、挖�
 - **非同步 Boss 戰** — 共享 Boss HP，不需同時在線，72 小時挑戰期限，MVP 獲得額外獎勵
 - **Boss 反擊** — 每次攻擊 Boss 後，Boss 會反擊你的 NPC
 - **Col 貨幣** — 冒險、PvP、Boss 戰均可獲得
-- **成就系統** — 64 項成就，解鎖後獲得專屬稱號
+- **成就系統** — 62 項成就，解鎖後獲得專屬稱號
 - **樓層素材** — 每 2 層一組新素材，影響冒險與挖礦掉落
 - **武器稀有度** — common → fine → rare → epic → legendary，影響鍛造動畫與顯示
 
@@ -44,7 +44,6 @@ SAO 風格 Web RPG 遊戲 — 扮演鍛造師莉茲貝特，打造武器、挖�
 - **NPC 自主任務** — 派遣 NPC 執行巡邏（15 分鐘）、採集（25 分鐘）、護送（50 分鐘）任務，自動結算獎勵/失敗/死亡
 - **佈告板掛賣** — 玩家間交易系統，可掛賣素材與武器，2% 手續費，NPC 每遊戲日自動購買低價商品
 - **回收商店** — 素材依星級定價（★1:x1, ★2:x3, ★3:x6），武器依稀有度定價（普通:x1 ~ 傳說:x50）
-- **貸款系統** — 向系統借貸 Col，有利息與還款期限
 - **暫停營業** — 暫時停止結算，防止離線時被破產
 - **稱號效果** — 各稱號附帶戰鬥加成/減益效果，可查看詳細效果說明
 - **隨機事件** — 冒險中可能觸發特殊事件（如 Laughing Coffin 襲擊）
@@ -89,6 +88,13 @@ SAO 風格 Web RPG 遊戲 — 扮演鍛造師莉茲貝特，打造武器、挖�
 - **封頂機制** — 熟練度上限 = 有效樓層 × 100，等級上限 = 有效樓層 × 2
 - **技能學習** — 修練中有機率學習新劍技（機率依品質與修練類型不同）
 
+### Season 12：倉庫系統
+- **解鎖條件** — 攻略第 10 層 Boss 後（currentFloor ≥ 11）開放
+- **倉庫建置** — 支付 500 Col 建置初始倉庫（素材 10 種 / 武器 5 把）
+- **容量擴充** — Col 升級倉庫等級（最高 LV10），每級費用 ×1.5 遞增，每級 +5 素材種類 / +2 武器
+- **存取管理** — 存入/取出素材與武器，支援數量輸入與「全部」操作
+- **安全機制** — NPC 裝備中武器與 PvP 防禦武器無法存入，原子容量保護，失敗自動回滾
+
 ### Season 12：鍛造/挖礦等級附加功能
 - **LV2 配方書** — 查詢素材組合對應的武器
 - **LV2 連續挖礦** — 設定體力預算，一次挖多次
@@ -132,9 +138,10 @@ mylisbeth/
 │   │   ├── game/
 │   │   │   ├── production.js       # 挖礦/鍛造/強化/修理（含連續挖礦、配方書）
 │   │   │   ├── combat.js           # 冒險/PvP/NPC 決鬥
-│   │   │   ├── economy.js          # 經濟系統（商店、貸款、結算、暫停）
+│   │   │   ├── economy.js          # 經濟系統（商店、結算、暫停）
 │   │   │   ├── floor.js            # 樓層與 Boss 戰
 │   │   │   ├── progression.js      # 進度（成就、稱號）
+│   │   │   ├── warehouse.js        # 倉庫系統
 │   │   │   └── helpers.js          # 路由工具函式
 │   │   ├── npc.js                  # NPC 管理（酒館、雇用、治療、裝備、任務、修練）
 │   │   ├── market.js               # 佈告板交易
@@ -208,6 +215,7 @@ mylisbeth/
 │       │   ├── skillProficiency.js # 武器熟練度追蹤
 │       │   ├── npcSkillLearning.js # NPC 自動學習技能
 │       │   └── extraSkillChecker.js # 額外技能解鎖
+│       ├── warehouse.js            # 倉庫系統（建置、擴容、存取）
 │       ├── economy/
 │       │   ├── col.js              # Col 貨幣工具
 │       │   ├── settlement.js       # 月結算計算與處理
@@ -257,7 +265,7 @@ mylisbeth/
 │       ├── time/
 │       │   └── gameTime.js         # 遊戲時間、結算時機、新手保護
 │       ├── progression/
-│       │   ├── achievement.js      # 成就定義與檢查（64 項）
+│       │   ├── achievement.js      # 成就定義與檢查（62 項）
 │       │   ├── statsTracker.js     # 統計追蹤
 │       │   └── adventureLevel.js   # 冒險等級系統
 │       ├── logging/
@@ -302,6 +310,7 @@ mylisbeth/
 │       │   ├── ProficiencyBar.jsx   # 熟練度進度條
 │       │   ├── ShopPanel.jsx        # 回收商店
 │       │   ├── MarketPanel.jsx      # 佈告板交易
+│       │   ├── WarehousePanel.jsx   # 倉庫管理
 │       │   ├── SettlementPanel.jsx  # 結算與債務
 │       │   ├── BankruptcyScreen.jsx # 破產畫面
 │       │   ├── TitleEffectHint.jsx  # 稱號效果提示
@@ -374,7 +383,7 @@ node server/scripts/seed-new-materials.js
 # Season 3 MongoDB 索引（NPC、破產紀錄）
 node server/scripts/init-season3-indexes.js
 
-# Season 6 MongoDB 索引（佈告板、貸款）
+# Season 6 MongoDB 索引（佈告板）
 node server/scripts/init-season6-indexes.js
 
 # 排行榜索引
@@ -533,6 +542,17 @@ docker compose logs -f app
 | POST | `/api/game/sell-item` | 回收商店賣素材 |
 | POST | `/api/game/sell-weapon` | 回收商店賣武器 |
 | POST | `/api/game/pause-business` | 暫停/恢復營業 |
+
+### 倉庫系統
+| 方法 | 路徑 | 說明 |
+|------|------|------|
+| GET | `/api/game/warehouse` | 倉庫狀態（容量、已存物品） |
+| POST | `/api/game/warehouse/build` | 建置倉庫（500 Col） |
+| POST | `/api/game/warehouse/upgrade` | 擴容升級 |
+| POST | `/api/game/warehouse/store-item` | 存入素材 |
+| POST | `/api/game/warehouse/retrieve-item` | 取出素材 |
+| POST | `/api/game/warehouse/store-weapon` | 存入武器 |
+| POST | `/api/game/warehouse/retrieve-weapon` | 取出武器 |
 
 ### 佈告板交易
 | 方法 | 路徑 | 說明 |
