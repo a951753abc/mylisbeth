@@ -15,6 +15,7 @@ import NpcDeathToast from "../components/NpcDeathToast";
 import ShopPanel from "../components/ShopPanel";
 import MarketPanel from "../components/MarketPanel";
 import SkillPanel from "../components/SkillPanel";
+import WarehousePanel from "../components/WarehousePanel";
 
 const MOVE_COOLDOWN_SECONDS = 5;
 
@@ -44,6 +45,7 @@ const TAB_GROUPS = [
       { key: "inventory", text: "物品" },
       { key: "shop", text: "商店" },
       { key: "market", text: "佈告板" },
+      { key: "warehouse", text: "倉庫" },
     ],
   },
   {
@@ -441,6 +443,9 @@ export default function Game({ user, onLogout }) {
         )}
         {tab === "market" && (
           <MarketPanel user={gameUser} onRefresh={fetchUser} />
+        )}
+        {tab === "warehouse" && (
+          <WarehousePanel user={gameUser} onRefresh={fetchUser} />
         )}
       </div>
     </div>

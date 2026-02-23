@@ -169,6 +169,19 @@ module.exports = {
     COND_MAX: 55,             // 最高體力損耗（5 回合累計傷害更高，略高於舊的 50）
     COND_PER_ATK_BOOST: 2,   // 每點 bossAtkBoost 額外體力損耗（降低，因 ATK 已分攤到多回合）
   },
+  // 倉庫系統
+  WAREHOUSE: {
+    UNLOCK_FLOOR: 11,              // 解鎖所需樓層（攻略第 10 層後）
+    BUILD_COST: 500,               // 建置費用 Col
+    BASE_ITEM_CAPACITY: 10,        // 基礎素材種類容量
+    BASE_WEAPON_CAPACITY: 5,       // 基礎武器容量
+    ITEM_CAPACITY_PER_LEVEL: 5,    // 每級增加素材容量
+    WEAPON_CAPACITY_PER_LEVEL: 2,  // 每級增加武器容量
+    UPGRADE_BASE_COST: 300,        // 擴容基礎費用
+    UPGRADE_COST_MULT: 1.5,        // 每級費用倍率
+    MAX_LEVEL: 10,                 // 最高等級
+  },
+
   FLOOR_MAX_EXPLORE: 5,
 
   // Season 2: 武器修復

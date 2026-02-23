@@ -174,6 +174,18 @@ module.exports = function (user) {
     adventureExp: user.adventureExp ?? 0,
     adventureExpNext: getAdvExpToNextLevel(adventureLevel),
     hireLimit: getHireLimit(adventureLevel),
+    // 倉庫摘要
+    warehouse: (() => {
+      const wh = user.warehouse || { built: false, level: 0, items: [], weapons: [] };
+      const unlockFloor = config.WAREHOUSE.UNLOCK_FLOOR;
+      return {
+        unlocked: (user.currentFloor || 1) >= unlockFloor,
+        built: wh.built || false,
+        level: wh.level || 0,
+        itemCount: (wh.items || []).filter((i) => i.itemNum > 0).length,
+        weaponCount: (wh.weapons || []).filter(Boolean).length,
+      };
+    })(),
     // Season 8: 封印武器
     sealedWeapons: (user.sealedWeapons || []).map((w, idx) => {
       const rarity = w.rarity

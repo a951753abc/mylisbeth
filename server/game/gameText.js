@@ -202,6 +202,32 @@ module.exports = {
     MARKET_WEAPON_NPC_EQUIPPED: "該武器正被 NPC 裝備中，請先卸除",
   },
 
+  // === 倉庫 ===
+  WAREHOUSE: {
+    NOT_UNLOCKED: "需要攻略第 10 層 Boss 才能解鎖倉庫功能（目前樓層：{currentFloor}）",
+    ALREADY_BUILT: "倉庫已建置完成",
+    NOT_BUILT: "你還沒有建置倉庫，請先建置。",
+    BUILD_COL_INSUFFICIENT: "Col 不足，建置倉庫需要 {cost} Col（目前持有 {col} Col）",
+    BUILD_SUCCESS: "倉庫建置完成！你現在可以存放素材和武器了。",
+    UPGRADE_MAX: "倉庫已達最高等級（Lv.{level}），無法繼續擴容。",
+    UPGRADE_COL_INSUFFICIENT: "Col 不足，升級至 Lv.{nextLevel} 需要 {cost} Col（目前持有 {col} Col）",
+    UPGRADE_SUCCESS: "倉庫升級至 Lv.{level}！素材容量 {itemCap}，武器容量 {weaponCap}。",
+    STORE_ITEM_FULL: "倉庫素材空間已滿（{current}/{max}），請先取出或升級倉庫。",
+    STORE_ITEM_NOT_FOUND: "找不到該素材或數量不足",
+    STORE_ITEM_SUCCESS: "已存入 {name} x{quantity} 到倉庫。",
+    RETRIEVE_ITEM_NOT_FOUND: "倉庫中找不到該素材或數量不足",
+    RETRIEVE_ITEM_CAPACITY_FULL: "背包素材空間已滿（{current}/{max}），請先清理背包。",
+    RETRIEVE_ITEM_SUCCESS: "已從倉庫取出 {name} x{quantity}。",
+    STORE_WEAPON_FULL: "倉庫武器空間已滿（{current}/{max}），請先取出或升級倉庫。",
+    STORE_WEAPON_NOT_FOUND: "找不到該武器",
+    STORE_WEAPON_LOCKED: "該武器正被 NPC 裝備中，請先卸除",
+    STORE_WEAPON_DEFENSE: "該武器是你的 PVP 防禦武器，請先更換防禦武器",
+    STORE_WEAPON_SUCCESS: "已存入武器【{name}】到倉庫。",
+    RETRIEVE_WEAPON_NOT_FOUND: "倉庫中找不到該武器",
+    RETRIEVE_WEAPON_CAPACITY_FULL: "背包武器空間已滿（{current}/{max}），請先清理背包。",
+    RETRIEVE_WEAPON_SUCCESS: "已從倉庫取出武器【{name}】。",
+  },
+
   // === 隨機事件 ===
   EVENTS: {
     LC_NAME: "微笑棺木襲擊",

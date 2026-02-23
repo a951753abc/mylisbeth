@@ -90,6 +90,8 @@ const DEFAULT_FIELDS = {
   materialStatBook: {},
   // Season 12: 素材記錄書（挖礦 LV3，記錄素材-樓層關係）
   materialFloorBook: {},
+  // 倉庫系統
+  warehouse: { built: false, level: 0, items: [], weapons: [] },
   // Season 9: 劍技系統
   weaponProficiency: {
     one_handed_sword: 0, two_handed_sword: 0, two_handed_axe: 0,

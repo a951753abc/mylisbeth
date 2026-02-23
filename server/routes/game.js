@@ -7,11 +7,13 @@ const combat = require("./game/combat.js");
 const economy = require("./game/economy.js");
 const progression = require("./game/progression.js");
 const floor = require("./game/floor.js");
+const warehouseRoutes = require("./game/warehouse.js");
 
 router.use(production);
 router.use(combat);
 router.use(economy);
 router.use(progression);
 router.use(floor);
+router.use(warehouseRoutes);
 
 module.exports = router;
