@@ -102,6 +102,9 @@ module.exports = async function (cmd, rawUser, staminaInfo) {
   const currentFloor = getActiveFloor(user);
   const allItems = itemCache.getAll();
   const minePool = getFloorMinePool(allItems, currentFloor);
+  if (minePool.length === 0) {
+    return { error: "礦脈暫時無法使用，請稍後再試" };
+  }
   const starMod = getModifier(user.title || null, "mineStarChance");
   const nowItems = itemLimit + mineLevel;
 
@@ -121,8 +124,8 @@ module.exports = async function (cmd, rawUser, staminaInfo) {
   let sell2Col = 0;
   let sell2Count = 0;
 
-  // 安全上限防止無限迴圈
-  const maxIterations = 50;
+  // 安全上限防止無限迴圈（連續模式按預算，單次模式最多 2）
+  const maxIterations = isBatch ? staminaBudget + 1 : 2;
 
   while (iterations < maxIterations) {
     // --- 體力檢查 ---
@@ -143,34 +146,40 @@ module.exports = async function (cmd, rawUser, staminaInfo) {
       lastStaminaRegenAt = staminaInfo.lastStaminaRegenAt;
     }
 
-    // --- 倉庫容量檢查 ---
-    const filter = [
-      { $match: { userId: user.userId } },
-      { $project: { values: { $sum: "$itemStock.itemNum" } } },
-    ];
-    const item = await db.aggregate("user", filter);
-    const currentCount = item[0]?.values ?? 0;
-    if (currentCount >= nowItems) {
-      if (iterations === 0) {
-        return { error: formatText("MINE.CAPACITY_FULL", { current: currentCount, max: nowItems }) };
-      }
-      break;
-    }
-
-    // --- 挖礦填充 ---
+    // --- 挖礦 ---
     const iterationMined = [];
-    let count = currentCount;
-    while (nowItems > count) {
+
+    if (isBatch) {
+      // 連續挖礦：每點體力挖 1 個素材，不檢查背包上限
       const mine = { ...minePool[Math.floor(Math.random() * minePool.length)] };
       mine.level = drawItemLevel(mineLevel, starMod);
       text += formatText("MINE.OBTAINED", { star: mine.level.text, name: mine.name }) + "\n";
       await db.saveItemToUser(user.userId, mine);
       iterationMined.push({ itemId: mine.itemId, itemName: mine.name, itemLevel: mine.level.itemLevel });
-      count++;
+    } else {
+      // 單次挖礦：檢查倉庫容量，填充至上限
+      const filter = [
+        { $match: { userId: user.userId } },
+        { $project: { values: { $sum: "$itemStock.itemNum" } } },
+      ];
+      const item = await db.aggregate("user", filter);
+      const currentCount = item[0]?.values ?? 0;
+      if (currentCount >= nowItems) {
+        return { error: formatText("MINE.CAPACITY_FULL", { current: currentCount, max: nowItems }) };
+      }
+      let count = currentCount;
+      while (nowItems > count) {
+        const mine = { ...minePool[Math.floor(Math.random() * minePool.length)] };
+        mine.level = drawItemLevel(mineLevel, starMod);
+        text += formatText("MINE.OBTAINED", { star: mine.level.text, name: mine.name }) + "\n";
+        await db.saveItemToUser(user.userId, mine);
+        iterationMined.push({ itemId: mine.itemId, itemName: mine.name, itemLevel: mine.level.itemLevel });
+        count++;
+      }
     }
     minedItems.push(...iterationMined);
 
-    // --- 迭代內自動售出（釋放倉庫空間供下一輪使用）---
+    // --- 迭代內自動售出 ---
     if (doAutoSell && isBatch) {
       const sellTargets = iterationMined.filter((m) => {
         if (autoSell1Star && m.itemLevel === 1) return true;

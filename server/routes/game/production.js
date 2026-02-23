@@ -27,8 +27,9 @@ router.post("/create", ensureAuth, async (req, res) => {
 router.post("/mine", ensureAuth, async (req, res) => {
   const { staminaBudget, autoSell1Star, autoSell2Star } = req.body || {};
   const options = {};
-  if (Number.isInteger(staminaBudget) && staminaBudget > 0) {
-    options.staminaBudget = Math.min(staminaBudget, config.STAMINA?.MAX ?? 100);
+  const validBudgets = config.MINE_PERKS?.BUDGET_OPTIONS ?? [6, 12, 18, 24, 30];
+  if (Number.isInteger(staminaBudget) && validBudgets.includes(staminaBudget)) {
+    options.staminaBudget = staminaBudget;
   }
   if (autoSell1Star === true) options.autoSell1Star = true;
   if (autoSell2Star === true) options.autoSell2Star = true;
