@@ -10,7 +10,6 @@ const ACTION_LABELS = {
   repair: "修復",
   soloAdv: "獨自冒險",
   boss: "Boss 攻擊",
-  daily: "每日獎勵",
   sell_item: "出售素材",
   sell_weapon: "出售武器",
   "npc:hire": "雇用 NPC",

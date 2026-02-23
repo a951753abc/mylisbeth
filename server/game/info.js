@@ -137,8 +137,6 @@ module.exports = function (user) {
       bossesDefeated: 0,
       mvpCount: 0,
     },
-    dailyLoginStreak: user.dailyLoginStreak ?? 0,
-    lastDailyClaimAt: user.lastDailyClaimAt ?? null,
     // Season 3 fields
     hiredNpcs,
     debt: user.debt ?? 0,

@@ -549,28 +549,6 @@ input:focus, select:focus {
   margin-top: 0.2rem;
 }
 
-/* Daily reward panel */
-.daily-result {
-  background: var(--bg-secondary);
-  border-radius: 6px;
-  padding: 0.75rem;
-  margin-top: 0.75rem;
-  border: 1px solid var(--success);
-}
-
-.daily-rewards-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0.4rem;
-  margin-top: 0.5rem;
-}
-
-@media (max-width: 600px) {
-  .daily-rewards-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
 /* Narrative typewriter cursor */
 .cursor-blink {
   animation: blink 1s step-end infinite;
@@ -578,50 +556,6 @@ input:focus, select:focus {
 }
 @keyframes blink {
   50% { opacity: 0; }
-}
-
-.daily-reward-cell {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.4rem;
-  text-align: center;
-  position: relative;
-  min-height: 70px;
-}
-
-.daily-today {
-  border-color: var(--gold);
-  background: rgba(245, 158, 11, 0.1);
-}
-
-.daily-past {
-  opacity: 0.6;
-}
-
-.daily-day {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
-}
-
-.daily-col {
-  font-size: 0.8rem;
-  font-weight: bold;
-  color: var(--gold);
-}
-
-.daily-material {
-  font-size: 0.65rem;
-  color: var(--accent);
-  margin-top: 0.2rem;
-}
-
-.daily-check {
-  color: var(--success);
-  font-size: 1rem;
-  position: absolute;
-  top: 2px;
-  right: 4px;
 }
 
 /* ===== Rarity Badge (inline — used in result display) ===== */

@@ -79,7 +79,7 @@ const TITLE_EFFECTS = {
     forgeCritSuccessAdj: 1,     // 大成功門檻 +1（更難）
   },
 
-  // 8. 七日の鍛冶師 — 持久力類
+  // 8. 七日の鍛冶師 — 持久力類 (LEGACY: 每日簽到功能已移除；既有持有者保留此稱號)
   "七日の鍛冶師": {
     staminaCost: -0.20,         // 體力消耗 -20%
     mineStarChance: 0.10,       // 三星挖掘率 +10%

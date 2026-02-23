@@ -98,14 +98,6 @@ const ACHIEVEMENTS = [
     titleReward: "悲運の鍛冶師",
   },
   {
-    id: "login_7",
-    name: "七日の絆",
-    nameCn: "七日之絆",
-    desc: "連續 7 天登入",
-    check: (user) => (user.dailyLoginStreak || 0) >= 7,
-    titleReward: "七日の鍛冶師",
-  },
-  {
     id: "boss_mvp",
     name: "MVP",
     nameCn: "最高貢獻者",

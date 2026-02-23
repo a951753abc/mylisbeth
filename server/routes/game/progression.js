@@ -1,25 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const { ensureAuth, ensureNotPaused } = require("../../middleware/auth.js");
+const { ensureAuth } = require("../../middleware/auth.js");
 const db = require("../../db.js");
 const help = require("../../game/help.js");
 const list = require("../../game/list.js");
 const config = require("../../game/config.js");
 const { getAllDefinitions } = require("../../game/progression/achievement.js");
-const claimDaily = require("../../game/progression/daily.js");
 const { TITLE_EFFECTS } = require("../../game/title/titleEffects.js");
 const { getLeaderboard, getMyRank } = require("../../game/leaderboard.js");
-const { logAction } = require("../../game/logging/actionLogger.js");
 const { handleRoute } = require("./helpers.js");
-
-// Daily reward
-router.post("/daily", ensureAuth, ensureNotPaused, async (req, res) => {
-  await handleRoute(res, async () => {
-    const result = await claimDaily(req.user.discordId);
-    if (!result?.error) logAction(req.user.discordId, req.gameUser?.name, "daily", {});
-    return result;
-  }, "每日獎勵失敗");
-});
 
 // Achievements
 router.get("/achievements", ensureAuth, async (req, res) => {

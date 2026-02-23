@@ -30,8 +30,6 @@ module.exports = async function (name, userId, provider = "discord") {
     adventureLevel: 1,
     adventureExp: 0,
     lastLoginAt: null,
-    dailyLoginStreak: 0,
-    lastDailyClaimAt: null,
     achievements: [],
     title: null,
     availableTitles: [],

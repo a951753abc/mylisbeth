@@ -67,7 +67,7 @@ All game actions route through `server/game/move.js`:
 | Settlement | `server/game/economy/settlement.js` | Weekly bill calc + settlement processing. Debt → bankruptcy chain. |
 | Debt Check | `server/game/economy/debtCheck.js` | Lazy settlement hook injected into every `move.js` dispatch. Prevents double-processing via `findOneAndUpdate` guard. |
 | Bankruptcy | `server/game/economy/bankruptcy.js` | Writes `bankruptcy_log` → releases NPCs → deletes user. |
-| Progression | `server/game/progression/` | Achievements (19 definitions incl. Season 3), daily login rewards (7-day cycle), stats tracking. |
+| Progression | `server/game/progression/` | Achievements, stats tracking. |
 | AI Narrative | `server/game/gemini.js` | Calls Google Gemini to generate Japanese battle narratives for adventures. |
 | Config | `server/game/config.js` | All game constants: cooldowns, probabilities, Col rewards, boss timeout, floor material groups, TIME_SCALE, SETTLEMENT, NPC. |
 | Config Manager | `server/game/configManager.js` | Runtime config overrides: loads from DB on boot, mutates live config object via `lodash.set()`. No restart needed. |

@@ -143,8 +143,6 @@ module.exports = {
   COL_PVP_WIN: 150, // deprecated: Season 5 改為賭注制
   COL_BOSS_MVP_BONUS: 500,
   COL_BOSS_LA_BONUS: 300,
-  COL_DAILY: [50, 100, 150, 200, 300, 400, 500],
-
   // Season 2: Boss 系統
   BOSS_TIMEOUT_MS: 72 * 60 * 60 * 1000,
 

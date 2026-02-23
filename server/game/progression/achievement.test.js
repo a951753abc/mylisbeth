@@ -149,16 +149,6 @@ describe("achievement.js — predicates（純函式）", () => {
     });
   });
 
-  describe("login_7", () => {
-    const def = () => defs.find((a) => a.id === "login_7");
-    it("dailyLoginStreak >= 7 → true", () => {
-      expect(def().check({ dailyLoginStreak: 7 })).toBe(true);
-    });
-    it("dailyLoginStreak = 6 → false", () => {
-      expect(def().check({ dailyLoginStreak: 6 })).toBe(false);
-    });
-  });
-
   describe("boss_mvp", () => {
     const def = () => defs.find((a) => a.id === "boss_mvp");
     it("mvpCount >= 1 → true", () => {

@@ -4,7 +4,7 @@ import { createRequire } from "module";
 // ──────────────────────────────────────────────────────────────────────────────
 // CJS require — all imports share the same module registry, so vi.spyOn on
 // the required module object intercepts calls made by mission.js itself.
-// This is the pattern used by daily.test.js in this codebase.
+// CJS spyOn pattern: require modules before SUT so vi.spyOn can intercept.
 // ──────────────────────────────────────────────────────────────────────────────
 const _require = createRequire(import.meta.url);
 

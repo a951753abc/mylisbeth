@@ -30,8 +30,6 @@ function makeUser(overrides = {}) {
       mvpCount: 0,
       bossesDefeated: 0,
     },
-    dailyLoginStreak: 0,
-    lastDailyClaimAt: null,
     lastLoginAt: null,
     ...overrides,
   };

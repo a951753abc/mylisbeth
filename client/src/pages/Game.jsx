@@ -7,7 +7,6 @@ import LeaderboardPanel from "../components/LeaderboardPanel";
 import CooldownTimer from "../components/CooldownTimer";
 import FloorPanel from "../components/FloorPanel";
 import AchievementPanel from "../components/AchievementPanel";
-import DailyPanel from "../components/DailyPanel";
 import TavernPanel from "../components/TavernPanel";
 import NpcPanel from "../components/NpcPanel";
 import SettlementPanel from "../components/SettlementPanel";
@@ -59,7 +58,6 @@ const TAB_GROUPS = [
   {
     label: "紀錄",
     tabs: [
-      { key: "daily", text: "每日" },
       { key: "achievement", text: "成就" },
       { key: "log", text: "日誌" },
       { key: "players", text: "排行榜" },
@@ -411,12 +409,6 @@ export default function Game({ user, onLogout }) {
             bossUpdate={bossUpdate}
             cooldownActive={isCooldownActive}
             onUserRefresh={fetchUser}
-          />
-        )}
-        {tab === "daily" && (
-          <DailyPanel
-            user={gameUser}
-            onClaim={fetchUser}
           />
         )}
         {tab === "achievement" && (

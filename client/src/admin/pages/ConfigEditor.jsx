@@ -22,7 +22,6 @@ const CATEGORY_LABELS = {
   COL_PVP_WIN: "經濟 - 獎勵",
   COL_BOSS_MVP_BONUS: "經濟 - 獎勵",
   COL_BOSS_LA_BONUS: "經濟 - 獎勵",
-  COL_DAILY: "經濟 - 獎勵",
   BOSS_TIMEOUT_MS: "Boss 系統",
   BOSS_COUNTER: "Boss 系統",
   FLOOR_MAX_EXPLORE: "樓層探索",

@@ -22,8 +22,7 @@ SAO 風格 Web RPG 遊戲 — 扮演鍛造師莉茲貝特，打造武器、挖�
 - **樓層系統** — 20 層漸進式地城，每層有專屬敵人、地點與 Boss
 - **非同步 Boss 戰** — 共享 Boss HP，不需同時在線，72 小時挑戰期限，MVP 獲得額外獎勵
 - **Boss 反擊** — 每次攻擊 Boss 後，Boss 會反擊你的 NPC
-- **Col 貨幣** — 冒險、PvP、Boss 戰、每日登入均可獲得
-- **每日登入獎勵** — 7 天循環，連續登入解鎖更豐富的獎勵與稱號
+- **Col 貨幣** — 冒險、PvP、Boss 戰均可獲得
 - **成就系統** — 64 項成就，解鎖後獲得專屬稱號
 - **樓層素材** — 每 2 層一組新素材，影響冒險與挖礦掉落
 - **武器稀有度** — common → fine → rare → epic → legendary，影響鍛造動畫與顯示
@@ -135,7 +134,7 @@ mylisbeth/
 │   │   │   ├── combat.js           # 冒險/PvP/NPC 決鬥
 │   │   │   ├── economy.js          # 經濟系統（商店、貸款、結算、暫停）
 │   │   │   ├── floor.js            # 樓層與 Boss 戰
-│   │   │   ├── progression.js      # 進度（每日獎勵、成就、稱號）
+│   │   │   ├── progression.js      # 進度（成就、稱號）
 │   │   │   └── helpers.js          # 路由工具函式
 │   │   ├── npc.js                  # NPC 管理（酒館、雇用、治療、裝備、任務、修練）
 │   │   ├── market.js               # 佈告板交易
@@ -260,7 +259,6 @@ mylisbeth/
 │       │   └── gameTime.js         # 遊戲時間、結算時機、新手保護
 │       ├── progression/
 │       │   ├── achievement.js      # 成就定義與檢查（64 項）
-│       │   ├── daily.js            # 每日登入獎勵
 │       │   ├── statsTracker.js     # 統計追蹤
 │       │   └── adventureLevel.js   # 冒險等級系統
 │       ├── logging/
@@ -292,7 +290,6 @@ mylisbeth/
 │       │   ├── FloorPanel.jsx       # 樓層進度 + Boss 戰
 │       │   ├── BossHealthBar.jsx    # Boss 血量條
 │       │   ├── AchievementPanel.jsx # 成就與稱號
-│       │   ├── DailyPanel.jsx       # 每日獎勵
 │       │   ├── InventoryPanel.jsx   # 物品欄
 │       │   ├── BattleLog.jsx        # 戰鬥日誌
 │       │   ├── NarrativeDisplay.jsx # 戰鬥敘事（打字機動畫）
@@ -493,7 +490,6 @@ docker compose logs -f app
 ### 進度 & 成就
 | 方法 | 路徑 | 說明 |
 |------|------|------|
-| POST | `/api/game/daily` | 領取每日登入獎勵 |
 | GET | `/api/game/achievements` | 成就列表 |
 | POST | `/api/game/title` | 更換稱號 |
 | GET | `/api/game/title-effects` | 稱號效果說明 |

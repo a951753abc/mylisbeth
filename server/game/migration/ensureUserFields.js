@@ -10,8 +10,6 @@ const DEFAULT_FIELDS = {
   adventureLevel: 1,
   adventureExp: 0,
   lastLoginAt: null,
-  dailyLoginStreak: 0,
-  lastDailyClaimAt: null,
   achievements: [],
   title: null,
   availableTitles: [],
