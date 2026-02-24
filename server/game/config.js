@@ -317,8 +317,8 @@ module.exports = {
     // Skill Connect
     CONNECT_MAX_CHAIN: 3,
     CONNECT_DAMAGE_BONUS: 0.15,  // 每個連鎖 +15%
-    CONNECT_BASE_CHANCE: 40,
-    CONNECT_PROF_BONUS_PER_100: 5,
+    CONNECT_BASE_CHANCE: 20,
+    CONNECT_PROF_BONUS_PER_100: 4,
     // NPC 遺忘劍技費用（按 tier）
     NPC_FORGET_COST_BY_TIER: { 1: 100, 2: 300, 3: 500 },
   },
