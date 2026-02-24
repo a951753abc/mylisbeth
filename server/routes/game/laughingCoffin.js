@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { ensureAuth } = require("./helpers.js");
+const { ensureAuth } = require("../../middleware/auth.js");
 const { getLcState } = require("../../game/laughingCoffin/lcState.js");
 const { getMembersForDisplay } = require("../../game/laughingCoffin/lcMembers.js");
 
