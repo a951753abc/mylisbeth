@@ -21,7 +21,7 @@ router.get("/expedition", ensureAuth, async (req, res) => {
 // 啟動遠征
 router.post("/expedition/start", ensureAuth, async (req, res) => {
   await handleRoute(res, async () => {
-    const { dungeonId, npcWeaponMap } = req.body;
+    const { dungeonId, npcWeaponMap, playerWeaponIndex } = req.body;
     if (!dungeonId || typeof dungeonId !== "string") return { error: "請選擇迷宮" };
     if (!Array.isArray(npcWeaponMap) || npcWeaponMap.length === 0) {
       return { error: "請選擇至少一位 NPC" };
@@ -43,7 +43,15 @@ router.post("/expedition/start", ensureAuth, async (req, res) => {
         }
       }
     }
-    return await startExpedition(req.user.discordId, dungeonId, npcWeaponMap);
+    // 玩家武器索引驗證：null/undefined = 不參加，number = 參加
+    const validPlayerIdx = (playerWeaponIndex !== null && playerWeaponIndex !== undefined)
+      ? playerWeaponIndex : null;
+    if (validPlayerIdx !== null) {
+      if (typeof validPlayerIdx !== "number" || !Number.isInteger(validPlayerIdx) || validPlayerIdx < 0) {
+        return { error: "無效的武器索引" };
+      }
+    }
+    return await startExpedition(req.user.discordId, dungeonId, npcWeaponMap, validPlayerIdx);
   }, "啟動遠征失敗");
 });
 

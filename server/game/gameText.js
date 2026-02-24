@@ -251,6 +251,8 @@ module.exports = {
     FOUR_STAR_DROP: "獲得稀有素材 [★★★★]{itemName}",
     THREE_STAR_DROP: "獲得素材 [★★★]{itemName}",
     COL_REWARD: "獲得 {amount} Col",
+    PLAYER_LOW_STAMINA: "鍛造師體力不足，無法親自參加遠征（需要 {required} 以上，目前 {current}）",
+    PLAYER_DIED: "鍛造師在遠征中殞命了...",
   },
 
   // === 隨機事件 ===

@@ -42,6 +42,9 @@ export default function ExpeditionPanel({ user, onRefresh }) {
   const [selectedNpcs, setSelectedNpcs] = useState({});
   // 武器分配：{ [npcId]: Set<weaponIndex> }
   const [npcWeapons, setNpcWeapons] = useState({});
+  // 玩家參戰
+  const [playerJoin, setPlayerJoin] = useState(false);
+  const [playerWeaponIdx, setPlayerWeaponIdx] = useState(null);
   // 倒數計時
   const [countdown, setCountdown] = useState(0);
   // 冷卻倒數
@@ -147,7 +150,11 @@ export default function ExpeditionPanel({ user, onRefresh }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ dungeonId, npcWeaponMap }),
+        body: JSON.stringify({
+          dungeonId,
+          npcWeaponMap,
+          playerWeaponIndex: playerJoin ? playerWeaponIdx : null,
+        }),
       });
       const data = await res.json();
       if (data.error) {
@@ -156,6 +163,8 @@ export default function ExpeditionPanel({ user, onRefresh }) {
         setMessage(data.message);
         setSelectedNpcs({});
         setNpcWeapons({});
+        setPlayerJoin(false);
+        setPlayerWeaponIdx(null);
         await fetchPreview();
         if (onRefresh) await onRefresh();
       }
@@ -164,7 +173,7 @@ export default function ExpeditionPanel({ user, onRefresh }) {
     } finally {
       setBusy(false);
     }
-  }, [selectedNpcs, npcWeapons, fetchPreview, onRefresh]);
+  }, [selectedNpcs, npcWeapons, playerJoin, playerWeaponIdx, fetchPreview, onRefresh]);
 
   const resolveLock = useRef(false);
   const handleResolve = useCallback(async () => {
@@ -219,8 +228,11 @@ export default function ExpeditionPanel({ user, onRefresh }) {
   const npcs = (user.hiredNpcs || []).filter((n) => n.npcId && n.name);
   const weapons = user.weapons || [];
 
-  // 收集所有已被其他 NPC 分配的武器 index（跨 NPC 不可重複）
+  // 收集所有已被分配的武器 index（跨 NPC + 玩家不可重複）
   const allAssignedWeapons = new Set();
+  if (playerJoin && playerWeaponIdx !== null) {
+    allAssignedWeapons.add(playerWeaponIdx);
+  }
   for (const indices of Object.values(npcWeapons)) {
     for (const idx of indices) {
       allAssignedWeapons.add(idx);
@@ -312,13 +324,90 @@ export default function ExpeditionPanel({ user, onRefresh }) {
                 <button
                   className="btn-primary"
                   style={BTN_SMALL}
-                  disabled={!d.unlocked || busy || cooldownLeft > 0 || selectedNpcList.length === 0 || isPaused}
+                  disabled={!d.unlocked || busy || cooldownLeft > 0 || selectedNpcList.length === 0 || isPaused || (playerJoin && playerWeaponIdx === null)}
                   onClick={() => handleStart(d.id)}
                 >
                   {busy ? "出發中..." : "出發"}
                 </button>
               </div>
             ))}
+          </div>
+
+          {/* 鍛造師參戰 */}
+          <div className="card" style={CARD_STYLE}>
+            <h2>鍛造師參戰</h2>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
+              <label style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <input
+                  type="checkbox"
+                  checked={playerJoin}
+                  onChange={() => {
+                    setPlayerJoin((p) => {
+                      if (p) setPlayerWeaponIdx(null);
+                      return !p;
+                    });
+                  }}
+                />
+                <span style={{ fontWeight: "bold" }}>親自參加遠征</span>
+              </label>
+              {user.battleLevel > 1 && (
+                <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                  戰鬥 LV.{user.battleLevel}
+                </span>
+              )}
+            </div>
+
+            {playerJoin && (
+              <>
+                <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.3rem" }}>
+                  選擇攜帶武器：
+                </div>
+                {weapons.length === 0 ? (
+                  <div style={{ fontSize: "0.7rem", color: "#888" }}>背包沒有武器</div>
+                ) : (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                    {weapons.map((w) => {
+                      const isSelected = playerWeaponIdx === w.index;
+                      const assignedToNpc = !isSelected && allAssignedWeapons.has(w.index);
+                      return (
+                        <label
+                          key={w.index}
+                          style={{
+                            ...TAG_STYLE,
+                            cursor: assignedToNpc ? "default" : "pointer",
+                            background: isSelected ? "#6366f122" : "#1a1a2e",
+                            border: `1px solid ${isSelected ? "#6366f1" : "#4b5563"}`,
+                            color: isSelected ? "#a5b4fc" : (assignedToNpc ? "#555" : "#d4d4d8"),
+                            opacity: assignedToNpc ? 0.4 : 1,
+                          }}
+                          onClick={() => {
+                            if (assignedToNpc) return;
+                            setPlayerWeaponIdx(isSelected ? null : w.index);
+                          }}
+                        >
+                          {w.rarityLabel && <span style={{ color: w.rarityColor }}>【{w.rarityLabel}】</span>}
+                          {w.weaponName}
+                          <span style={{ color: "var(--gold)", marginLeft: "0.2rem" }}>ATK:{w.atk}</span>
+                          <span style={{ color: w.durability <= 5 ? "#f44336" : "var(--text-secondary)", marginLeft: "0.2rem" }}>
+                            耐久:{w.durability}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {playerWeaponIdx === null && (
+                  <div style={{ color: "#f59e0b", fontSize: "0.75rem", marginTop: "0.3rem" }}>
+                    請選擇一把武器
+                  </div>
+                )}
+
+                <div style={{ color: "#ef4444", fontSize: "0.75rem", marginTop: "0.3rem" }}>
+                  遠征失敗時，鍛造師有機率死亡！
+                </div>
+              </>
+            )}
           </div>
 
           {/* NPC 選擇 + 武器分配 */}
@@ -442,7 +531,13 @@ export default function ExpeditionPanel({ user, onRefresh }) {
                   fontSize: "0.8rem",
                 }}>
                   <span style={{ color: "var(--text-secondary)" }}>選擇：</span>
-                  <span style={{ color: "var(--gold)" }}>{selectedNpcList.length} 位 NPC</span>
+                  {playerJoin && (
+                    <>
+                      <span style={{ color: "#a5b4fc" }}>鍛造師</span>
+                      <span style={{ color: "var(--text-secondary)", marginLeft: "0.2rem" }}>+</span>
+                    </>
+                  )}
+                  <span style={{ color: "var(--gold)", marginLeft: playerJoin ? "0.2rem" : 0 }}>{selectedNpcList.length} 位 NPC</span>
                   <span style={{ color: "var(--text-secondary)", marginLeft: "0.4rem" }}>|</span>
                   <span style={{ color: "#86efac", marginLeft: "0.4rem" }}>
                     {[...allAssignedWeapons].length} 把武器
@@ -498,10 +593,20 @@ function ActiveExpedition({ expedition, countdown, busy, onResolve, isPaused }) 
       {/* 隊伍資訊 */}
       <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "0.3rem" }}>
         戰力：{expedition.totalPower} ｜ 成功率：{expedition.successRate}%
-        ｜ NPC {expedition.npcs.length} 人
+        ｜ {expedition.playerJoined ? "鍛造師 + " : ""}NPC {expedition.npcs.length} 人
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0.3rem", marginTop: "0.4rem" }}>
+        {expedition.playerJoined && (
+          <span style={{
+            ...TAG_STYLE,
+            background: "#f59e0b22",
+            border: "1px solid #f59e0b",
+            color: "#fbbf24",
+          }}>
+            鍛造師
+          </span>
+        )}
         {(expedition.npcs || []).map((n) => (
           <span key={n.npcId} style={{
             ...TAG_STYLE,
@@ -583,6 +688,24 @@ function ExpeditionResult({ result, onClose }) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* 玩家結果 */}
+      {result.playerJoined && (
+        <div style={{ marginTop: "0.5rem" }}>
+          <div style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "0.3rem" }}>鍛造師：</div>
+          {result.playerStaminaCost > 0 && (
+            <div style={{ fontSize: "0.8rem" }}>
+              <span>體力消耗：</span>
+              <span style={{ color: "var(--text-secondary)" }}>-{result.playerStaminaCost}</span>
+            </div>
+          )}
+          {result.playerDied && (
+            <div style={{ fontSize: "0.85rem", color: "#ef4444", fontWeight: "bold", marginTop: "0.2rem" }}>
+              鍛造師在遠征中殞命了...
+            </div>
+          )}
         </div>
       )}
 

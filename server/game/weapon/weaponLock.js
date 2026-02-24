@@ -21,6 +21,11 @@ function getWeaponLockError(hiredNpcs, weaponIndex, activeExpedition) {
 
   // 遠征鎖定檢查
   if (activeExpedition) {
+    // 玩家武器
+    if (activeExpedition.playerWeaponIndex === idx) {
+      return getText("EXPEDITION.WEAPON_ON_EXPEDITION");
+    }
+    // NPC 武器
     const onExpedition = activeExpedition.npcs.some((n) =>
       n.weaponIndices.includes(idx),
     );

@@ -397,6 +397,7 @@ module.exports = {
     "laughing_coffin_solo",
     "debt",
     "pvp_total_loss",
+    "expedition_death",
   ],
 
   // Season 3.5: 回收商店（Season 6: 依星級/稀有度定價）
@@ -478,6 +479,12 @@ module.exports = {
     DEATH_BASE_FAIL: 10,           // 攜帶武器失敗時基礎死亡率（%）
     DEATH_COND_BONUS_FAIL: 40,     // 攜帶武器體力懲罰上限（%），二次方縮放
     UNARMED_DEATH_CHANCE: 70,      // 未攜帶武器 NPC 失敗時死亡機率（無視體力門檻）
+
+    // 玩家（鍛造師）參戰
+    PLAYER_MIN_STAMINA: 30,              // 最低體力要求
+    PLAYER_STAMINA_COST_SUCCESS: 20,     // 成功消耗體力
+    PLAYER_STAMINA_COST_FAIL: 50,        // 失敗消耗體力
+    PLAYER_DEATH_CHANCE_FAIL: 25,        // 失敗時死亡機率 25%
 
     // 獎勵
     REWARDS: {

@@ -6,9 +6,13 @@ const { awardCol } = require("../economy/col.js");
 const { increment } = require("../progression/statsTracker.js");
 const { checkAndAward } = require("../progression/achievement.js");
 const { awardAdvExp } = require("../progression/adventureLevel.js");
+const { getBattleLevelBonus } = require("../battleLevel.js");
 const { formatText, getText } = require("../textManager.js");
 const { generateRewards } = require("./rewards.js");
-const { getRelicModifier } = require("../title/titleModifier.js");
+const { getModifier, getRelicModifier } = require("../title/titleModifier.js");
+const { getNpcEffectiveSkills, getEffectiveSkills } = require("../skill/skillSlot.js");
+const { parseSkillEffects } = require("../skill/skillCombat.js");
+const { executeBankruptcy } = require("../economy/bankruptcy.js");
 
 const EXPEDITION = config.EXPEDITION;
 
@@ -25,6 +29,9 @@ function isNpcOnExpedition(user, npcId) {
  */
 function isWeaponOnExpedition(user, weaponIndex) {
   if (!user.activeExpedition) return false;
+  // 檢查玩家武器
+  if (user.activeExpedition.playerWeaponIndex === weaponIndex) return true;
+  // 檢查 NPC 武器
   return user.activeExpedition.npcs.some((n) =>
     n.weaponIndices.includes(weaponIndex),
   );
@@ -71,12 +78,25 @@ function calculatePower(npcEntries, weapons) {
 
   for (const entry of npcEntries) {
     const { npc, weaponIndices } = entry;
-    const effective = getEffectiveStats(npc);
-    if (!effective) continue;
+    const baseEffective = getEffectiveStats(npc);
+    if (!baseEffective) continue;
+    const effective = { ...baseEffective };
+
+    // 被動技能加成（使用主武器判定武器類型）
+    const primaryWeapon = weapons[weaponIndices[0]];
+    if (primaryWeapon) {
+      const skills = getNpcEffectiveSkills(npc, primaryWeapon);
+      for (const { skill, mods } of skills) {
+        if (skill.triggerType !== "passive") continue;
+        const effects = parseSkillEffects(skill, mods);
+        effective.atk += effects.atkBoost;
+        effective.def += effects.defBoost;
+        effective.agi += effects.agiBoost;
+      }
+    }
 
     const qualityMult = EXPEDITION.QUALITY_POWER_MULT[npc.quality] || 1.0;
 
-    // NPC 基礎戰力
     const npcPower =
       (effective.atk * W.npcAtk +
         effective.def * W.npcDef +
@@ -117,12 +137,53 @@ function calculateSuccessRate(power, difficulty) {
 }
 
 /**
+ * 計算玩家（鍛造師）遠征戰力
+ * @param {object} user
+ * @param {object} weapon - 玩家選擇的武器
+ * @returns {number}
+ */
+function calculatePlayerPower(user, weapon) {
+  const W = EXPEDITION.POWER_WEIGHTS;
+  const SOLO = config.SOLO_ADV;
+  const lvBonus = getBattleLevelBonus(user.battleLevel || 1);
+
+  // 稱號加成
+  const title = user.title || null;
+  const titleMods = {
+    battleAtk: getModifier(title, "battleAtk"),
+    battleDef: getModifier(title, "battleDef"),
+    battleAgi: getModifier(title, "battleAgi"),
+  };
+
+  // weapon stats × battleLevel 倍率 × 稱號倍率
+  const hp = SOLO.BASE_HP + lvBonus.hpBonus + (weapon.hp || 0);
+  let atk = Math.max(1, Math.round((weapon.atk || 0) * lvBonus.atkMult * titleMods.battleAtk));
+  let def = Math.max(0, Math.round((weapon.def || 0) * lvBonus.defMult * titleMods.battleDef));
+  let agi = Math.max(1, Math.round(
+    Math.max(weapon.agi || 0, SOLO.BASE_AGI) * lvBonus.agiMult * titleMods.battleAgi,
+  ));
+
+  // 玩家被動技能加成
+  const skills = getEffectiveSkills(user, weapon);
+  for (const { skill, mods } of skills) {
+    if (skill.triggerType !== "passive") continue;
+    const effects = parseSkillEffects(skill, mods);
+    atk += effects.atkBoost;
+    def += effects.defBoost;
+    agi += effects.agiBoost;
+  }
+
+  return Math.round(atk * W.npcAtk + def * W.npcDef + hp * W.npcHp + agi * W.npcAgi);
+}
+
+/**
  * 啟動遠征
  * @param {string} userId
  * @param {string} dungeonId
  * @param {Array<{npcId: string, weaponIndices: number[]}>} npcWeaponMap
+ * @param {number|null} playerWeaponIndex - 玩家武器索引（null = 不參加）
  */
-async function startExpedition(userId, dungeonId, npcWeaponMap) {
+async function startExpedition(userId, dungeonId, npcWeaponMap, playerWeaponIndex = null) {
   const user = await db.findOne("user", { userId });
   if (!user) return { error: getText("SYSTEM.CHAR_NOT_FOUND") };
 
@@ -233,10 +294,34 @@ async function startExpedition(userId, dungeonId, npcWeaponMap) {
     npcEntries.push({ npc, npcIdx, weaponIndices: validWeaponIndices });
   }
 
+  // 玩家參戰驗證
+  if (playerWeaponIndex !== null) {
+    if (!weapons[playerWeaponIndex]) {
+      return { error: formatText("EXPEDITION.WEAPON_NOT_FOUND", { index: playerWeaponIndex }) };
+    }
+    if (usedWeaponIndices.has(playerWeaponIndex)) {
+      return { error: formatText("EXPEDITION.WEAPON_NOT_FOUND", { index: playerWeaponIndex }) };
+    }
+    const stamina = user.stamina ?? 100;
+    if (stamina < EXPEDITION.PLAYER_MIN_STAMINA) {
+      return {
+        error: formatText("EXPEDITION.PLAYER_LOW_STAMINA", {
+          required: EXPEDITION.PLAYER_MIN_STAMINA,
+          current: stamina,
+        }),
+      };
+    }
+    usedWeaponIndices.add(playerWeaponIndex);
+  }
+
   // 計算戰力與成功率（套用聖遺物加成）
   const rawPower = calculatePower(npcEntries, weapons);
+  let playerPower = 0;
+  if (playerWeaponIndex !== null) {
+    playerPower = calculatePlayerPower(user, weapons[playerWeaponIndex]);
+  }
   const relicMult = getRelicModifier(user.bossRelics, "expeditionPower");
-  const totalPower = Math.round(rawPower * relicMult);
+  const totalPower = Math.round((rawPower + playerPower) * relicMult);
   const successRate = calculateSuccessRate(totalPower, dungeon.difficulty);
 
   const endsAt = now + EXPEDITION.DURATION_MS;
@@ -252,6 +337,8 @@ async function startExpedition(userId, dungeonId, npcWeaponMap) {
       npcIdx: e.npcIdx,
       weaponIndices: e.weaponIndices,
     })),
+    playerJoined: playerWeaponIndex !== null,
+    playerWeaponIndex,
     totalPower,
     successRate,
     difficulty: dungeon.difficulty,
@@ -346,6 +433,39 @@ async function resolveExpedition(userId) {
     }
   }
 
+  // ── 1b. 純計算：玩家武器耐久消耗 ──
+  if (expedition.playerJoined && expedition.playerWeaponIndex !== null) {
+    const pIdx = expedition.playerWeaponIndex;
+    if (weapons[pIdx]) {
+      const baseLoss = EXPEDITION.DURABILITY_LOSS_BASE;
+      const diceLoss = Math.floor(Math.random() * EXPEDITION.DURABILITY_LOSS_DICE) + 1;
+      let totalLoss = baseLoss + diceLoss;
+      if (!isSuccess) {
+        totalLoss = Math.ceil(totalLoss * EXPEDITION.DURABILITY_FAIL_MULT);
+      }
+      const oldDurability = weapons[pIdx].durability || 0;
+      const newDurability = oldDurability - totalLoss;
+
+      results.durabilityDamage.push({
+        weaponName: weapons[pIdx].weaponName || weapons[pIdx].name,
+        weaponIndex: pIdx,
+        loss: totalLoss,
+        oldDurability,
+        newDurability: Math.max(0, newDurability),
+        isPlayerWeapon: true,
+      });
+
+      if (newDurability <= 0) {
+        destroyedWeaponIndices.add(pIdx);
+        results.weaponsDestroyed.push({
+          weaponName: weapons[pIdx].weaponName || weapons[pIdx].name,
+          weaponIndex: pIdx,
+          isPlayerWeapon: true,
+        });
+      }
+    }
+  }
+
   // ── 2. 純計算：NPC 體力損耗與死亡判定 ──
   const deadNpcIds = new Set();
 
@@ -391,6 +511,29 @@ async function resolveExpedition(userId) {
           deadNpcIds.add(npc.npcId);
           results.npcsDied.push({ npcName: npc.name, npcId: npc.npcId });
         }
+      }
+    }
+  }
+
+  // ── 2b. 純計算：玩家 stamina 消耗與死亡判定 ──
+  let playerStaminaCost = 0;
+  if (expedition.playerJoined) {
+    playerStaminaCost = isSuccess
+      ? EXPEDITION.PLAYER_STAMINA_COST_SUCCESS
+      : EXPEDITION.PLAYER_STAMINA_COST_FAIL;
+    results.playerStaminaCost = playerStaminaCost;
+    results.playerJoined = true;
+
+    // 死亡判定（僅失敗時）
+    if (!isSuccess) {
+      const safetyReduction = Math.min(1, (user.bossRelics || []).reduce(
+        (sum, r) => sum + (r.effects?.expeditionSafety || 0), 0,
+      ));
+      const adjusted = Math.max(0, Math.round(
+        EXPEDITION.PLAYER_DEATH_CHANCE_FAIL * (1 - safetyReduction),
+      ));
+      if (roll.d100Check(adjusted)) {
+        results.playerDied = true;
       }
     }
   }
@@ -466,16 +609,27 @@ async function resolveExpedition(userId) {
     writeSet.defenseWeaponIndex = mappedDef ?? 0;
   }
 
-  // 單次原子寫入完整陣列
-  await db.update("user", { userId }, { $set: writeSet });
+  // 玩家 stamina 扣除
+  if (expedition.playerJoined && playerStaminaCost > 0) {
+    writeSet.stamina = Math.max(0, (guard.stamina ?? 100) - playerStaminaCost);
+  }
 
-  // ── 6. NPC 死亡：更新 npc collection ──
+  // ── 6. NPC 死亡：更新 npc collection（必須在玩家死亡/破產前處理） ──
   for (const deadNpc of results.npcsDied) {
     await db.update("npc", { npcId: deadNpc.npcId }, {
       $set: { status: "dead", hiredBy: null, diedAt: Date.now(), causeOfDeath: `遠征失敗：${expedition.dungeonName}` },
     });
     await increment(userId, "npcDeaths");
   }
+
+  // 玩家死亡 → 角色重置（破產會刪除角色，後續獎勵/經驗不需要了）
+  if (results.playerDied) {
+    await executeBankruptcy(userId, 0, 0, { cause: "expedition_death" });
+    return results;
+  }
+
+  // 單次原子寫入完整陣列
+  await db.update("user", { userId }, { $set: writeSet });
 
   // ── 7. 獎勵發放（在 guard 之後，防雙重獎勵） ──
   if (isSuccess) {
@@ -525,6 +679,7 @@ module.exports = {
   isWeaponOnExpedition,
   getExpeditionPreview,
   calculatePower,
+  calculatePlayerPower,
   calculateSuccessRate,
   startExpedition,
   resolveExpedition,
