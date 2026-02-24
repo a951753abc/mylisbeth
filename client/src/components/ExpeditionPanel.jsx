@@ -76,6 +76,9 @@ export default function ExpeditionPanel({ user, onRefresh }) {
     const expedition = user.activeExpedition || preview?.activeExpedition;
     if (!expedition) return;
 
+    // 立即設定正確倒數，避免初始 countdown=0 導致閃現「遠征完成」
+    setCountdown(Math.max(0, expedition.endsAt - Date.now()));
+
     const timer = setInterval(() => {
       const remaining = Math.max(0, expedition.endsAt - Date.now());
       setCountdown(remaining);
