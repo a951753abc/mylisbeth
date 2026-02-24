@@ -371,24 +371,32 @@ function reassignNpcSkills(npc, newWeaponType) {
 }
 
 /**
- * 依遊戲天數自然恢復所有在雇 NPC 的體力
+ * 自然恢復所有在雇 NPC 的體力
+ * 使用 lastCondRecoverAt 追蹤上次恢復時間，防止重複恢復覆蓋遠征/委託的體力扣除
  * @param {string} userId
- * @param {number} gameDaysPassed - 自上次恢復起經過的遊戲天數
  */
-async function recoverConditions(userId, gameDaysPassed) {
-  if (!gameDaysPassed || gameDaysPassed <= 0) return;
-
+async function recoverConditions(userId) {
   const user = await db.findOne("user", { userId });
   if (!user || !user.hiredNpcs || user.hiredNpcs.length === 0) return;
+
+  const now = Date.now();
+  const lastRecover = user.lastCondRecoverAt || user.lastActionAt || user.gameCreatedAt || now;
+  const gameDaysPassed = getGameDaysSince(lastRecover, now);
+  if (gameDaysPassed <= 0) return;
 
   const recover = Math.min(100, NPC_CFG.DAILY_RECOVER * gameDaysPassed);
   const updates = {};
   user.hiredNpcs.forEach((npc, idx) => {
+    // 任務中或遠征中的 NPC 不恢復（返回後由結算邏輯處理）
+    if (npc.mission) return;
+    if (isNpcOnExpedition(user, npc.npcId)) return;
     const newCond = Math.min(100, (npc.condition ?? 100) + recover);
     updates[`hiredNpcs.${idx}.condition`] = newCond;
   });
 
+  // 只有實際恢復了至少一個 NPC 才推進時間戳，避免全員任務中時吃掉恢復時間
   if (Object.keys(updates).length > 0) {
+    updates.lastCondRecoverAt = now;
     await db.update("user", { userId }, { $set: updates });
   }
 }

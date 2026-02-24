@@ -110,6 +110,8 @@ const DEFAULT_FIELDS = {
   // Season 13: 遠征系統
   activeExpedition: null,
   lastExpeditionAt: null,
+  // Season 13: NPC 體力恢復時間戳
+  lastCondRecoverAt: null,
 };
 
 module.exports = async function ensureUserFields(user) {

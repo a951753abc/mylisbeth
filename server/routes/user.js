@@ -5,7 +5,6 @@ const db = require('../db.js');
 const info = require('../game/info.js');
 const { checkSettlement } = require('../game/economy/debtCheck.js');
 const { recoverConditions } = require('../game/npc/npcManager.js');
-const { getGameDaysSince } = require('../game/time/gameTime.js');
 const { regenStamina } = require('../game/stamina/staminaCheck.js');
 const ensureUserFields = require('../game/migration/ensureUserFields.js');
 const { checkMissions } = require('../game/npc/mission.js');
@@ -35,12 +34,9 @@ router.get('/me', ensureAuth, async (req, res) => {
         // 玩家體力自然回復（初始化 lastStaminaRegenAt + 補算離線回復）
         await regenStamina(user.userId);
 
-        // NPC 體力自然恢復（依距上次登入的遊戲天數）
-        const now = Date.now();
-        const lastAction = user.lastActionAt || user.gameCreatedAt || now;
-        const daysPassed = getGameDaysSince(lastAction, now);
-        if (daysPassed > 0 && (user.hiredNpcs || []).length > 0) {
-            await recoverConditions(user.userId, daysPassed);
+        // NPC 體力自然恢復（recoverConditions 內部追蹤 lastCondRecoverAt，防止重複恢復）
+        if ((user.hiredNpcs || []).length > 0) {
+            await recoverConditions(user.userId);
         }
 
         // 清理幽靈 NPC（死亡競態條件殘留的不完整條目）— 必須在 checkMissions 之前
