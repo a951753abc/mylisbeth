@@ -1,5 +1,4 @@
 const db = require("../../db.js");
-const { releaseAllNpcs } = require("../npc/npcManager.js");
 
 /**
  * 執行破產處理：
@@ -31,7 +30,8 @@ async function executeBankruptcy(userId, totalDebt, debtCycles, options = {}) {
   // 1. 先寫 log（保留記錄）
   await db.insertOne("bankruptcy_log", summary);
 
-  // 2. 釋放所有 NPC
+  // 2. 釋放所有 NPC（惰性載入避免 bankruptcy ↔ npcManager ↔ expedition 循環依賴）
+  const { releaseAllNpcs } = require("../npc/npcManager.js");
   await releaseAllNpcs(userId);
 
   // 3. 清除 Boss 參與者記錄（避免重建帳號後傷害算在舊帳號上）
