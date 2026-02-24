@@ -193,7 +193,7 @@ async function resolveMission(userId, npcIdx, npc, title) {
     // 冪等性保護：原子清除 mission + 更新體力，mission 已被清除時跳過
     const guard = await db.findOneAndUpdate(
       "user",
-      { userId, [`hiredNpcs.${npcIdx}.mission`]: { $ne: null } },
+      { userId, [`hiredNpcs.${npcIdx}.mission`]: { $type: "object" } },
       { $set: {
         [`hiredNpcs.${npcIdx}.mission`]: null,
         [`hiredNpcs.${npcIdx}.condition`]: newCond,
@@ -238,7 +238,7 @@ async function resolveMission(userId, npcIdx, npc, title) {
       // 冪等性保護：先原子清除 mission
       const guard = await db.findOneAndUpdate(
         "user",
-        { userId, [`hiredNpcs.${npcIdx}.mission`]: { $ne: null } },
+        { userId, [`hiredNpcs.${npcIdx}.mission`]: { $type: "object" } },
         { $set: { [`hiredNpcs.${npcIdx}.mission`]: null } },
         { returnDocument: "after" },
       );
@@ -262,7 +262,7 @@ async function resolveMission(userId, npcIdx, npc, title) {
       // 冪等性保護：原子清除 mission + 更新體力
       const guard = await db.findOneAndUpdate(
         "user",
-        { userId, [`hiredNpcs.${npcIdx}.mission`]: { $ne: null } },
+        { userId, [`hiredNpcs.${npcIdx}.mission`]: { $type: "object" } },
         { $set: {
           [`hiredNpcs.${npcIdx}.mission`]: null,
           [`hiredNpcs.${npcIdx}.condition`]: newCond,
@@ -586,7 +586,7 @@ async function resolveTraining(userId, npcIdx, npc) {
 
   const guard = await db.findOneAndUpdate(
     "user",
-    { userId, [`hiredNpcs.${npcIdx}.mission`]: { $ne: null } },
+    { userId, [`hiredNpcs.${npcIdx}.mission`]: { $type: "object" } },
     { $set: atomicSet },
     { returnDocument: "after" },
   );
