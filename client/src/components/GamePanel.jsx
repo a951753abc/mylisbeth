@@ -15,6 +15,7 @@ import DuelSetupSection from "./game/DuelSetupSection.jsx";
 export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, cooldownActive, onSetTitle }) {
   const [result, setResult] = useState(null);
   const [forgeResult, setForgeResult] = useState(null);
+  const [lcResult, setLcResult] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [localStamina, setLocalStamina] = useState(null);
@@ -36,6 +37,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
     setBusy(true);
     setError("");
     setResult(null);
+    setLcResult(null);
     const data = await onAction(action, body);
     if (data.error) {
       setError(data.error);
@@ -44,6 +46,10 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
       setForgeResult(data);
       if (data.stamina !== undefined) setLocalStamina(data.stamina);
       if (data.lastStaminaRegenAt !== undefined) setLocalLastRegenAt(data.lastStaminaRegenAt);
+    } else if (action === "lcInfiltrate") {
+      setLcResult(data);
+    } else if (action === "lcIgnore") {
+      // 無視：不需要顯示結果
     } else {
       setResult(data);
       if (data.stamina !== undefined) setLocalStamina(data.stamina);
@@ -203,8 +209,11 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
         </div>
       )}
 
+      {/* LC 潛入結果（獨立於 LcEncounterNotice，不受元件卸載影響） */}
+      {lcResult && <LcInfiltrationResult result={lcResult} />}
+
       {/* 潛在的 LC 據點遭遇（從 user 讀取，跨重新整理保留） */}
-      {!result?.lcEncounter && user.pendingLcEncounter && (
+      {!lcResult && !result?.lcEncounter && user.pendingLcEncounter && (
         <LcEncounterNotice
           encounter={{ type: "lc_base_discovered", baseFloor: user.pendingLcEncounter.baseFloor }}
           doAction={doAction}
@@ -276,16 +285,10 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
 
 function LcEncounterNotice({ encounter, doAction, isDisabled }) {
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState(null);
-
-  if (result) {
-    return <LcInfiltrationResult result={result} />;
-  }
 
   const handleInfiltrate = async () => {
     setBusy(true);
-    const data = await doAction("lcInfiltrate");
-    if (!data.error) setResult(data);
+    await doAction("lcInfiltrate");
     setBusy(false);
   };
 
