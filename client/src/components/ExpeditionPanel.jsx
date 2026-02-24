@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { QUALITY_COLOR } from "../constants/npcQuality.js";
+import NpcQuickHeal from "./NpcQuickHeal.jsx";
 
 const CARD_STYLE = { marginBottom: "0.8rem" };
 const BTN_SMALL = { padding: "0.2rem 0.6rem", fontSize: "0.78rem" };
@@ -372,6 +373,9 @@ export default function ExpeditionPanel({ user, onRefresh }) {
                       <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
                         HP:{npc.baseStats.hp} ATK:{npc.baseStats.atk} DEF:{npc.baseStats.def} AGI:{npc.baseStats.agi}
                       </div>
+
+                      {/* 快速治療（任務中不顯示） */}
+                      {!onMission && <NpcQuickHeal npc={npc} onHealed={onRefresh} />}
 
                       {/* 武器分配（選中後展開） */}
                       {isSelected && (

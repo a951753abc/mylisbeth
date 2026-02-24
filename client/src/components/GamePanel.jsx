@@ -236,6 +236,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
         isDisabled={isDisabled}
         busy={busy}
         cooldownActive={cooldownActive}
+        onUserUpdate={onUserUpdate}
       />
 
       <SoloAdvSection

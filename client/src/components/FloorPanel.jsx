@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import BossHealthBar from './BossHealthBar';
+import NpcQuickHeal from './NpcQuickHeal';
 
 export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive, onUserRefresh }) {
   const [floorInfo, setFloorInfo] = useState(null);
@@ -106,6 +107,9 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive,
   const isAtFrontier = activeFloor === maxFloor;
   const floorDiff = (maxFloor || 1) - (activeFloor || 1);
   const profMult = Math.max(0, 1 - floorDiff * 0.25);
+  const selectedBossNpc = bossNpcId
+    ? (user.hiredNpcs || []).find((n) => n.npcId === bossNpcId)
+    : null;
 
   return (
     <div>
@@ -243,6 +247,7 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive,
                 {busy ? '攻擊中...' : cooldownActive ? '冷卻中...' : `攻擊 ${floor.boss.name}`}
               </button>
             </div>
+            {selectedBossNpc && <NpcQuickHeal npc={selectedBossNpc} onHealed={onUserRefresh} />}
             {(user.hiredNpcs || []).length === 0 && (
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
                 請先至「酒館」tab 雇用冒險者才能挑戰 Boss

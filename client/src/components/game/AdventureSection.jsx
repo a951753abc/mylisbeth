@@ -1,9 +1,14 @@
 import React, { useState } from "react";
 import WeaponSelect from "../WeaponSelect.jsx";
+import NpcQuickHeal from "../NpcQuickHeal.jsx";
 
-export default function AdventureSection({ user, doAction, isDisabled, busy, cooldownActive }) {
+export default function AdventureSection({ user, doAction, isDisabled, busy, cooldownActive, onUserUpdate }) {
   const [advWeapon, setAdvWeapon] = useState("");
   const [advNpc, setAdvNpc] = useState("");
+
+  const selectedAdvNpc = advNpc
+    ? (user.hiredNpcs || []).find((n) => n.npcId === advNpc)
+    : null;
 
   return (
     <div className="card">
@@ -62,6 +67,7 @@ export default function AdventureSection({ user, doAction, isDisabled, busy, coo
           {busy ? "冒險中..." : cooldownActive ? "冷卻中..." : "出發冒險"}
         </button>
       </div>
+      {selectedAdvNpc && <NpcQuickHeal npc={selectedAdvNpc} onHealed={onUserUpdate} />}
       {(user.hiredNpcs || []).length === 0 && (
         <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.3rem" }}>
           ⚠️ 請先至「酒館」tab 雇用冒險者才能冒險
