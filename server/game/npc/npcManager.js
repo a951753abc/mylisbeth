@@ -7,6 +7,9 @@ const { getGameDaysSince } = require("../time/gameTime.js");
 const { getModifier } = require("../title/titleModifier.js");
 const { formatText, getText } = require("../textManager.js");
 const { isNpcOnExpedition } = require("../expedition/expedition.js");
+const { resolveWeaponType } = require("../weapon/weaponType.js");
+const { getSkill } = require("../skill/skillRegistry.js");
+const { getNpcSlotCount } = require("../skill/skillSlot.js");
 
 const NPC_CFG = config.NPC;
 
@@ -304,13 +307,67 @@ async function equipWeapon(userId, npcId, weaponIndex) {
     }
   }
 
-  await db.update(
+  const npc = hired[npcIdx];
+  const weapons = user.weaponStock || [];
+  const newWeapon = weaponIndex !== null ? weapons[weaponIndex] : null;
+
+  // 卸武器時不動劍技（戰鬥時自動過濾不匹配的），僅換武器時重配
+  const setFields = { "hiredNpcs.$.equippedWeaponIndex": weaponIndex };
+  if (weaponIndex !== null) {
+    const newWeaponType = resolveWeaponType(newWeapon);
+    setFields["hiredNpcs.$.equippedSkills"] = reassignNpcSkills(npc, newWeaponType);
+  }
+
+  // 用 positional operator 搭配 npcId 條件，避免索引偏移風險
+  await db.findOneAndUpdate(
     "user",
-    { userId },
-    { $set: { [`hiredNpcs.${npcIdx}.equippedWeaponIndex`]: weaponIndex } },
+    { userId, "hiredNpcs.npcId": npcId },
+    { $set: setFields },
   );
 
   return { success: true };
+}
+
+/**
+ * 根據新武器類型重配 NPC 劍技
+ * 保留匹配的已裝備技能，填補空槽用已學會但未裝備的匹配技能
+ */
+function reassignNpcSkills(npc, newWeaponType) {
+  const slotCount = getNpcSlotCount(npc);
+  const equipped = npc.equippedSkills || [];
+  const learned = (npc.learnedSkills || []).map(
+    (s) => typeof s === "string" ? s : s.skillId,
+  );
+
+  // 保留仍匹配新武器的已裝備技能
+  const kept = equipped.filter((entry) => {
+    const skill = getSkill(typeof entry === "string" ? entry : entry.skillId);
+    if (!skill) return false;
+    // 非武器技能（通用技能）始終保留
+    if (skill.category !== "weapon" || !skill.weaponType) return true;
+    return skill.weaponType === newWeaponType;
+  });
+
+  // 已裝備的技能 ID 集合
+  const keptIds = new Set(kept.map((e) => typeof e === "string" ? e : e.skillId));
+
+  // 從已學會技能中找出匹配新武器但尚未裝備的
+  const candidates = learned.filter((skillId) => {
+    if (keptIds.has(skillId)) return false;
+    const skill = getSkill(skillId);
+    if (!skill) return false;
+    if (skill.category !== "weapon" || !skill.weaponType) return false;
+    return skill.weaponType === newWeaponType;
+  });
+
+  // 填補空槽
+  const result = [...kept];
+  for (const skillId of candidates) {
+    if (result.length >= slotCount) break;
+    result.push({ skillId, mods: [] });
+  }
+
+  return result;
 }
 
 /**
