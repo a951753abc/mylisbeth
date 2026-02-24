@@ -98,7 +98,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
             )}
             {result.durabilityText && <div>{result.durabilityText}</div>}
             {result.reward && <div>{result.reward}</div>}
-            {result.battleLog && <div>{result.battleLog}</div>}
+            {result.battleLog && typeof result.battleLog === 'string' && <div>{result.battleLog}</div>}
             {result.colEarned > 0 && (
               <div style={{ color: "var(--gold)" }}>
                 +{result.colEarned} Col

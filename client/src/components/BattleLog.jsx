@@ -63,7 +63,7 @@ export default function BattleLog({ logs }) {
             {log.narrative && <div style={{ fontStyle: 'italic', lineHeight: 1.8 }}>{log.narrative}</div>}
             {log.durabilityText && <div>{log.durabilityText}</div>}
             {log.reward && <div style={{ color: 'var(--success)' }}>{log.reward}</div>}
-            {log.battleLog && <div>{log.battleLog}</div>}
+            {log.battleLog && typeof log.battleLog === 'string' && <div>{log.battleLog}</div>}
 
             {/* 劍技事件 */}
             {log.skillEvents && log.skillEvents.length > 0 && (
