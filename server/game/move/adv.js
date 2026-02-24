@@ -27,6 +27,7 @@ const { tryNpcLearnSkill } = require("../skill/npcSkillLearning.js");
 const { checkExtraSkills } = require("../skill/extraSkillChecker.js");
 const { getActiveFloor, getProficiencyMultiplier } = require("../floor/activeFloor.js");
 const { formatText, getText } = require("../textManager.js");
+const { isNpcOnExpedition } = require("../expedition/expedition.js");
 
 // 冒險結果對應 NPC 經驗值
 const NPC_EXP_GAIN = {
@@ -70,9 +71,12 @@ module.exports = async function (cmd, rawUser) {
       return { error: formatText("ADVENTURE.NPC_LOW_CONDITION", { npcName: hiredNpc.name }) };
     }
 
-    // Season 6: 任務互斥鎖
+    // 任務/遠征互斥鎖
     if (hiredNpc.mission) {
       return { error: formatText("ADVENTURE.NPC_ON_MISSION", { npcName: hiredNpc.name }) };
+    }
+    if (isNpcOnExpedition(user, hiredNpc.npcId)) {
+      return { error: formatText("EXPEDITION.NPC_ON_EXPEDITION", { npcName: hiredNpc.name }) };
     }
 
     const thisWeapon = user.weaponStock[cmd[2]];

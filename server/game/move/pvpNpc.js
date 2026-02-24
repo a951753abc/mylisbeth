@@ -14,6 +14,8 @@ const { getEffectiveStats, getCombinedBattleStats } = require("../npc/npcStats.j
 const { killNpc, resolveNpcBattle } = require("../npc/npcManager.js");
 const { deductPvpStamina, deductWagers, buildCombatMods, validateDuelRequest, calcWagerPayout } = require("./pvpUtils.js");
 const { awardProficiency } = require("../skill/skillProficiency.js");
+const { isNpcOnExpedition } = require("../expedition/expedition.js");
+const { formatText } = require("../textManager.js");
 
 const PVP = config.PVP;
 const MODES = PVP.MODES;
@@ -76,6 +78,14 @@ module.exports = async function (cmd, rawAttacker) {
   const npcEntry = (owner.hiredNpcs || []).find((n) => n.npcId === targetNpcId);
   if (!npcEntry) {
     return { error: "該 NPC 已不在隊伍中。" };
+  }
+
+  // 任務/遠征中的 NPC 不可被挑戰
+  if (npcEntry.mission) {
+    return { error: formatText("ADVENTURE.NPC_ON_MISSION", { npcName: npcEntry.name }) };
+  }
+  if (isNpcOnExpedition(owner, targetNpcId)) {
+    return { error: formatText("EXPEDITION.NPC_ON_EXPEDITION", { npcName: npcEntry.name }) };
   }
 
   // NPC 裝備的武器

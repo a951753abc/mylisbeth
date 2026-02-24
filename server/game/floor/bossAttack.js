@@ -18,6 +18,7 @@ const { getNpcEffectiveSkills } = require("../skill/skillSlot.js");
 const { buildSkillContext } = require("../skill/skillCombat.js");
 const { resolveWeaponType } = require("../weapon/weaponType.js");
 const { tryNpcLearnSkill } = require("../skill/npcSkillLearning.js");
+const { isNpcOnExpedition } = require("../expedition/expedition.js");
 
 async function getOrInitServerState(floorNumber, bossData) {
   let state = await db.findOne("server_state", { _id: "aincrad" });
@@ -148,9 +149,12 @@ module.exports = async function bossAttack(cmd, rawUser) {
       return { error: formatText("BOSS.NPC_LOW_CONDITION", { npcName: hiredNpc.name }) };
     }
 
-    // 任務互斥鎖
+    // 任務/遠征互斥鎖
     if (hiredNpc.mission) {
       return { error: formatText("BOSS.NPC_ON_MISSION", { npcName: hiredNpc.name }) };
+    }
+    if (isNpcOnExpedition(user, npcId)) {
+      return { error: formatText("EXPEDITION.NPC_ON_EXPEDITION", { npcName: hiredNpc.name }) };
     }
 
     // 必須在前線樓層才能挑戰 Boss

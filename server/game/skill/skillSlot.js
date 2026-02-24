@@ -195,6 +195,9 @@ async function npcForgetSkill(userId, npcId, skillId) {
   if (!npc) return { error: "找不到該 NPC" };
 
   if (npc.mission) return { error: "NPC 任務中，無法遺忘技能" };
+  // 惰性載入避免循環依賴（skillSlot → expedition → rewards → skillSlot）
+  const { isNpcOnExpedition } = require("../expedition/expedition.js");
+  if (isNpcOnExpedition(user, npcId)) return { error: "NPC 遠征中，無法遺忘技能" };
 
   const learned = npc.learnedSkills || [];
   if (!learned.includes(skillId)) return { error: "NPC 尚未學會此技能" };
@@ -205,12 +208,13 @@ async function npcForgetSkill(userId, npcId, skillId) {
   const costTable = SKILL_CFG.NPC_FORGET_COST_BY_TIER || {};
   const cost = costTable[skill.tier] || costTable[1] || 100;
 
-  // 原子操作：扣 Col + 移除 learnedSkills（含 TOCTOU 防護）
+  // 原子操作：扣 Col + 移除 learnedSkills（含 TOCTOU 防護，擋任務與遠征）
   const result = await db.findOneAndUpdate(
     "user",
     {
       userId,
       col: { $gte: cost },
+      activeExpedition: null,
       hiredNpcs: { $elemMatch: { npcId, mission: null } },
     },
     {
@@ -219,7 +223,7 @@ async function npcForgetSkill(userId, npcId, skillId) {
     },
     { returnDocument: "after" },
   );
-  if (!result) return { error: `Col 不足（需要 ${cost}）或 NPC 正在任務中` };
+  if (!result) return { error: `Col 不足（需要 ${cost}）或 NPC 正在任務/遠征中` };
 
   // 第二步：移除 equippedSkills（分開避免 MongoDB 多重 $ 限制）
   await db.update(
