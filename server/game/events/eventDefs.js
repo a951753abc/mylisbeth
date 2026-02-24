@@ -4,6 +4,7 @@ const mysteriousChest = require("./handlers/mysteriousChest.js");
 const wanderingBlacksmith = require("./handlers/wanderingBlacksmith.js");
 const labyrinthRift = require("./handlers/labyrinthRift.js");
 const npcAwakening = require("./handlers/npcAwakening.js");
+const { isLcActive: _isLcActive } = require("../laughingCoffin/lcState.js");
 
 const QUALITY_ORDER = config.RANDOM_EVENTS.QUALITY_ORDER;
 
@@ -20,18 +21,14 @@ const QUALITY_ORDER = config.RANDOM_EVENTS.QUALITY_ORDER;
  * 順序決定優先級：先判定的事件先觸發（命中即停）
  */
 const eventDefs = [
-  // 危險事件優先判定
+  // 微笑棺木公會襲擊（啟動後才觸發）
   {
     id: "laughing_coffin",
     name: "微笑棺木襲擊",
-    chance: config.RANDOM_EVENTS.LAUGHING_COFFIN.CHANCE,
+    chance: config.LAUGHING_COFFIN_GUILD.AMBUSH_CHANCE,
     actions: config.RANDOM_EVENTS.TRIGGER_ACTIONS,
-    condition(user) {
-      return (
-        (user.col || 0) > 0 ||
-        (user.itemStock || []).length > 0 ||
-        (user.weaponStock || []).length > 0
-      );
+    async condition(user) {
+      return await _isLcActive();
     },
     handler: laughingCoffin,
   },

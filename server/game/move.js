@@ -6,6 +6,8 @@ const { checkAndConsumeStamina } = require("./stamina/staminaCheck.js");
 const { checkEvent } = require("./events/eventTrigger.js");
 const { logAction } = require("./logging/actionLogger.js");
 const { getActiveFloor } = require("./floor/activeFloor.js");
+const { checkAndRotateFloor } = require("./laughingCoffin/lcState.js");
+const { checkLcEncounter } = require("./laughingCoffin/lcEncounter.js");
 
 const mine = require("./move/mine.js");
 const forge = require("./move/forge.js");
@@ -16,9 +18,11 @@ const pvpNpc = require("./move/pvpNpc.js");
 const repair = require("./move/repair.js");
 const soloAdv = require("./move/soloAdv.js");
 const bossAttack = require("./floor/bossAttack.js");
+const lcInfiltrate = require("./move/lcInfiltrate.js");
+const lcIgnore = require("./move/lcIgnore.js");
 
 const coolTime = config.MOVE_COOLDOWN;
-const cmdList = { mine, forge, up, adv, pvp, pvpNpc, repair, soloAdv, boss: bossAttack };
+const cmdList = { mine, forge, up, adv, pvp, pvpNpc, repair, soloAdv, boss: bossAttack, lcInfiltrate, lcIgnore };
 
 module.exports = async function (cmd, userOrId) {
   if (!(cmd[1] in cmdList)) {
@@ -74,6 +78,9 @@ module.exports = async function (cmd, userOrId) {
     };
   }
 
+  // 微笑棺木據點懶惰輪替
+  await checkAndRotateFloor(user.currentFloor || 1);
+
   // 體力檢查：挖礦/鍛造/修復才消耗（傳入稱號以套用修正）
   // 連續挖礦：mine handler 內部管理體力
   const isBatchMine = cmd[1] === "mine" && cmd[2]?.staminaBudget > 0;
@@ -111,6 +118,14 @@ module.exports = async function (cmd, userOrId) {
         actionResult.bankruptcy = true;
         actionResult.message = eventResult.text;
         actionResult.bankruptcyInfo = eventResult.losses?.bankruptcyInfo || {};
+      }
+    }
+
+    // 微笑棺木據點發現檢查（獨立於事件系統，不受事件互斥影響）
+    if (!actionResult.bankruptcy) {
+      const lcEncounter = await checkLcEncounter(userId, cmd[1]);
+      if (lcEncounter) {
+        actionResult.lcEncounter = lcEncounter;
       }
     }
   }

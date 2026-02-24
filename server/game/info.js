@@ -189,6 +189,8 @@ module.exports = function (user) {
         weaponCount: (wh.weapons || []).filter(Boolean).length,
       };
     })(),
+    // Season 10: 微笑棺木遭遇
+    pendingLcEncounter: user.pendingLcEncounter || null,
     // Season 8: 封印武器
     sealedWeapons: (user.sealedWeapons || []).map((w, idx) => {
       const rarity = w.rarity

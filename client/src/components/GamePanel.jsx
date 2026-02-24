@@ -191,8 +191,25 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
             {result.randomEvent && (
               <RandomEventDisplay event={result.randomEvent} />
             )}
+
+            {result.lcEncounter && (
+              <LcEncounterNotice
+                encounter={result.lcEncounter}
+                doAction={doAction}
+                isDisabled={isDisabled}
+              />
+            )}
           </div>
         </div>
+      )}
+
+      {/* 潛在的 LC 據點遭遇（從 user 讀取，跨重新整理保留） */}
+      {!result?.lcEncounter && user.pendingLcEncounter && (
+        <LcEncounterNotice
+          encounter={{ type: "lc_base_discovered", baseFloor: user.pendingLcEncounter.baseFloor }}
+          doAction={doAction}
+          isDisabled={isDisabled}
+        />
       )}
 
       {/* Character stats + stamina */}
@@ -255,4 +272,168 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
       />
     </div>
   );
+}
+
+function LcEncounterNotice({ encounter, doAction, isDisabled }) {
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState(null);
+
+  if (result) {
+    return <LcInfiltrationResult result={result} />;
+  }
+
+  const handleInfiltrate = async () => {
+    setBusy(true);
+    const data = await doAction("lcInfiltrate");
+    if (!data.error) setResult(data);
+    setBusy(false);
+  };
+
+  const handleIgnore = async () => {
+    setBusy(true);
+    await doAction("lcIgnore");
+    setBusy(false);
+  };
+
+  return (
+    <div style={{
+      border: "1px solid rgba(239, 68, 68, 0.5)",
+      background: "rgba(239, 68, 68, 0.08)",
+      borderRadius: "8px",
+      padding: "0.75rem 1rem",
+      marginTop: "0.75rem",
+    }}>
+      <div style={{ fontWeight: "bold", color: "#ef4444", marginBottom: "0.4rem" }}>
+        發現微笑棺木據點！
+      </div>
+      <div style={{ fontSize: "0.85rem", marginBottom: "0.5rem" }}>
+        你在第 {encounter.baseFloor} 層發現了微笑棺木公會的藏匿點。要潛入調查嗎？
+      </div>
+      <div style={{ display: "flex", gap: "0.5rem" }}>
+        <button
+          className="btn-danger"
+          onClick={handleInfiltrate}
+          disabled={isDisabled || busy}
+          style={{ padding: "0.3rem 0.8rem", fontSize: "0.8rem" }}
+        >
+          {busy ? "潛入中..." : "潛入調查"}
+        </button>
+        <button
+          className="btn-secondary"
+          onClick={handleIgnore}
+          disabled={isDisabled || busy}
+          style={{ padding: "0.3rem 0.8rem", fontSize: "0.8rem" }}
+        >
+          無視
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function LcInfiltrationResult({ result }) {
+  if (result.outcome === "stealth") {
+    return (
+      <div style={{
+        border: "1px solid rgba(74, 222, 128, 0.4)",
+        background: "rgba(74, 222, 128, 0.08)",
+        borderRadius: "8px",
+        padding: "0.75rem 1rem",
+        marginTop: "0.75rem",
+      }}>
+        <div style={{ fontWeight: "bold", color: "#4ade80", marginBottom: "0.4rem" }}>
+          潛行成功！
+        </div>
+        {result.hasLoot ? (
+          <div style={{ fontSize: "0.85rem" }}>
+            你成功潛入據點，從贓物池中取回了物品：
+            {result.loot.col > 0 && <div style={{ color: "var(--gold)" }}>+{result.loot.col.toLocaleString()} Col</div>}
+            {result.loot.materials.map((m, i) => (
+              <div key={i} style={{ color: "#4ade80" }}>取回素材：{m.itemName}</div>
+            ))}
+            {result.loot.weapons.map((w, i) => (
+              <div key={i} style={{ color: "#a78bfa" }}>取回武器：{w.weaponName}</div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+            你成功潛入據點，但贓物池是空的。
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (result.outcome === "escape") {
+    return (
+      <div style={{
+        border: "1px solid rgba(251, 191, 36, 0.4)",
+        background: "rgba(251, 191, 36, 0.08)",
+        borderRadius: "8px",
+        padding: "0.75rem 1rem",
+        marginTop: "0.75rem",
+      }}>
+        <div style={{ fontWeight: "bold", color: "#fbbf24", marginBottom: "0.4rem" }}>
+          被發現但成功逃脫
+        </div>
+        <div style={{ fontSize: "0.85rem" }}>{result.text}</div>
+      </div>
+    );
+  }
+
+  if (result.outcome === "win") {
+    return (
+      <div style={{
+        border: "1px solid rgba(74, 222, 128, 0.4)",
+        background: "rgba(74, 222, 128, 0.08)",
+        borderRadius: "8px",
+        padding: "0.75rem 1rem",
+        marginTop: "0.75rem",
+      }}>
+        <div style={{ fontWeight: "bold", color: "#4ade80", marginBottom: "0.4rem" }}>
+          潛入戰鬥 — 勝利！
+        </div>
+        <div style={{ fontSize: "0.85rem" }}>
+          擊敗了 {result.enemyName}！
+          {!result.isGrunt && <span style={{ color: "#ef4444" }}> 該成員已被永久擊殺！</span>}
+        </div>
+        {result.rewards?.col > 0 && (
+          <div style={{ color: "var(--gold)" }}>+{result.rewards.col.toLocaleString()} Col</div>
+        )}
+      </div>
+    );
+  }
+
+  if (result.outcome === "lose") {
+    return (
+      <div style={{
+        border: "1px solid rgba(248, 113, 113, 0.4)",
+        background: "rgba(248, 113, 113, 0.08)",
+        borderRadius: "8px",
+        padding: "0.75rem 1rem",
+        marginTop: "0.75rem",
+      }}>
+        <div style={{ fontWeight: "bold", color: "#f87171", marginBottom: "0.4rem" }}>
+          潛入戰鬥 — 敗北
+        </div>
+        <div style={{ fontSize: "0.85rem" }}>
+          被 {result.enemyName} 擊敗了...
+        </div>
+        {result.losses?.col > 0 && (
+          <div style={{ color: "#f87171" }}>-{result.losses.col.toLocaleString()} Col</div>
+        )}
+        {result.losses?.material && (
+          <div style={{ color: "#f87171", fontSize: "0.85rem" }}>失去素材：{result.losses.material.name}</div>
+        )}
+        {result.losses?.weapon && (
+          <div style={{ color: "#f87171", fontSize: "0.85rem" }}>失去武器：{result.losses.weapon.name}</div>
+        )}
+        {result.losses?.npcDeath && (
+          <div style={{ color: "#f87171", fontWeight: "bold", fontSize: "0.85rem" }}>{result.losses.npcDeath.name} 陣亡</div>
+        )}
+      </div>
+    );
+  }
+
+  return null;
 }

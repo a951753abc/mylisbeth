@@ -14,10 +14,14 @@ async function checkEvent(userId, actionType, actionResult) {
   const user = await db.findOne("user", { userId });
   if (!user) return null;
 
-  // 篩選符合 actionType 的事件
-  const eligible = eventDefs.filter(
-    (ev) => ev.actions.includes(actionType) && ev.condition(user),
-  );
+  // 篩選符合 actionType 的事件（支援 async condition）
+  const eligible = [];
+  for (const ev of eventDefs) {
+    if (!ev.actions.includes(actionType)) continue;
+    const condResult = ev.condition(user);
+    const passed = condResult instanceof Promise ? await condResult : condResult;
+    if (passed) eligible.push(ev);
+  }
   if (eligible.length === 0) return null;
 
   // 逐一 d100Check（命中即停，一次最多觸發一個）

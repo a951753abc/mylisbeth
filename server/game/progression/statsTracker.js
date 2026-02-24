@@ -39,6 +39,11 @@ const VALID_STATS = [
   // Season 13: 遠征
   "totalExpeditions",
   "expeditionsSucceeded",
+  // Season 10: 微笑棺木公會
+  "lcGruntsKilled",
+  "lcMembersKilled",
+  "lcInfiltrations",
+  "lcStealthSuccess",
 ];
 
 async function increment(userId, statName, amount = 1) {

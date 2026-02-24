@@ -2,6 +2,7 @@ const db = require("../../db.js");
 const config = require("../config.js");
 const E = require("../../socket/events.js");
 const { getFloor } = require("./floorData.js");
+const { initializeLc, getLcState } = require("../laughingCoffin/lcState.js");
 
 async function advanceFloor(currentFloor, participants, mvp, lastAttacker, lastAttackDrop) {
   const nextFloor = currentFloor + 1;
@@ -60,6 +61,18 @@ async function advanceFloor(currentFloor, participants, mvp, lastAttacker, lastA
         nameCn: nextFloorData.nameCn,
       },
     });
+  }
+
+  // 微笑棺木公會啟動：攻略到指定樓層時
+  if (nextFloor >= config.LAUGHING_COFFIN_GUILD.ACTIVATION_FLOOR) {
+    const lcState = await getLcState();
+    if (!lcState) {
+      await initializeLc(nextFloor);
+      socketEvents.push({
+        event: E.LC_GUILD_ACTIVATED,
+        data: { floor: nextFloor },
+      });
+    }
   }
 
   return { nextFloor, clearedAt, socketEvents };

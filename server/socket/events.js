@@ -9,6 +9,7 @@ const BOSS_DAMAGE = "boss:damage";
 const BOSS_DEFEATED = "boss:defeated";
 const BOSS_PHASE = "boss:phase";
 const FLOOR_UNLOCKED = "floor:unlocked";
+const LC_GUILD_ACTIVATED = "lc:guild:activated";
 const NPC_DEATH = "npc:death";
 
 // 管理事件（Server → Client）
@@ -30,6 +31,7 @@ module.exports = {
   BOSS_DEFEATED,
   BOSS_PHASE,
   FLOOR_UNLOCKED,
+  LC_GUILD_ACTIVATED,
   NPC_DEATH,
   ADMIN_DASHBOARD_UPDATE,
   SERVER_FULL,

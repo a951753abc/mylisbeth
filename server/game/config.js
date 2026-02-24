@@ -230,36 +230,33 @@ module.exports = {
     },
   },
 
+  // Season 10: 微笑棺木公會
+  LAUGHING_COFFIN_GUILD: {
+    ACTIVATION_FLOOR: 11,
+    ROTATION_INTERVAL_MS: 60 * 60 * 1000,  // 據點每 1 小時輪替
+    INITIAL_GRUNT_COUNT: 12,
+    // 流程 A：主動襲擊
+    AMBUSH_CHANCE: 3,                       // 觸發機率 (%)
+    AMBUSH_WIN_COL_MIN: 100,
+    AMBUSH_WIN_COL_MAX: 300,
+    AMBUSH_DRAW_COL_LOSS_RATE: 0.10,
+    AMBUSH_LOSE_COL_LOSS_RATE: 0.25,
+    AMBUSH_LOSE_COL_MIN: 20,
+    AMBUSH_LOSE_STEAL_MATERIAL: true,
+    AMBUSH_LOSE_STEAL_WEAPON_CHANCE: 10,
+    AMBUSH_DEATH_CHANCE: { mine: 15, soloAdv: 10, adv: 15 },
+    // 流程 B：據點潛入
+    ENCOUNTER_CHANCE: 15,                   // 發現據點機率 (%)
+    STEALTH_CHANCE: 40,                     // 潛行成功 (%)
+    FIGHT_CHANCE: 50,                       // 遭遇戰鬥 (%)
+    LOOT_COL_RATE: 0.3,                     // 潛行取回 30% 贓物 Col
+    LOOT_MATERIAL_COUNT: 2,                 // 潛行最多取回 2 素材
+    INFILTRATION_DEATH_CHANCE: 15,          // 潛入戰鬥敗北死亡率
+  },
+
   // Season 3.5: 隨機事件
   RANDOM_EVENTS: {
     TRIGGER_ACTIONS: ["mine", "soloAdv", "adv"],
-    LAUGHING_COFFIN: {
-      CHANCE: 3,                        // 觸發機率 (%)
-      // 敵方基礎數值（隨樓層 scaling: base * (1 + floor * 0.15)）
-      ENEMY_BASE: {
-        HP: 60,
-        ATK: 4,
-        DEF: 2,
-        AGI: 3,
-        CRI: 9,
-      },
-      // 勝利獎勵
-      WIN_COL_MIN: 100,
-      WIN_COL_MAX: 300,
-      // 平手損失
-      DRAW_COL_LOSS_RATE: 0.10,        // 損失 10% Col
-      // 敗北搶奪
-      LOSE_COL_LOSS_RATE: 0.25,        // 搶走 25% Col
-      LOSE_COL_MIN: 20,                // 至少搶 20 Col
-      LOSE_STEAL_MATERIAL: true,       // 隨機搶 1 素材
-      LOSE_STEAL_WEAPON_CHANCE: 10,    // 10% 搶武器（需 2+ 把）
-      // 敗北死亡機率（依動作類型不同）
-      DEATH_CHANCE: {
-        mine: 15,                       // 挖礦時毫無防備
-        soloAdv: 10,                    // 至少有武器在手
-        adv: 15,                        // NPC 替玩家擋刀（NPC 死亡）
-      },
-    },
     // Season 8: 神秘寶箱
     MYSTERIOUS_CHEST: {
       CHANCE: 2,                        // 觸發機率 (%)

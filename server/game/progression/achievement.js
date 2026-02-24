@@ -521,6 +521,47 @@ const ACHIEVEMENTS = [
     },
     titleReward: "多刀流",
   },
+  // ── 微笑棺木公會成就 ──
+  {
+    id: "lc_infiltrator",
+    name: "潛入者",
+    nameCn: "潛入者",
+    desc: "首次潛入微笑棺木的據點",
+    check: (user) => (user.stats?.lcInfiltrations || 0) >= 1,
+    titleReward: "潜入者",
+  },
+  {
+    id: "lc_stealth_5",
+    name: "影の如く",
+    nameCn: "如影隨形",
+    desc: "成功潛行 5 次",
+    check: (user) => (user.stats?.lcStealthSuccess || 0) >= 5,
+    titleReward: "影の如く",
+  },
+  {
+    id: "lc_member_kill",
+    name: "正義の剣",
+    nameCn: "正義之劍",
+    desc: "擊殺微笑棺木具名成員",
+    check: (user) => (user.stats?.lcMembersKilled || 0) >= 1,
+    titleReward: "正義の剣",
+  },
+  {
+    id: "lc_members_all",
+    name: "微笑棺桶殲滅者",
+    nameCn: "微笑棺木殲滅者",
+    desc: "擊殺全部 8 名微笑棺木具名成員",
+    check: (user) => (user.stats?.lcMembersKilled || 0) >= 8,
+    titleReward: "殲滅者",
+  },
+  {
+    id: "lc_grunt_10",
+    name: "掃討部隊",
+    nameCn: "掃蕩部隊",
+    desc: "擊殺 10 名微笑棺木雜魚成員",
+    check: (user) => (user.stats?.lcGruntsKilled || 0) >= 10,
+    titleReward: null,
+  },
   // ── 遠征成就 ──
   {
     id: "first_expedition",

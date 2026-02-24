@@ -150,6 +150,40 @@ battleModule.bossBattleWithSkills = function (
   return runPveCombatLoopWithSkills(playerSide, bossSide, skillCtx);
 };
 
+/**
+ * LC 公會戰鬥：雙方都有劍技（復用 PvP 迴圈，結果轉 PvE 格式）
+ * @param {object} playerWeapon - 玩家/NPC 裝備的武器
+ * @param {object} playerNpc - 玩家/NPC 資料（含 name, hp, effectiveStats 等）
+ * @param {object} titleMods - 稱號修正
+ * @param {object|null} playerSkillCtx - 玩家方劍技上下文
+ * @param {object} lcFighter - LC 成員 fighter（from buildLcFighter）
+ * @param {object|null} lcSkillCtx - LC 成員劍技上下文（from buildLcSkillContext）
+ */
+battleModule.lcBattleWithSkills = function (
+  playerWeapon, playerNpc, titleMods, playerSkillCtx,
+  lcFighter, lcSkillCtx,
+) {
+  const playerSide = buildPvePlayerSide(playerWeapon, playerNpc, titleMods);
+  playerSide.maxHp = playerSide.hp;
+  lcFighter.maxHp = lcFighter.hp;
+
+  const { winnerSide, detailLog, skillEvents } = runPvpCombatLoopWithSkills(
+    playerSide, lcFighter, null, playerSkillCtx, lcSkillCtx,
+  );
+
+  return {
+    win: winnerSide === "attacker" ? 1 : 0,
+    dead: winnerSide === "defender" ? 1 : 0,
+    log: detailLog,
+    skillEvents: skillEvents || [],
+    npcName: playerNpc.name,
+    enemyName: lcFighter.name,
+    category: "[Laughing Coffin]",
+    initialHp: { npc: playerSide.maxHp, enemy: lcFighter.maxHp },
+    finalHp: { npc: playerSide.hp, enemy: lcFighter.hp },
+  };
+};
+
 battleModule.hitCheck = hitCheck;
 battleModule.damCheck = damCheck;
 battleModule.buildPvpFighter = buildPvpFighter;

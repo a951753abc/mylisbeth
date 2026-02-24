@@ -9,6 +9,7 @@ const progression = require("./game/progression.js");
 const floor = require("./game/floor.js");
 const warehouseRoutes = require("./game/warehouse.js");
 const expeditionRoutes = require("./game/expedition.js");
+const laughingCoffinRoutes = require("./game/laughingCoffin.js");
 
 router.use(production);
 router.use(combat);
@@ -17,5 +18,6 @@ router.use(progression);
 router.use(floor);
 router.use(warehouseRoutes);
 router.use(expeditionRoutes);
+router.use(laughingCoffinRoutes);
 
 module.exports = router;

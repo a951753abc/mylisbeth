@@ -17,6 +17,7 @@ import MarketPanel from "../components/MarketPanel";
 import SkillPanel from "../components/SkillPanel";
 import WarehousePanel from "../components/WarehousePanel";
 import ExpeditionPanel from "../components/ExpeditionPanel";
+import LCGuildPanel from "../components/LCGuildPanel";
 
 const MOVE_COOLDOWN_SECONDS = 5;
 
@@ -65,6 +66,7 @@ const TAB_GROUPS = [
       { key: "achievement", text: "成就" },
       { key: "log", text: "日誌" },
       { key: "players", text: "排行榜" },
+      { key: "lc", text: "微笑棺木", lcOnly: true },
     ],
   },
 ];
@@ -361,7 +363,7 @@ export default function Game({ user, onLogout }) {
             <div className="nav-group" key={group.label}>
               <span className="nav-group-label">{group.label}</span>
               <div className="nav-group-buttons">
-                {group.tabs.map((t) => {
+                {group.tabs.filter((t) => !t.lcOnly || (gameUser.currentFloor || 1) >= 11).map((t) => {
                   let className = tab === t.key ? "active" : "";
                   let text = t.text;
                   let style = undefined;
@@ -445,6 +447,9 @@ export default function Game({ user, onLogout }) {
         )}
         {tab === "expedition" && (
           <ExpeditionPanel user={gameUser} onRefresh={fetchUser} />
+        )}
+        {tab === "lc" && (
+          <LCGuildPanel user={gameUser} />
         )}
       </div>
     </div>
