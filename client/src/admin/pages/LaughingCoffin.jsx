@@ -70,7 +70,6 @@ export default function LaughingCoffin() {
           <StatusSection data={data} busy={busy} doAction={doAction} />
           <MembersSection members={data.members} busy={busy} doAction={doAction} />
           <LootSection lootPool={data.lootPool} busy={busy} doAction={doAction} />
-          <ConfigSection config={data.config} />
         </>
       )}
     </div>
@@ -106,7 +105,7 @@ function StatusSection({ data, busy, doAction }) {
   const aliveCount = data.members.filter((m) => m.alive).length;
   const deadCount = data.members.filter((m) => !m.alive).length;
   const elapsed = Date.now() - (data.lastFloorChangeAt || 0);
-  const nextRotation = Math.max(0, (data.config?.rotationIntervalMs || 3600000) - elapsed);
+  const nextRotation = Math.max(0, (data.rotationIntervalMs || 3600000) - elapsed);
   const nextRotationMin = Math.ceil(nextRotation / 60000);
 
   return (
@@ -279,31 +278,6 @@ function LootSection({ lootPool, busy, doAction }) {
       {!hasLoot && (
         <div style={{ fontSize: 12, color: "#666" }}>贓物池為空</div>
       )}
-    </div>
-  );
-}
-
-function ConfigSection({ config }) {
-  if (!config) return null;
-  return (
-    <div style={styles.card}>
-      <h3 style={styles.sectionTitle}>設定值</h3>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: 13 }}>
-        <ConfigItem label="啟動樓層" value={`${config.activationFloor}F`} />
-        <ConfigItem label="輪替間隔" value={`${Math.round(config.rotationIntervalMs / 60000)} 分鐘`} />
-        <ConfigItem label="襲擊機率" value={`${config.ambushChance}%`} />
-        <ConfigItem label="據點發現機率" value={`${config.encounterChance}%`} />
-        <ConfigItem label="初始雜魚數" value={config.initialGruntCount} />
-      </div>
-    </div>
-  );
-}
-
-function ConfigItem({ label, value }) {
-  return (
-    <div>
-      <span style={{ color: "#a0a0b0" }}>{label}：</span>
-      <span style={{ color: "#ddd" }}>{value}</span>
     </div>
   );
 }

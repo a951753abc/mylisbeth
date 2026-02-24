@@ -49,13 +49,7 @@ router.get("/", async (req, res) => {
           hp: w.hp,
         })),
       },
-      config: {
-        activationFloor: config.LAUGHING_COFFIN_GUILD.ACTIVATION_FLOOR,
-        rotationIntervalMs: config.LAUGHING_COFFIN_GUILD.ROTATION_INTERVAL_MS,
-        ambushChance: config.LAUGHING_COFFIN_GUILD.AMBUSH_CHANCE,
-        encounterChance: config.LAUGHING_COFFIN_GUILD.ENCOUNTER_CHANCE,
-        initialGruntCount: config.LAUGHING_COFFIN_GUILD.INITIAL_GRUNT_COUNT,
-      },
+      rotationIntervalMs: config.LAUGHING_COFFIN_GUILD.ROTATION_INTERVAL_MS,
     });
   } catch (err) {
     console.error("Admin: 取得 LC 狀態失敗:", err);
