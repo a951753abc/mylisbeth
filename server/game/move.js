@@ -78,8 +78,8 @@ module.exports = async function (cmd, userOrId) {
     };
   }
 
-  // 微笑棺木據點懶惰輪替
-  await checkAndRotateFloor(user.currentFloor || 1);
+  // 微笑棺木據點懶惰輪替（自動讀取伺服器前線樓層）
+  await checkAndRotateFloor();
 
   // 體力檢查：挖礦/鍛造/修復才消耗（傳入稱號以套用修正）
   // 連續挖礦：mine handler 內部管理體力

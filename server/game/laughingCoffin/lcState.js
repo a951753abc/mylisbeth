@@ -65,17 +65,20 @@ async function initializeLc(currentFloor) {
 
 /**
  * 懶惰更新據點樓層（每 ROTATION_INTERVAL_MS 輪替一次）
- * @param {number} currentFloor - 當前最高攻略樓層
+ * 據點範圍：第 2 層 ~ 伺服器當前攻略前線樓層
  * @returns {object|null} 更新後的 LC 狀態（null = 未啟動或未到輪替時間）
  */
-async function checkAndRotateFloor(currentFloor) {
-  const lc = await getLcState();
+async function checkAndRotateFloor() {
+  // 單次讀取 server_state，同時取得 LC 狀態與前線樓層
+  const serverState = await db.findOne("server_state", {});
+  const lc = serverState?.[STATE_KEY] || null;
   if (!lc || !lc.active || lc.disbanded) return null;
 
   const elapsed = Date.now() - (lc.lastFloorChangeAt || 0);
   if (elapsed < LC_CFG.ROTATION_INTERVAL_MS) return null;
 
-  const newFloor = randomFloor(2, currentFloor);
+  const frontierFloor = serverState?.currentFloor || 1;
+  const newFloor = randomFloor(2, Math.max(frontierFloor, 2));
 
   // 原子操作：只在 lastFloorChangeAt 未被其他 request 更新時才執行
   const result = await db.findOneAndUpdate(

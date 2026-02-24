@@ -205,7 +205,7 @@ function getAllMemberIds() {
   return NAMED_MEMBERS.map((m) => m.id);
 }
 
-/** 取得所有具名成員定義（不含 skills raw，供前端顯示） */
+/** 取得所有具名成員定義（含武器劍技，供 admin 顯示） */
 function getMembersForDisplay() {
   return NAMED_MEMBERS.map((m) => ({
     id: m.id,
@@ -217,6 +217,15 @@ function getMembersForDisplay() {
       .map((s) => getSkill(s.skillId))
       .filter(Boolean)
       .map((sk) => sk.nameCn),
+  }));
+}
+
+/** 取得所有具名成員基本資料（僅 id/名稱/角色，供玩家端顯示） */
+function getMembersBasicInfo() {
+  return NAMED_MEMBERS.map((m) => ({
+    id: m.id,
+    nameCn: m.nameCn,
+    role: m.role,
   }));
 }
 
@@ -294,6 +303,7 @@ module.exports = {
   getMemberDef,
   getAllMemberIds,
   getMembersForDisplay,
+  getMembersBasicInfo,
   buildLcFighter,
   buildLcSkillContext,
   buildGruntFighter,
