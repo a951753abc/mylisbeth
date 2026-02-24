@@ -228,6 +228,7 @@ module.exports = async function (cmd, rawUser) {
 
     return {
       advNpcId: npcId,
+      advWeaponIndex: cmd[2],
       battleResult: {
         win: battleResult.win,
         dead: battleResult.dead,
