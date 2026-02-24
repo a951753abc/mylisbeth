@@ -8,6 +8,7 @@ import PlayerDetail from "./pages/PlayerDetail.jsx";
 import ActionLogs from "./pages/ActionLogs.jsx";
 import ConfigEditor from "./pages/ConfigEditor.jsx";
 import TextEditor from "./pages/TextEditor.jsx";
+import LaughingCoffin from "./pages/LaughingCoffin.jsx";
 
 export default function AdminApp() {
   const { admin, loading, login, logout } = useAdminAuth();
@@ -34,6 +35,7 @@ export default function AdminApp() {
           <Route path="/admin/logs" element={<ActionLogs />} />
           <Route path="/admin/config" element={<ConfigEditor />} />
           <Route path="/admin/texts" element={<TextEditor />} />
+          <Route path="/admin/lc" element={<LaughingCoffin />} />
         </Route>
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>

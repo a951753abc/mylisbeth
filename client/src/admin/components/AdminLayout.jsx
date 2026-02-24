@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { to: "/admin/logs", label: "操作日誌" },
   { to: "/admin/config", label: "遊戲設定" },
   { to: "/admin/texts", label: "遊戲文字" },
+  { to: "/admin/lc", label: "微笑棺木" },
 ];
 
 export default function AdminLayout({ admin, onLogout }) {
