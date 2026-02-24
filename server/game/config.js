@@ -58,9 +58,9 @@ module.exports = {
       LOSE: 40,
       DRAW: 25,
     },
-    // 體力死亡閾值（condition <= 此值且戰敗時有 80% 機率死亡）
-    DEATH_THRESHOLD: 20,
-    DEATH_CHANCE: 80,
+    // 死亡率 = DEATH_BASE + DEATH_COND_BONUS × ((100 - condition) / 100)²
+    DEATH_BASE: 5,            // 基礎死亡率（%），滿血戰敗也適用
+    DEATH_COND_BONUS: 75,     // 體力懲罰上限（%），二次方縮放
     // 治療費用
     HEAL_QUICK_COST: 50,   // 快速治療（+30 condition）
     HEAL_FULL_COST: 200,   // 完全治療（100% condition）
@@ -319,6 +319,8 @@ module.exports = {
     CONNECT_DAMAGE_BONUS: 0.15,  // 每個連鎖 +15%
     CONNECT_BASE_CHANCE: 40,
     CONNECT_PROF_BONUS_PER_100: 5,
+    // NPC 遺忘劍技費用（按 tier）
+    NPC_FORGET_COST_BY_TIER: { 1: 100, 2: 300, 3: 500 },
   },
 
   // Season 9: 武器固有效果
@@ -427,6 +429,7 @@ module.exports = {
     QUALITY_MULT: { 見習: 0.6, 普通: 1.0, 優秀: 1.5, 精銳: 2.0, 傳說: 3.0 },
     COMMISSION_RATE: 0.10,
     CONCURRENT_LIMIT: 2,       // 同時派遣任務上限
+    COND_DEATH_BONUS: 30,      // 任務體力死亡加成上限（%），二次方縮放
   },
 
   // Season 11: NPC 自主修練
@@ -476,7 +479,8 @@ module.exports = {
     // NPC 風險
     CONDITION_LOSS_SUCCESS: 20,    // 成功時體力損耗
     CONDITION_LOSS_FAIL: 50,       // 失敗時體力損耗
-    DEATH_CHANCE_FAIL: 30,         // 失敗時死亡機率（condition <= 20 時）
+    DEATH_BASE_FAIL: 10,           // 攜帶武器失敗時基礎死亡率（%）
+    DEATH_COND_BONUS_FAIL: 40,     // 攜帶武器體力懲罰上限（%），二次方縮放
     UNARMED_DEATH_CHANCE: 70,      // 未攜帶武器 NPC 失敗時死亡機率（無視體力門檻）
 
     // 獎勵

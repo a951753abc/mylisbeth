@@ -231,8 +231,10 @@ async function resolveMission(userId, npcIdx, npc, title) {
     const condLoss = Math.max(1, Math.round(missionDef.failCondCost * condLossMod));
     const newCond = Math.max(0, (npc.condition ?? 100) - condLoss);
 
-    const effectiveDeathChance = Math.max(1, Math.round(missionDef.deathChance * deathMod));
-    const isDeath = newCond <= 20 && roll.d100Check(effectiveDeathChance);
+    const missingRatio = (100 - newCond) / 100;
+    const rawDeathChance = missionDef.deathChance + MISSIONS.COND_DEATH_BONUS * missingRatio * missingRatio;
+    const effectiveDeathChance = Math.max(0, Math.round(rawDeathChance * deathMod));
+    const isDeath = roll.d100Check(effectiveDeathChance);
 
     if (isDeath) {
       // 冪等性保護：先原子清除 mission

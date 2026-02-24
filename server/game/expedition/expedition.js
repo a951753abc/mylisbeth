@@ -369,17 +369,18 @@ async function resolveExpedition(userId) {
     // 死亡判定（僅失敗時）
     if (!isSuccess) {
       const isUnarmed = (npcEntry.weaponIndices || []).length === 0;
-      const safetyReduction = (user.bossRelics || []).reduce(
+      const safetyReduction = Math.min(1, (user.bossRelics || []).reduce(
         (sum, r) => sum + (r.effects?.expeditionSafety || 0), 0,
-      );
+      ));
 
       let deathChance = 0;
       if (isUnarmed) {
-        // 未攜帶武器：無視體力門檻，大幅提高死亡率
+        // 未攜帶武器：無視體力，大幅提高死亡率
         deathChance = EXPEDITION.UNARMED_DEATH_CHANCE;
-      } else if (newCond <= config.NPC.DEATH_THRESHOLD) {
-        // 有武器但體力過低
-        deathChance = EXPEDITION.DEATH_CHANCE_FAIL;
+      } else {
+        // 攜帶武器：依體力連續縮放（二次方）
+        const missingRatio = (100 - newCond) / 100;
+        deathChance = EXPEDITION.DEATH_BASE_FAIL + EXPEDITION.DEATH_COND_BONUS_FAIL * missingRatio * missingRatio;
       }
 
       if (deathChance > 0) {

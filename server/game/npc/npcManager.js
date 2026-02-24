@@ -206,13 +206,15 @@ async function resolveNpcBattle(userId, npcId, outcome, expGain, userTitle = nul
   }
   const newCond = Math.max(0, (npc.condition ?? 100) - condLoss);
 
-  // 判斷死亡：敗北 + 體力 ≤ 閾值 → 套用 npcDeathChance 修正
+  // 判斷死亡：敗北時依體力連續縮放（二次方）
   const deathChanceMod = getModifier(userTitle, "npcDeathChance");
-  const effectiveDeathChance = Math.max(1, Math.round(NPC_CFG.DEATH_CHANCE * deathChanceMod));
-  const isDeath =
-    outcome === "LOSE" &&
-    newCond <= NPC_CFG.DEATH_THRESHOLD &&
-    Math.random() * 100 < effectiveDeathChance;
+  let isDeath = false;
+  if (outcome === "LOSE") {
+    const missingRatio = (100 - newCond) / 100;
+    const rawChance = NPC_CFG.DEATH_BASE + NPC_CFG.DEATH_COND_BONUS * missingRatio * missingRatio;
+    const effectiveChance = Math.max(0, Math.round(rawChance * deathChanceMod));
+    isDeath = Math.random() * 100 < effectiveChance;
+  }
 
   if (isDeath) {
     return await killNpc(userId, npcId, "戰死");
