@@ -113,7 +113,8 @@ function buildCombatInfo(user, actionType, actionResult) {
     const effectiveStats = getEffectiveStats(npc);
     if (!effectiveStats) return { canFight: false };
 
-    const weaponIdx = npc.equippedWeaponIndex;
+    // 優先使用冒險時實際選擇的武器，fallback 到 NPC 裝備武器
+    const weaponIdx = actionResult.advWeaponIndex ?? npc.equippedWeaponIndex;
     const weapon = weaponIdx != null ? weapons[weaponIdx] : null;
     if (!weapon) return { canFight: false };
 
