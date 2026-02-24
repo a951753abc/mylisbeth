@@ -104,10 +104,12 @@ function calculatePower(npcEntries, weapons) {
 
 /**
  * 計算成功率
+ * 公式：ratio × BASE，ratio = power / difficulty
+ * ratio=0 → 0%, ratio=0.5 → 25%, ratio=1 → 50%, ratio=1.9+ → 95%
  */
 function calculateSuccessRate(power, difficulty) {
   const ratio = difficulty > 0 ? power / difficulty : 1;
-  const rate = EXPEDITION.SUCCESS_BASE + (ratio - 1) * EXPEDITION.SUCCESS_SCALE;
+  const rate = EXPEDITION.SUCCESS_BASE * ratio;
   return Math.min(
     EXPEDITION.SUCCESS_MAX,
     Math.max(EXPEDITION.SUCCESS_MIN, Math.round(rate)),

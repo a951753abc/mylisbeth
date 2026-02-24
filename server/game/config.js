@@ -462,10 +462,9 @@ module.exports = {
     // NPC 品質倍率
     QUALITY_POWER_MULT: { 見習: 0.6, 普通: 1.0, 優秀: 1.5, 精銳: 2.0, 傳說: 3.0 },
 
-    // 成功率公式: clamp(BASE + (power/difficulty - 1) * SCALE, MIN, MAX)
+    // 成功率公式: clamp(ratio × BASE, MIN, MAX)  ratio = power / difficulty
     SUCCESS_BASE: 50,
-    SUCCESS_SCALE: 30,
-    SUCCESS_MIN: 10,
+    SUCCESS_MIN: 0,
     SUCCESS_MAX: 95,
 
     // 耐久消耗（每把武器）
