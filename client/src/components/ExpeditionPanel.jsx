@@ -607,6 +607,12 @@ function ExpeditionResult({ result, onClose }) {
               獲得聖遺物：{result.rewards.relic.nameCn}
             </div>
           )}
+
+          {result.rewards.npcSkill && (
+            <div style={{ fontSize: "0.8rem", color: "#c084fc" }}>
+              {result.rewards.npcSkill.npcName} 學會了遠征技能「{result.rewards.npcSkill.skillName}」！
+            </div>
+          )}
         </div>
       )}
 

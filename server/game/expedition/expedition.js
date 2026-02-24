@@ -8,6 +8,7 @@ const { checkAndAward } = require("../progression/achievement.js");
 const { awardAdvExp } = require("../progression/adventureLevel.js");
 const { formatText, getText } = require("../textManager.js");
 const { generateRewards } = require("./rewards.js");
+const { getRelicModifier } = require("../title/titleModifier.js");
 
 const EXPEDITION = config.EXPEDITION;
 
@@ -230,8 +231,10 @@ async function startExpedition(userId, dungeonId, npcWeaponMap) {
     npcEntries.push({ npc, npcIdx, weaponIndices: validWeaponIndices });
   }
 
-  // 計算戰力與成功率
-  const totalPower = calculatePower(npcEntries, weapons);
+  // 計算戰力與成功率（套用聖遺物加成）
+  const rawPower = calculatePower(npcEntries, weapons);
+  const relicMult = getRelicModifier(user.bossRelics, "expeditionPower");
+  const totalPower = Math.round(rawPower * relicMult);
   const successRate = calculateSuccessRate(totalPower, dungeon.difficulty);
 
   const endsAt = now + EXPEDITION.DURATION_MS;
@@ -363,9 +366,15 @@ async function resolveExpedition(userId) {
       newCondition: newCond,
     });
 
-    // 死亡判定：僅在失敗時，condition <= 20
+    // 死亡判定：僅在失敗時，condition <= 20（套用聖遺物安全加成）
     if (!isSuccess && newCond <= config.NPC.DEATH_THRESHOLD) {
-      if (roll.d100Check(EXPEDITION.DEATH_CHANCE_FAIL)) {
+      const safetyReduction = (user.bossRelics || []).reduce(
+        (sum, r) => sum + (r.effects?.expeditionSafety || 0), 0,
+      );
+      const adjustedDeathChance = Math.max(
+        0, Math.round(EXPEDITION.DEATH_CHANCE_FAIL * (1 - safetyReduction)),
+      );
+      if (roll.d100Check(adjustedDeathChance)) {
         deadNpcIds.add(npc.npcId);
         results.npcsDied.push({ npcName: npc.name, npcId: npc.npcId });
       }

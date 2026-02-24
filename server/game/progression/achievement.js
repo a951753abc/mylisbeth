@@ -521,6 +521,39 @@ const ACHIEVEMENTS = [
     },
     titleReward: "多刀流",
   },
+  // ── 遠征成就 ──
+  {
+    id: "first_expedition",
+    name: "初めての遠征",
+    nameCn: "首次遠征",
+    desc: "完成第一次遠征",
+    check: (user) => (user.stats?.totalExpeditions || 0) >= 1,
+    titleReward: "探索者",
+  },
+  {
+    id: "expedition_10",
+    name: "遠征の経験者",
+    nameCn: "遠征經驗者",
+    desc: "完成 10 次遠征",
+    check: (user) => (user.stats?.totalExpeditions || 0) >= 10,
+    titleReward: null,
+  },
+  {
+    id: "expedition_success_5",
+    name: "帰還者",
+    nameCn: "歸還者",
+    desc: "遠征成功 5 次",
+    check: (user) => (user.stats?.expeditionsSucceeded || 0) >= 5,
+    titleReward: "帰還者",
+  },
+  {
+    id: "expedition_success_20",
+    name: "深淵の征服者",
+    nameCn: "深淵征服者",
+    desc: "遠征成功 20 次",
+    check: (user) => (user.stats?.expeditionsSucceeded || 0) >= 20,
+    titleReward: "深淵の征服者",
+  },
 ];
 
 async function checkAndAward(userId) {

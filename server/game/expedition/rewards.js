@@ -3,6 +3,9 @@ const config = require("../config.js");
 const roll = require("../roll.js");
 const itemCache = require("../cache/itemCache.js");
 const { getFloorMineList } = require("../loot/battleLoot.js");
+const { getRelicModifier } = require("../title/titleModifier.js");
+const { pickExpeditionSkill } = require("./expeditionSkills.js");
+const { getNpcSlotCount } = require("../skill/skillSlot.js");
 
 const REWARDS = config.EXPEDITION.REWARDS;
 const QUALITY_ORDER = config.RANDOM_EVENTS.QUALITY_ORDER;
@@ -51,8 +54,10 @@ async function generateRewards(user, expedition, hired) {
 
   const npcCount = expedition.npcs.length;
 
-  // Col 獎勵
-  rewards.col = REWARDS.COL_BASE + REWARDS.COL_PER_NPC * npcCount;
+  // Col 獎勵（套用聖遺物加成）
+  const rawCol = REWARDS.COL_BASE + REWARDS.COL_PER_NPC * npcCount;
+  const rewardMult = getRelicModifier(user.bossRelics, "expeditionReward");
+  rewards.col = Math.round(rawCol * rewardMult);
 
   // 素材掉落
   const currentFloor = user.currentFloor || 1;
@@ -156,6 +161,44 @@ async function generateRewards(user, expedition, hired) {
       });
 
       rewards.relic = relicObj;
+    }
+  }
+
+  // NPC 遠征專屬技能學習（15% 機率，隨機一位 NPC）
+  if (roll.d100Check(REWARDS.NPC_SKILL_CHANCE)) {
+    // 洗牌避免永遠偏好排列最前的 NPC
+    const shuffled = [...expedition.npcs].sort(() => Math.random() - 0.5);
+    for (const en of shuffled) {
+      const npc = hired.find((h) => h.npcId === en.npcId);
+      if (!npc) continue;
+
+      const selected = pickExpeditionSkill(npc);
+      if (!selected) continue;
+
+      // 使用 positional operator 以 npcId 定址，避免索引偏移
+      await db.update(
+        "user",
+        { userId: user.userId, "hiredNpcs.npcId": npc.npcId },
+        { $addToSet: { "hiredNpcs.$.learnedSkills": selected.id } },
+      );
+
+      // 自動裝備（有空槽時）
+      const slotCount = getNpcSlotCount(npc);
+      const equipped = npc.equippedSkills || [];
+      if (equipped.length < slotCount) {
+        await db.update(
+          "user",
+          { userId: user.userId, "hiredNpcs.npcId": npc.npcId },
+          { $push: { "hiredNpcs.$.equippedSkills": { skillId: selected.id, mods: [] } } },
+        );
+      }
+
+      rewards.npcSkill = {
+        npcName: npc.name,
+        skillId: selected.id,
+        skillName: selected.nameCn,
+      };
+      break; // 每次遠征最多學一個
     }
   }
 
