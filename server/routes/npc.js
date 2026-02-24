@@ -16,6 +16,7 @@ const {
   startTraining,
   getTrainingPreviews,
 } = require("../game/npc/mission.js");
+const { npcForgetSkill } = require("../game/skill/skillSlot.js");
 const db = require("../db.js");
 const config = require("../game/config.js");
 const { logAction } = require("../game/logging/actionLogger.js");
@@ -178,6 +179,22 @@ router.get("/training/types", ensureAuth, async (req, res) => {
     res.json({ trainings: previews, activeTrainings, trainingLimit });
   } catch (err) {
     console.error("取得修練預覽失敗:", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// POST /api/npc/skill/forget — NPC 遺忘指定技能
+router.post("/skill/forget", ensureAuth, ensureNotPaused, async (req, res) => {
+  try {
+    const { npcId, skillId } = req.body;
+    if (!npcId) return res.status(400).json({ error: "請提供 npcId" });
+    if (!skillId) return res.status(400).json({ error: "請提供 skillId" });
+    const result = await npcForgetSkill(req.user.discordId, npcId, skillId);
+    if (result.error) return res.status(400).json(result);
+    logAction(req.user.discordId, req.gameUser?.name, "npc:skill:forget", { npcId, skillId });
+    res.json(result);
+  } catch (err) {
+    console.error("NPC 遺忘技能失敗:", err);
     res.status(500).json({ error: "伺服器錯誤" });
   }
 });

@@ -17,6 +17,8 @@ function formatCountdown(ms) {
   return `${min}分 ${sec}秒`;
 }
 
+const FORGET_COST = { 1: 100, 2: 300, 3: 500 };
+
 const WEAPON_TYPE_NAMES = {
   one_handed_sword: "單手劍",
   two_handed_sword: "雙手劍",
@@ -43,6 +45,7 @@ export default function NpcPanel({ user, onRefresh }) {
   const [skillMap, setSkillMap] = useState({});
   const [trainingPicker, setTrainingPicker] = useState(null);
   const [trainingTypes, setTrainingTypes] = useState([]);
+  const [forgetConfirm, setForgetConfirm] = useState(null); // { npcId, npcName, skillId, skillName, cost }
 
   // 過濾幽靈 NPC（死亡後因競態條件殘留的不完整條目）
   const npcs = (user.hiredNpcs || []).filter((n) => n.npcId && n.name);
@@ -118,6 +121,19 @@ export default function NpcPanel({ user, onRefresh }) {
     setBusy(`equip_${npcId}`);
     const idx = weaponIndex === "" ? null : parseInt(weaponIndex, 10);
     await doAction("/api/npc/equip", { npcId, weaponIndex: idx }, "✅ 裝備更新完成");
+    setBusy(null);
+  };
+
+  const handleForgetSkill = async () => {
+    if (!forgetConfirm) return;
+    const { npcId, skillId, skillName, cost } = forgetConfirm;
+    setBusy(`forget_${npcId}_${skillId}`);
+    setForgetConfirm(null);
+    await doAction(
+      "/api/npc/skill/forget",
+      { npcId, skillId },
+      `✅ 已遺忘「${skillName}」（花費 ${cost} Col）`,
+    );
     setBusy(null);
   };
 
@@ -493,11 +509,14 @@ export default function NpcPanel({ user, onRefresh }) {
                         const skillId = typeof es === "string" ? es : es.skillId;
                         const def = skillMap[skillId];
                         const mods = typeof es === "object" && es.mods ? es.mods : [];
+                        const cost = FORGET_COST[def?.tier] || FORGET_COST[1];
                         return (
                           <span
                             key={`${skillId}_${idx}`}
                             style={{
-                              display: "inline-block",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "0.2rem",
                               padding: "0.15rem 0.4rem",
                               fontSize: "0.7rem",
                               background: `${def?.color || "#a855f7"}22`,
@@ -509,6 +528,22 @@ export default function NpcPanel({ user, onRefresh }) {
                           >
                             {def ? def.nameCn : skillId}
                             {mods.length > 0 && ` +${mods.length}`}
+                            {!onMission && (
+                              <button
+                                onClick={() => setForgetConfirm({
+                                  npcId: npc.npcId, npcName: npc.name,
+                                  skillId, skillName: def?.nameCn || skillId, cost,
+                                })}
+                                style={{
+                                  background: "none", border: "none", cursor: "pointer",
+                                  color: "#888", fontSize: "0.65rem", padding: "0 0.1rem",
+                                  lineHeight: 1,
+                                }}
+                                title={`遺忘此技能（${cost} Col）`}
+                              >
+                                x
+                              </button>
+                            )}
                           </span>
                         );
                       })}
@@ -520,11 +555,14 @@ export default function NpcPanel({ user, onRefresh }) {
                           .filter((s) => !equippedSet.has(s))
                           .map((skillId, idx) => {
                             const def = skillMap[skillId];
+                            const cost = FORGET_COST[def?.tier] || FORGET_COST[1];
                             return (
                               <span
                                 key={`unequip_${skillId}_${idx}`}
                                 style={{
-                                  display: "inline-block",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "0.2rem",
                                   padding: "0.15rem 0.4rem",
                                   fontSize: "0.7rem",
                                   background: "rgba(100, 100, 100, 0.15)",
@@ -535,11 +573,60 @@ export default function NpcPanel({ user, onRefresh }) {
                                 title={def ? `${def.nameJp}（未裝備）` : `${skillId}（未裝備）`}
                               >
                                 {def ? def.nameCn : skillId}
+                                {!onMission && (
+                                  <button
+                                    onClick={() => setForgetConfirm({
+                                      npcId: npc.npcId, npcName: npc.name,
+                                      skillId, skillName: def?.nameCn || skillId, cost,
+                                    })}
+                                    style={{
+                                      background: "none", border: "none", cursor: "pointer",
+                                      color: "#888", fontSize: "0.65rem", padding: "0 0.1rem",
+                                      lineHeight: 1,
+                                    }}
+                                    title={`遺忘此技能（${cost} Col）`}
+                                  >
+                                    x
+                                  </button>
+                                )}
                               </span>
                             );
                           });
                       })()}
                     </div>
+
+                    {/* 遺忘確認面板 */}
+                    {forgetConfirm && forgetConfirm.npcId === npc.npcId && (
+                      <div style={{
+                        marginTop: "0.4rem",
+                        padding: "0.4rem 0.6rem",
+                        background: "#7f1d1d22",
+                        border: "1px solid #ef444466",
+                        borderRadius: "4px",
+                        fontSize: "0.8rem",
+                      }}>
+                        <span>確定讓 {forgetConfirm.npcName} 遺忘「{forgetConfirm.skillName}」？</span>
+                        <span style={{ color: "var(--gold)", marginLeft: "0.3rem" }}>
+                          花費 {forgetConfirm.cost} Col
+                        </span>
+                        <div style={{ marginTop: "0.3rem", display: "flex", gap: "0.4rem" }}>
+                          <button
+                            className="btn-danger"
+                            style={{ fontSize: "0.75rem", padding: "0.15rem 0.5rem" }}
+                            disabled={busy === `forget_${forgetConfirm.npcId}_${forgetConfirm.skillId}`}
+                            onClick={handleForgetSkill}
+                          >
+                            確認遺忘
+                          </button>
+                          <button
+                            style={{ fontSize: "0.75rem", padding: "0.15rem 0.5rem" }}
+                            onClick={() => setForgetConfirm(null)}
+                          >
+                            取消
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", fontStyle: "italic" }}>

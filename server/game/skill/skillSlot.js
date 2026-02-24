@@ -181,6 +181,57 @@ async function uninstallMod(userId, skillId, modId) {
 }
 
 /**
+ * NPC 遺忘指定技能（從 learnedSkills + equippedSkills 移除）
+ * @param {string} userId
+ * @param {string} npcId
+ * @param {string} skillId
+ * @returns {{ success: boolean, cost?: number, error?: string }}
+ */
+async function npcForgetSkill(userId, npcId, skillId) {
+  const user = await db.findOne("user", { userId });
+  if (!user) return { error: "角色不存在" };
+
+  const npc = (user.hiredNpcs || []).find((n) => n.npcId === npcId);
+  if (!npc) return { error: "找不到該 NPC" };
+
+  if (npc.mission) return { error: "NPC 任務中，無法遺忘技能" };
+
+  const learned = npc.learnedSkills || [];
+  if (!learned.includes(skillId)) return { error: "NPC 尚未學會此技能" };
+
+  const skill = getSkill(skillId);
+  if (!skill) return { error: "技能不存在" };
+
+  const costTable = SKILL_CFG.NPC_FORGET_COST_BY_TIER || {};
+  const cost = costTable[skill.tier] || costTable[1] || 100;
+
+  // 原子操作：扣 Col + 移除 learnedSkills（含 TOCTOU 防護）
+  const result = await db.findOneAndUpdate(
+    "user",
+    {
+      userId,
+      col: { $gte: cost },
+      hiredNpcs: { $elemMatch: { npcId, mission: null } },
+    },
+    {
+      $inc: { col: -cost },
+      $pull: { "hiredNpcs.$.learnedSkills": skillId },
+    },
+    { returnDocument: "after" },
+  );
+  if (!result) return { error: `Col 不足（需要 ${cost}）或 NPC 正在任務中` };
+
+  // 第二步：移除 equippedSkills（分開避免 MongoDB 多重 $ 限制）
+  await db.update(
+    "user",
+    { userId, "hiredNpcs.npcId": npcId },
+    { $pull: { "hiredNpcs.$.equippedSkills": { skillId } } },
+  );
+
+  return { success: true, cost, skillName: skill.nameCn };
+}
+
+/**
  * 取得戰鬥用的有效技能列表（已裝備且武器匹配）
  * @param {object} user
  * @param {object} weapon - 當前使用的武器
@@ -238,6 +289,7 @@ module.exports = {
   getNpcSlotCount,
   equipSkill,
   unequipSkill,
+  npcForgetSkill,
   installMod,
   uninstallMod,
   getEffectiveSkills,
