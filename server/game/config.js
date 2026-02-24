@@ -477,6 +477,7 @@ module.exports = {
     CONDITION_LOSS_SUCCESS: 20,    // 成功時體力損耗
     CONDITION_LOSS_FAIL: 50,       // 失敗時體力損耗
     DEATH_CHANCE_FAIL: 30,         // 失敗時死亡機率（condition <= 20 時）
+    UNARMED_DEATH_CHANCE: 70,      // 未攜帶武器 NPC 失敗時死亡機率（無視體力門檻）
 
     // 獎勵
     REWARDS: {

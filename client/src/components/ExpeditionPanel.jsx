@@ -422,22 +422,32 @@ export default function ExpeditionPanel({ user, onRefresh }) {
             )}
 
             {/* 隊伍摘要 */}
-            {selectedNpcList.length > 0 && (
-              <div style={{
-                marginTop: "0.6rem",
-                padding: "0.4rem 0.6rem",
-                background: "#1a1a2e",
-                borderRadius: "4px",
-                fontSize: "0.8rem",
-              }}>
-                <span style={{ color: "var(--text-secondary)" }}>選擇：</span>
-                <span style={{ color: "var(--gold)" }}>{selectedNpcList.length} 位 NPC</span>
-                <span style={{ color: "var(--text-secondary)", marginLeft: "0.4rem" }}>|</span>
-                <span style={{ color: "#86efac", marginLeft: "0.4rem" }}>
-                  {[...allAssignedWeapons].length} 把武器
-                </span>
-              </div>
-            )}
+            {selectedNpcList.length > 0 && (() => {
+              const unarmedNpcs = selectedNpcList.filter(
+                (n) => !(npcWeapons[n.npcId]?.size > 0)
+              );
+              return (
+                <div style={{
+                  marginTop: "0.6rem",
+                  padding: "0.4rem 0.6rem",
+                  background: "#1a1a2e",
+                  borderRadius: "4px",
+                  fontSize: "0.8rem",
+                }}>
+                  <span style={{ color: "var(--text-secondary)" }}>選擇：</span>
+                  <span style={{ color: "var(--gold)" }}>{selectedNpcList.length} 位 NPC</span>
+                  <span style={{ color: "var(--text-secondary)", marginLeft: "0.4rem" }}>|</span>
+                  <span style={{ color: "#86efac", marginLeft: "0.4rem" }}>
+                    {[...allAssignedWeapons].length} 把武器
+                  </span>
+                  {unarmedNpcs.length > 0 && (
+                    <div style={{ color: "#f44336", marginTop: "0.3rem", fontSize: "0.75rem" }}>
+                      {unarmedNpcs.map((n) => n.name).join("、")} 未攜帶武器，失敗時死亡率將大幅提升！
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </>
       )}

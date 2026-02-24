@@ -366,17 +366,28 @@ async function resolveExpedition(userId) {
       newCondition: newCond,
     });
 
-    // 死亡判定：僅在失敗時，condition <= 20（套用聖遺物安全加成）
-    if (!isSuccess && newCond <= config.NPC.DEATH_THRESHOLD) {
+    // 死亡判定（僅失敗時）
+    if (!isSuccess) {
+      const isUnarmed = (npcEntry.weaponIndices || []).length === 0;
       const safetyReduction = (user.bossRelics || []).reduce(
         (sum, r) => sum + (r.effects?.expeditionSafety || 0), 0,
       );
-      const adjustedDeathChance = Math.max(
-        0, Math.round(EXPEDITION.DEATH_CHANCE_FAIL * (1 - safetyReduction)),
-      );
-      if (roll.d100Check(adjustedDeathChance)) {
-        deadNpcIds.add(npc.npcId);
-        results.npcsDied.push({ npcName: npc.name, npcId: npc.npcId });
+
+      let deathChance = 0;
+      if (isUnarmed) {
+        // 未攜帶武器：無視體力門檻，大幅提高死亡率
+        deathChance = EXPEDITION.UNARMED_DEATH_CHANCE;
+      } else if (newCond <= config.NPC.DEATH_THRESHOLD) {
+        // 有武器但體力過低
+        deathChance = EXPEDITION.DEATH_CHANCE_FAIL;
+      }
+
+      if (deathChance > 0) {
+        const adjusted = Math.max(0, Math.round(deathChance * (1 - safetyReduction)));
+        if (roll.d100Check(adjusted)) {
+          deadNpcIds.add(npc.npcId);
+          results.npcsDied.push({ npcName: npc.name, npcId: npc.npcId });
+        }
       }
     }
   }
