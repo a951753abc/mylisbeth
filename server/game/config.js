@@ -466,7 +466,7 @@ module.exports = {
     // 成功率公式: clamp(ratio × BASE, MIN, MAX)  ratio = power / difficulty
     SUCCESS_BASE: 50,
     SUCCESS_MIN: 0,
-    SUCCESS_MAX: 95,
+    SUCCESS_MAX: 99.9,
 
     // 耐久消耗（每把武器）
     DURABILITY_LOSS_BASE: 5,       // 基礎耐久消耗
