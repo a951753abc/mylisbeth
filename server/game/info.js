@@ -39,6 +39,7 @@ module.exports = function (user) {
       weapons.push({
         index: key,
         name: value.name,
+        type: value.type,
         weaponName,
         atk: value.atk,
         def: value.def,
@@ -46,6 +47,8 @@ module.exports = function (user) {
         cri: value.cri,
         hp: value.hp,
         durability: value.durability,
+        buff: value.buff || 0,
+        fusionGen: value.fusionGen || 0,
         rarity: rarity.id,
         rarityLabel: rarity.label,
         rarityColor: rarity.color,

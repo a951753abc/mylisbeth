@@ -20,9 +20,10 @@ const soloAdv = require("./move/soloAdv.js");
 const bossAttack = require("./floor/bossAttack.js");
 const lcInfiltrate = require("./move/lcInfiltrate.js");
 const lcIgnore = require("./move/lcIgnore.js");
+const synthesize = require("./move/synthesize.js");
 
 const coolTime = config.MOVE_COOLDOWN;
-const cmdList = { mine, forge, up, adv, pvp, pvpNpc, repair, soloAdv, boss: bossAttack, lcInfiltrate, lcIgnore };
+const cmdList = { mine, forge, up, adv, pvp, pvpNpc, repair, soloAdv, boss: bossAttack, lcInfiltrate, lcIgnore, synthesize };
 
 module.exports = async function (cmd, userOrId) {
   if (!(cmd[1] in cmdList)) {

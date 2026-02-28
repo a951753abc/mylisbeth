@@ -1,7 +1,15 @@
 import React, { useState, useCallback } from "react";
+import WeaponSelect from "../WeaponSelect.jsx";
 
 const MAX_MATERIALS = 4;
 const MIN_MATERIALS = 2;
+const SYNTHESIS_LEVEL = 5;
+
+const TYPE_LABELS = {
+  one_handed_sword: "片手劍", two_handed_sword: "両手劍", two_handed_axe: "両手斧",
+  mace: "戰鎚", katana: "刀", curved_sword: "曲劍", rapier: "細劍",
+  dagger: "短劍", spear: "槍", bow: "弓", shield: "盾",
+};
 
 export default function ForgeSection({ user, doAction, isDisabled, displayStamina, forgeLevel }) {
   const [matSlots, setMatSlots] = useState(["", ""]);
@@ -10,6 +18,11 @@ export default function ForgeSection({ user, doAction, isDisabled, displayStamin
   const [showRecipes, setShowRecipes] = useState(false);
   const [recipeLoading, setRecipeLoading] = useState(false);
   const [recipeFilter, setRecipeFilter] = useState("");
+
+  // 武器合成 state
+  const [synWeapon1, setSynWeapon1] = useState("");
+  const [synWeapon2, setSynWeapon2] = useState("");
+  const [synTargetType, setSynTargetType] = useState("");
 
   const slotCount = matSlots.length;
   const level = forgeLevel ?? 1;
@@ -279,6 +292,144 @@ export default function ForgeSection({ user, doAction, isDisabled, displayStamin
           </span>
         )}
         {displayStamina < minStamina && <span style={{ color: "#f87171", marginLeft: "0.4rem" }}>體力不足！</span>}
+      </div>
+
+      {/* 武器合成區塊（鍛造 Lv5 解鎖） */}
+      {level >= SYNTHESIS_LEVEL && (
+        <SynthesisPanel
+          weapons={user.weapons || []}
+          synWeapon1={synWeapon1}
+          synWeapon2={synWeapon2}
+          synTargetType={synTargetType}
+          setSynWeapon1={setSynWeapon1}
+          setSynWeapon2={setSynWeapon2}
+          setSynTargetType={setSynTargetType}
+          isDisabled={isDisabled}
+          displayStamina={displayStamina}
+          doAction={doAction}
+        />
+      )}
+    </div>
+  );
+}
+
+function SynthesisPanel({
+  weapons, synWeapon1, synWeapon2, synTargetType,
+  setSynWeapon1, setSynWeapon2, setSynTargetType,
+  isDisabled, displayStamina, doAction,
+}) {
+  const w1 = weapons.find((w) => String(w.index) === synWeapon1);
+  const w2 = weapons.find((w) => String(w.index) === synWeapon2);
+
+  // 可選的目標類型（兩把武器的 type 去重）
+  const typeOptions = [];
+  if (w1) typeOptions.push(w1.type);
+  if (w2 && (!w1 || w2.type !== w1.type)) typeOptions.push(w2.type);
+
+  // 自動選取目標類型
+  const effectiveTarget = synTargetType && typeOptions.includes(synTargetType)
+    ? synTargetType
+    : typeOptions[0] || "";
+
+  const bothSelected = synWeapon1 !== "" && synWeapon2 !== "" && synWeapon1 !== synWeapon2;
+  const canSynthesize = bothSelected && effectiveTarget && displayStamina >= 13;
+
+  // 過濾掉另一把已選的武器
+  const weapons1 = weapons.filter((w) => String(w.index) !== synWeapon2);
+  const weapons2 = weapons.filter((w) => String(w.index) !== synWeapon1);
+
+  return (
+    <div style={{ marginTop: "1rem", paddingTop: "0.8rem", borderTop: "1px solid var(--border)" }}>
+      <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1rem" }}>武器合成</h3>
+      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
+        融合兩把武器的素質，產出一把 +0 新武器。強化歸零但基礎數值更強。
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "0.5rem" }}>
+        <div style={{ display: "flex", gap: "0.3rem", alignItems: "center", flexWrap: "wrap" }}>
+          <span style={{ fontSize: "0.8rem", minWidth: "4rem" }}>武器 1：</span>
+          <WeaponSelect
+            weapons={weapons1}
+            value={synWeapon1}
+            onChange={(e) => { setSynWeapon1(e.target.value); setSynTargetType(""); }}
+            placeholder="— 選擇武器 —"
+            showName
+            showType
+            showDur
+          />
+        </div>
+        <div style={{ display: "flex", gap: "0.3rem", alignItems: "center", flexWrap: "wrap" }}>
+          <span style={{ fontSize: "0.8rem", minWidth: "4rem" }}>武器 2：</span>
+          <WeaponSelect
+            weapons={weapons2}
+            value={synWeapon2}
+            onChange={(e) => { setSynWeapon2(e.target.value); setSynTargetType(""); }}
+            placeholder="— 選擇武器 —"
+            showName
+            showType
+            showDur
+          />
+        </div>
+
+        {bothSelected && typeOptions.length > 1 && (
+          <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
+            <span style={{ fontSize: "0.8rem", minWidth: "4rem" }}>類型：</span>
+            <select
+              value={effectiveTarget}
+              onChange={(e) => setSynTargetType(e.target.value)}
+            >
+              {typeOptions.map((t) => (
+                <option key={t} value={t}>{TYPE_LABELS[t] || t}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {bothSelected && w1 && w2 && (
+          <div style={{
+            fontSize: "0.75rem",
+            padding: "0.4rem 0.6rem",
+            background: "var(--bg-hover)",
+            borderRadius: "6px",
+            border: "1px solid var(--border)",
+          }}>
+            <div style={{ marginBottom: "0.2rem", fontWeight: 600 }}>合成預覽</div>
+            <div>素材 1：ATK {w1.atk} / DEF {w1.def} / AGI {w1.agi} / HP {w1.hp || 0} / CRI {w1.cri} (+{w1.buff || 0})</div>
+            <div>素材 2：ATK {w2.atk} / DEF {w2.def} / AGI {w2.agi} / HP {w2.hp || 0} / CRI {w2.cri} (+{w2.buff || 0})</div>
+            <div style={{ color: "#a855f7", marginTop: "0.2rem" }}>
+              合成世代：第 {Math.max(w1.fusionGen || 0, w2.fusionGen || 0) + 1} 代
+              {" | "}目標類型：{TYPE_LABELS[effectiveTarget] || effectiveTarget}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+        <button
+          className="btn-warning"
+          disabled={isDisabled || !canSynthesize}
+          onClick={async () => {
+            const data = await doAction("synthesize", {
+              weaponIndex1: synWeapon1,
+              weaponIndex2: synWeapon2,
+              targetType: effectiveTarget,
+            });
+            if (!data.error) {
+              setSynWeapon1("");
+              setSynWeapon2("");
+              setSynTargetType("");
+            }
+          }}
+        >
+          合成
+        </button>
+        {synWeapon1 === synWeapon2 && synWeapon1 !== "" && (
+          <span style={{ fontSize: "0.75rem", color: "#f87171" }}>不能選擇同一把武器</span>
+        )}
+      </div>
+      <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", marginTop: "0.3rem" }}>
+        消耗體力：13～18 點
+        {displayStamina < 13 && <span style={{ color: "#f87171", marginLeft: "0.4rem" }}>體力不足！</span>}
       </div>
     </div>
   );

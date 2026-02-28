@@ -513,6 +513,17 @@ module.exports = {
   FORGE_PERKS: {
     RECIPE_BOOK_LEVEL: 2,             // 配方書解鎖等級
     STAT_BOOK_LEVEL: 3,               // 素材強化記錄書解鎖等級
+    SYNTHESIS_LEVEL: 5,               // 武器合成解鎖等級
+  },
+
+  // 武器合成系統
+  SYNTHESIS: {
+    BASE_RETENTION: 0.55,             // 基礎素質保留率
+    RETENTION_DECAY: 0.05,            // 每代衰減量
+    MIN_RETENTION: 0.35,              // 最低保留率
+    HP_DIVISOR: 3,                    // HP 折算除數（抵消強化 ×5 膨脹）
+    CRI_PENALTY: 1,                   // CRI 懲罰值
+    MIN_CRI: 5,                       // CRI 下限
   },
 
   // Season 12: 挖礦等級附加功能

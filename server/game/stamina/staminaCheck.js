@@ -4,20 +4,21 @@ const { d6 } = require("../roll.js");
 const { getModifier } = require("../title/titleModifier.js");
 const { formatText } = require("../textManager.js");
 
-const STAMINA_ACTIONS = new Set(["mine", "forge", "repair", "soloAdv"]);
+const STAMINA_ACTIONS = new Set(["mine", "forge", "repair", "soloAdv", "synthesize"]);
 
 /**
  * 骰出隨機體力消耗值
- * mine: 1~6 (d6), forge: 3~8 (d6+2), repair: 1~5 (max(1, d6-1))
+ * mine: 1~6 (d6), forge: 3~8 (d6+2), repair: 1~5 (max(1, d6-1)), synthesize: 13~18 (d6+12)
  * @param {string} action
  * @returns {number}
  */
 function rollStaminaCost(action) {
   const roll = d6();
-  if (action === "mine")     return roll;                           // 1~6
-  if (action === "forge")    return roll + 2;                       // 3~8
-  if (action === "repair")   return Math.max(1, roll - 1);          // 1~5
-  if (action === "soloAdv")  return 15 + Math.floor(Math.random() * 11); // 15~25
+  if (action === "mine")        return roll;                           // 1~6
+  if (action === "forge")       return roll + 2;                       // 3~8
+  if (action === "repair")      return Math.max(1, roll - 1);          // 1~5
+  if (action === "soloAdv")     return 15 + Math.floor(Math.random() * 11); // 15~25
+  if (action === "synthesize")  return roll + 12;                      // 13~18
   return 0;
 }
 

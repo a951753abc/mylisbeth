@@ -129,6 +129,25 @@ router.post("/forge", ensureAuth, async (req, res) => {
   }, "鍛造失敗");
 });
 
+// Weapon Synthesis (forge level 5+)
+router.post("/synthesize", ensureAuth, async (req, res) => {
+  await handleRoute(res, async () => {
+    const { weaponIndex1, weaponIndex2, targetType } = req.body;
+    const idx1 = parseInt(weaponIndex1, 10);
+    const idx2 = parseInt(weaponIndex2, 10);
+    if (isNaN(idx1) || isNaN(idx2) || idx1 < 0 || idx2 < 0) {
+      return { error: "武器索引無效" };
+    }
+    if (idx1 === idx2) {
+      return { error: "不能選擇同一把武器" };
+    }
+    if (!targetType || typeof targetType !== "string") {
+      return { error: "請選擇目標武器類型" };
+    }
+    return await move([null, "synthesize", { weaponIndex1: idx1, weaponIndex2: idx2, targetType }], req.user.discordId);
+  }, "武器合成失敗");
+});
+
 // Rename weapon (once per weapon)
 router.post("/rename-weapon", ensureAuth, async (req, res) => {
   try {
