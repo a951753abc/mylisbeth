@@ -435,6 +435,9 @@ async function startTraining(userId, npcId, trainingType) {
     return { error: formatText("NPC.TRAINING_NO_WEAPON", { npcName: npc.name }) };
   }
 
+  // 記錄武器類型到 mission，避免武器列表變動後 index 指向錯誤武器
+  const weaponType = resolveWeaponType(equippedWeapon);
+
   const now = Date.now();
   const endsAt = now + trainingDef.duration * config.TIME_SCALE;
 
@@ -445,6 +448,7 @@ async function startTraining(userId, npcId, trainingType) {
     endsAt,
     floor: getActiveFloor(user),
     isTraining: true,
+    weaponType,
   };
 
   // 原子性寫入：修練任務數未超上限
@@ -510,10 +514,8 @@ async function resolveTraining(userId, npcIdx, npc) {
   const currentNpc = (user.hiredNpcs || [])[npcIdx];
   if (!currentNpc) return null;
 
-  const weapons = user.weaponStock || [];
-  const equippedWeapon = currentNpc.equippedWeaponIndex != null
-    ? weapons[currentNpc.equippedWeaponIndex]
-    : null;
+  // 使用 mission 記錄的武器類型（避免武器列表變動導致 index 偏移）
+  const weaponType = mission.weaponType || null;
 
   // 樓層加成：effectiveFloor = max(1, floor - 3)
   const trainingFloor = mission.floor || user.currentFloor || 1;
@@ -527,25 +529,21 @@ async function resolveTraining(userId, npcIdx, npc) {
 
   let profResult = null;
   let newProf = null;
-  let weaponType = null;
 
-  if (equippedWeapon) {
-    weaponType = resolveWeaponType(equippedWeapon);
-    if (weaponType) {
-      // 確保舊格式已遷移為物件
-      await ensureNpcProfMap(userId, npcIdx);
-      const refreshedForProf = await db.findOne("user", { userId });
-      const profNpc = (refreshedForProf?.hiredNpcs || [])[npcIdx];
-      const currentProf = ((profNpc?.weaponProficiency || {})[weaponType]) || 0;
+  if (weaponType) {
+    // 確保舊格式已遷移為物件
+    await ensureNpcProfMap(userId, npcIdx);
+    const refreshedForProf = await db.findOne("user", { userId });
+    const profNpc = (refreshedForProf?.hiredNpcs || [])[npcIdx];
+    const currentProf = ((profNpc?.weaponProficiency || {})[weaponType]) || 0;
 
-      if (currentProf >= profCap) {
-        profResult = { profGained: 0, weaponType, atCap: true };
-      } else {
-        const rawProfGain = Math.round(trainingDef.profGain * floorMult);
-        const cappedProfGain = Math.min(rawProfGain, profCap - currentProf);
-        newProf = Math.min(config.SKILL.MAX_PROFICIENCY, currentProf + cappedProfGain);
-        profResult = { profGained: newProf - currentProf, weaponType, atCap: newProf >= profCap };
-      }
+    if (currentProf >= profCap) {
+      profResult = { profGained: 0, weaponType, atCap: true };
+    } else {
+      const rawProfGain = Math.round(trainingDef.profGain * floorMult);
+      const cappedProfGain = Math.min(rawProfGain, profCap - currentProf);
+      newProf = Math.min(config.SKILL.MAX_PROFICIENCY, currentProf + cappedProfGain);
+      profResult = { profGained: newProf - currentProf, weaponType, atCap: newProf >= profCap };
     }
   }
 
@@ -595,14 +593,15 @@ async function resolveTraining(userId, npcIdx, npc) {
   if (!guard) return null; // 已被另一個請求結算
 
   // 技能學習（在原子 guard 之後，僅在有熟練度提升時嘗試）
+  // 使用 mission.weaponType 建構 weapon 物件，確保類型正確
   let skillResult = null;
-  if (newProf !== null && weaponType && equippedWeapon) {
+  if (newProf !== null && weaponType) {
     const qualityMult = config.SKILL.NPC_QUALITY_LEARN_MULT[currentNpc.quality] || 1.0;
     const learnChance = config.SKILL.NPC_LEARN_CHANCE * trainingDef.learnChanceMult * qualityMult;
 
     const refreshedNpc = (guard.hiredNpcs || [])[npcIdx];
     if (refreshedNpc) {
-      skillResult = await tryNpcLearnSkill(userId, npcIdx, refreshedNpc, equippedWeapon, learnChance);
+      skillResult = await tryNpcLearnSkill(userId, npcIdx, refreshedNpc, { type: weaponType }, learnChance);
     }
   }
 
