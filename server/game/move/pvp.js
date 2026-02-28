@@ -99,6 +99,65 @@ module.exports = async function (cmd, rawAttacker) {
   if (!defenderWeapon || !defender.weaponStock || defender.weaponStock.length === 0) {
     await increment(attacker.userId, "totalPvpWins");
     await increment(attacker.userId, "totalDuelsPlayed");
+
+    const unarmedText = formatText("PVP.UNARMED", { defender: defender.name, attacker: attacker.name });
+    let rewardText = "";
+    let loserDied = false;
+
+    // 全損決著：即使對方手無寸鐵也執行掠奪與死亡判定
+    if (mode === MODES.TOTAL_LOSS) {
+      const freshLoser = await db.findOne("user", { userId: defender.userId });
+      if (freshLoser) {
+        const colToLoot = Math.floor((freshLoser.col || 0) * PVP.TOTAL_LOSS_COL_LOOT_RATE);
+        if (colToLoot > 0) {
+          const looted = await deductCol(defender.userId, colToLoot);
+          if (looted) {
+            await awardCol(attacker.userId, colToLoot);
+            rewardText += "\n" + formatText("PVP.LOOT_COL", { winner: attacker.name, loser: defender.name, amount: colToLoot });
+          }
+        }
+
+        if (PVP.TOTAL_LOSS_STEAL_ITEM) {
+          const loserItems = (freshLoser.itemStock || []).filter((it) => it.itemNum > 0);
+          if (loserItems.length > 0) {
+            const stolen = loserItems[Math.floor(Math.random() * loserItems.length)];
+            const success = await db.atomicIncItem(defender.userId, stolen.itemId, stolen.itemLevel, stolen.itemName, -1);
+            if (success) {
+              await db.atomicIncItem(attacker.userId, stolen.itemId, stolen.itemLevel, stolen.itemName, 1);
+              rewardText += "\n" + formatText("PVP.LOOT_ITEM", { winner: attacker.name, loser: defender.name, item: stolen.itemName });
+            }
+          }
+        }
+      }
+
+      // 死亡判定
+      const freshDefForDeath = await db.findOne("user", { userId: defender.userId });
+      let deathChance = PVP.TOTAL_LOSS_BASE_DEATH_CHANCE;
+      if (freshDefForDeath) {
+        const hasCol = (freshDefForDeath.col || 0) > 0;
+        const hasItems = (freshDefForDeath.itemStock || []).some((it) => it.itemNum > 0);
+        if (!hasCol && !hasItems) {
+          deathChance += PVP.TOTAL_LOSS_POVERTY_DEATH_BONUS;
+        }
+      }
+      deathChance = Math.min(deathChance, PVP.TOTAL_LOSS_DEATH_CAP);
+
+      if (roll.d100Check(deathChance)) {
+        loserDied = true;
+        rewardText += "\n\n" + formatText("PVP.DEATH", { loser: defender.name });
+        await executeBankruptcy(defender.userId, 0, 0, { cause: "pvp_total_loss" });
+        await increment(attacker.userId, "duelKills");
+
+        if (freshDefForDeath && !freshDefForDeath.isPK) {
+          await db.update("user", { userId: attacker.userId }, {
+            $set: { isPK: true },
+            $inc: { pkKills: 1 },
+          });
+          rewardText += "\n" + formatText("PVP.RED_NAME", { winner: attacker.name });
+        }
+      }
+    }
+
     await db.insertOne("duel_log", {
       attackerId: attacker.userId,
       defenderId: defender.userId,
@@ -108,21 +167,23 @@ module.exports = async function (cmd, rawAttacker) {
       loserId: defender.userId,
       duelMode: mode,
       wagerCol: 0,
-      loserDied: false,
+      loserDied,
       timestamp: now,
     });
     await checkAndAward(attacker.userId);
-    const unarmedText = formatText("PVP.UNARMED", { defender: defender.name, attacker: attacker.name });
     return {
-      battleLog: unarmedText,
+      battleLog: unarmedText + rewardText,
       winner: attacker.name,
-      reward: unarmedText,
+      loser: defender.name,
+      reward: rewardText || unarmedText,
       attackerName: attacker.name,
       defenderName: defender.name,
       defenderId: defender.userId,
       duelMode: mode,
+      loserDied,
       stamina: staminaResult.stamina,
       staminaCost,
+      socketEvents: [],
       skillEvents: [],
       detailLog: [],
     };
