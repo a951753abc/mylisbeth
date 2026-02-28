@@ -206,11 +206,11 @@ describe("synthesizeWeapons", () => {
     expect(weapon.renameCount).toBe(0);
   });
 
-  it("weaponName 為 null（允許重新命名）", () => {
+  it("weaponName 為武器類型名稱（允許重新命名）", () => {
     const w1 = makeWeapon({ weaponName: "舊名1" });
     const w2 = makeWeapon({ weaponName: "舊名2" });
     const { weapon } = synthesizeWeapons(w1, w2, "katana");
-    expect(weapon.weaponName).toBe(null);
+    expect(weapon.weaponName).toBe("刀");
   });
 });
 

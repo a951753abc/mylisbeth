@@ -118,7 +118,7 @@ function synthesizeWeapons(weapon1, weapon2, targetType) {
   const newWeapon = {
     name: typeName,
     type: targetType,
-    weaponName: null,
+    weaponName: typeName,
     atk: stats.atk,
     def: stats.def,
     agi: stats.agi,
