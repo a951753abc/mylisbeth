@@ -595,6 +595,14 @@ const ACHIEVEMENTS = [
     check: (user) => (user.stats?.expeditionsSucceeded || 0) >= 20,
     titleReward: "深淵の征服者",
   },
+  {
+    id: "expedition_2_first_success",
+    name: "裏迷宮の征服者",
+    nameCn: "裏迷宮征服者",
+    desc: "首次在深淵迷宮・裏成功歸還",
+    check: (user) => (user.stats?.expeditions2Succeeded || 0) >= 1,
+    titleReward: "裏迷宮の征服者",
+  },
 ];
 
 async function checkAndAward(userId) {

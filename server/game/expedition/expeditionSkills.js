@@ -8,10 +8,11 @@ const TIER_WEIGHTS = { 1: 50, 2: 35, 3: 15 };
 /**
  * 從遠征專屬技能池中選取一個 NPC 尚未學會的技能
  * @param {object} npc - hiredNpc 子文件
+ * @param {string} category - 技能類別（"expedition" 或 "expedition_2"）
  * @returns {object|null} 選到的技能定義，或 null（全學完/無候選）
  */
-function pickExpeditionSkill(npc) {
-  const allExpSkills = getSkillsByCategory("expedition");
+function pickExpeditionSkill(npc, category = "expedition") {
+  const allExpSkills = getSkillsByCategory(category);
   if (allExpSkills.length === 0) return null;
 
   const learned = new Set(

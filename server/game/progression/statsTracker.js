@@ -39,6 +39,7 @@ const VALID_STATS = [
   // Season 13: 遠征
   "totalExpeditions",
   "expeditionsSucceeded",
+  "expeditions2Succeeded",
   // Season 10: 微笑棺木公會
   "lcGruntsKilled",
   "lcMembersKilled",

@@ -399,6 +399,15 @@ const TITLE_EFFECTS = {
     forgeBuffChance: -0.20,     // 強化成功率 -20%
     settlementBill: 0.25,       // 帳單 +25%
   },
+
+  // === Season 10 遠征稱號 ===
+
+  // 49. 裏迷宮の征服者 — 第二遠征迷宮首次通關
+  "裏迷宮の征服者": {
+    battleAtk: 0.10,            // 攻擊力 +10%
+    battleAgi: 0.10,            // 敏捷 +10%
+    bossDamage: 0.08,           // Boss 傷害 +8%
+  },
 };
 
 module.exports = { TITLE_EFFECTS };

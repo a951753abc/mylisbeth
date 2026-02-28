@@ -1040,5 +1040,107 @@
       { "type": "ignore_def", "value": 0.3 }
     ],
     "description": "狩獵深層怪物練就的致命技巧，有機率發動穿透攻擊。"
+  },
+  {
+    "id": "exp2_fury",
+    "nameJp": "裏迷宮の怒り",
+    "nameCn": "裏迷宮之怒",
+    "category": "expedition_2",
+    "weaponType": null,
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "passive",
+    "triggerChance": 0,
+    "triggerCondition": null,
+    "color": "#ef4444",
+    "postMotionDelay": 0,
+    "effects": [{ "type": "atk_boost", "value": 2 }],
+    "description": "裏迷宮的殘酷戰鬥中磨練出的攻擊本能，攻擊力提升。"
+  },
+  {
+    "id": "exp2_shadow",
+    "nameJp": "影歩",
+    "nameCn": "影步",
+    "category": "expedition_2",
+    "weaponType": null,
+    "tier": 1,
+    "requiredProficiency": 0,
+    "triggerType": "passive",
+    "triggerChance": 0,
+    "triggerCondition": null,
+    "color": "#6366f1",
+    "postMotionDelay": 0,
+    "effects": [{ "type": "agi_boost", "value": 2 }],
+    "description": "裏迷宮的暗影中習得的步法，敏捷大幅提升。"
+  },
+  {
+    "id": "exp2_berserk",
+    "nameJp": "狂戦士の魂",
+    "nameCn": "狂戰士之魂",
+    "category": "expedition_2",
+    "weaponType": null,
+    "tier": 2,
+    "requiredProficiency": 0,
+    "triggerType": "conditional",
+    "triggerChance": 0,
+    "triggerCondition": "hp_below_40",
+    "color": "#dc2626",
+    "postMotionDelay": 1,
+    "effects": [{ "type": "damage_mult", "value": 2.0 }],
+    "description": "瀕死之際覺醒的狂戰本能，HP 低於 40% 時傷害倍增。"
+  },
+  {
+    "id": "exp2_piercing",
+    "nameJp": "貫通の目",
+    "nameCn": "貫通之眼",
+    "category": "expedition_2",
+    "weaponType": null,
+    "tier": 2,
+    "requiredProficiency": 0,
+    "triggerType": "passive",
+    "triggerChance": 0,
+    "triggerCondition": null,
+    "color": "#f59e0b",
+    "postMotionDelay": 0,
+    "effects": [{ "type": "ignore_def", "value": 0.2 }],
+    "description": "裏迷宮中領悟的弱點洞察，攻擊時無視部分防禦。"
+  },
+  {
+    "id": "exp2_phantom",
+    "nameJp": "幻影連撃",
+    "nameCn": "幻影連擊",
+    "category": "expedition_2",
+    "weaponType": null,
+    "tier": 3,
+    "requiredProficiency": 0,
+    "triggerType": "probability",
+    "triggerChance": 20,
+    "triggerCondition": null,
+    "color": "#8b5cf6",
+    "postMotionDelay": 2,
+    "effects": [
+      { "type": "damage_mult", "value": 1.8 },
+      { "type": "multi_hit", "value": 2 }
+    ],
+    "description": "裏迷宮的極限戰鬥中習得的連擊術，有機率發動二連擊。"
+  },
+  {
+    "id": "exp2_aegis",
+    "nameJp": "深淵の盾",
+    "nameCn": "深淵之盾",
+    "category": "expedition_2",
+    "weaponType": null,
+    "tier": 3,
+    "requiredProficiency": 0,
+    "triggerType": "conditional",
+    "triggerChance": 0,
+    "triggerCondition": "hp_below_50",
+    "color": "#14b8a6",
+    "postMotionDelay": 0,
+    "effects": [
+      { "type": "damage_reduction", "value": 0.4 },
+      { "type": "heal_per_round", "value": 5 }
+    ],
+    "description": "深淵中覺醒的防護本能，HP 低於 50% 時大幅減傷並每回合回復。"
   }
 ]

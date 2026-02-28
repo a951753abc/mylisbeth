@@ -460,9 +460,10 @@ module.exports = {
     MIN_NPCS: 1,                   // 最少派遣 1 NPC
     MIN_CONDITION: 30,             // NPC 最低體力要求
 
-    // 迷宮定義（每 20 層開放一個）
+    // 迷宮定義（每 10~20 層開放一個）
     DUNGEONS: [
-      { id: "abyss_labyrinth_1", name: "深淵迷宮", requiredFloor: 20, difficulty: 500 },
+      { id: "abyss_labyrinth_1", name: "深淵迷宮", requiredFloor: 20, difficulty: 500, rewardMult: 1.0, fourStarChance: 60, skillCategory: "expedition" },
+      { id: "abyss_labyrinth_2", name: "深淵迷宮・裏", requiredFloor: 30, difficulty: 1000, rewardMult: 1.5, fourStarChance: 70, skillCategory: "expedition_2" },
     ],
 
     // 戰力計算權重

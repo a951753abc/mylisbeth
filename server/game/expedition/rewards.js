@@ -54,10 +54,11 @@ async function generateRewards(user, expedition, hired) {
 
   const npcCount = expedition.npcs.length;
 
-  // Col 獎勵（套用聖遺物加成）
+  // Col 獎勵（套用迷宮倍率 + 聖遺物加成）
+  const dungeonRewardMult = expedition.rewardMult || 1.0;
   const rawCol = REWARDS.COL_BASE + REWARDS.COL_PER_NPC * npcCount;
-  const rewardMult = getRelicModifier(user.bossRelics, "expeditionReward");
-  rewards.col = Math.round(rawCol * rewardMult);
+  const relicMult = getRelicModifier(user.bossRelics, "expeditionReward");
+  rewards.col = Math.round(rawCol * dungeonRewardMult * relicMult);
 
   // 素材掉落
   const currentFloor = user.currentFloor || 1;
@@ -72,8 +73,9 @@ async function generateRewards(user, expedition, hired) {
       rewards.materials.push({ name: mat.name, level: 3, levelText: "★★★" });
     }
 
-    // ★★★★ 素材（60% 掉落）
-    if (roll.d100Check(REWARDS.FOUR_STAR_CHANCE)) {
+    // ★★★★ 素材（依迷宮設定決定掉率）
+    const fourStarChance = expedition.fourStarChance || REWARDS.FOUR_STAR_CHANCE;
+    if (roll.d100Check(fourStarChance)) {
       const mat = floorItems[Math.floor(Math.random() * floorItems.length)];
       await db.atomicIncItem(user.userId, mat.itemId, 4, mat.name, 1);
       rewards.materials.push({ name: mat.name, level: 4, levelText: "★★★★" });
@@ -166,13 +168,15 @@ async function generateRewards(user, expedition, hired) {
 
   // NPC 遠征專屬技能學習（15% 機率，隨機一位 NPC）
   if (roll.d100Check(REWARDS.NPC_SKILL_CHANCE)) {
+    // 依迷宮決定技能池
+    const skillCategory = expedition.skillCategory || "expedition";
     // 洗牌避免永遠偏好排列最前的 NPC
     const shuffled = [...expedition.npcs].sort(() => Math.random() - 0.5);
     for (const en of shuffled) {
       const npc = hired.find((h) => h.npcId === en.npcId);
       if (!npc) continue;
 
-      const selected = pickExpeditionSkill(npc);
+      const selected = pickExpeditionSkill(npc, skillCategory);
       if (!selected) continue;
 
       // 使用 positional operator 以 npcId 定址，避免索引偏移

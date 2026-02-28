@@ -344,6 +344,9 @@ async function startExpedition(userId, dungeonId, npcWeaponMap, playerWeaponInde
     totalPower,
     successRate,
     difficulty: dungeon.difficulty,
+    rewardMult: dungeon.rewardMult || 1.0,
+    fourStarChance: dungeon.fourStarChance || 60,
+    skillCategory: dungeon.skillCategory || "expedition",
   };
 
   // 原子寫入：僅在無進行中遠征時寫入
@@ -649,6 +652,9 @@ async function resolveExpedition(userId) {
   await increment(userId, "totalExpeditions");
   if (isSuccess) {
     await increment(userId, "expeditionsSucceeded");
+    if (expedition.dungeonId === "abyss_labyrinth_2") {
+      await increment(userId, "expeditions2Succeeded");
+    }
   }
 
   // ── 9. 冒險經驗 ──
