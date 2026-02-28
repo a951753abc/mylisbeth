@@ -332,6 +332,16 @@ function processSkillAttack(attacker, defender, skill, mods, chainCount, skillCt
     totalDamage = Math.floor(totalDamage * (1 + chainCount * CONNECT_DAMAGE_BONUS));
   }
 
+  // Boss 特殊機制：AGI 速度懲罰
+  if (attacker._agiPenaltyMult && attacker._agiPenaltyMult !== 1.0) {
+    totalDamage = Math.max(1, Math.floor(totalDamage * attacker._agiPenaltyMult));
+  }
+
+  // Boss 特殊機制：武器類型親和
+  if (attacker._weaponAffinityMult && attacker._weaponAffinityMult !== 1.0) {
+    totalDamage = Math.max(1, Math.floor(totalDamage * attacker._weaponAffinityMult));
+  }
+
   // 暈眩判定
   const stunned = effects.stunChance > 0 && roll.d100Check(effects.stunChance);
 
@@ -352,6 +362,14 @@ function processSkillAttack(attacker, defender, skill, mods, chainCount, skillCt
 
   defender.hp -= reducedDamage;
 
+  const innateEvents = [];
+  if (attacker._agiPenaltyMult && attacker._agiPenaltyMult !== 1.0) {
+    innateEvents.push({ type: "agi_penalty", mult: attacker._agiPenaltyMult });
+  }
+  if (attacker._weaponAffinityMult && attacker._weaponAffinityMult !== 1.0) {
+    innateEvents.push({ type: "weapon_affinity", mult: attacker._weaponAffinityMult });
+  }
+
   const log = {
     type: "skill_attack",
     skillId: skill.id,
@@ -366,6 +384,7 @@ function processSkillAttack(attacker, defender, skill, mods, chainCount, skillCt
     healed,
     chainCount,
     isCrit: guaranteedCrit,
+    innateEvents,
   };
 
   return { totalDamage: reducedDamage, stunned, healed, log };
