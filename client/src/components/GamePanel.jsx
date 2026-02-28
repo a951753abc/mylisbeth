@@ -12,11 +12,23 @@ import AdventureSection from "./game/AdventureSection.jsx";
 import SoloAdvSection from "./game/SoloAdvSection.jsx";
 import DuelSetupSection from "./game/DuelSetupSection.jsx";
 
+const ACTION_SOURCE_MAP = {
+  mine: "mine",
+  forge: "forge",
+  synthesize: "forge",
+  upgrade: "upgrade",
+  repair: "upgrade",
+  adventure: "adventure",
+  "solo-adventure": "soloAdv",
+};
+
 export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, cooldownActive, onSetTitle }) {
   const [result, setResult] = useState(null);
+  const [resultSource, setResultSource] = useState(null);
   const [forgeResult, setForgeResult] = useState(null);
   const [lcResult, setLcResult] = useState(null);
   const [error, setError] = useState("");
+  const [errorSource, setErrorSource] = useState(null);
   const [busy, setBusy] = useState(false);
   const [localStamina, setLocalStamina] = useState(null);
   const [localLastRegenAt, setLocalLastRegenAt] = useState(null);
@@ -36,11 +48,15 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
   const doAction = async (action, body = {}) => {
     setBusy(true);
     setError("");
+    setErrorSource(null);
     setResult(null);
+    setResultSource(null);
     setLcResult(null);
+    const source = ACTION_SOURCE_MAP[action] || null;
     const data = await onAction(action, body);
     if (data.error) {
       setError(data.error);
+      setErrorSource(source);
       if (data.cooldown) setCooldown(data.cooldown);
     } else if (action === "forge" && data.weapon) {
       setForgeResult(data);
@@ -52,6 +68,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
       // 無視：不需要顯示結果
     } else {
       setResult(data);
+      setResultSource(source);
       if (data.stamina !== undefined) setLocalStamina(data.stamina);
       if (data.lastStaminaRegenAt !== undefined) setLocalLastRegenAt(data.lastStaminaRegenAt);
     }
@@ -68,6 +85,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
           forgeText={forgeResult.text}
           onComplete={() => {
             setResult(forgeResult);
+            setResultSource("forge");
             setForgeResult(null);
           }}
           onRenamed={() => {
@@ -76,16 +94,98 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
         />
       )}
 
-      {error && <div className="error-msg">{error}</div>}
+      {/* LC 潛入結果（獨立於 LcEncounterNotice，不受元件卸載影響） */}
+      {lcResult && <LcInfiltrationResult result={lcResult} />}
 
-      {/* Result display */}
-      {result && (
+      {/* 潛在的 LC 據點遭遇（從 user 讀取，跨重新整理保留） */}
+      {!lcResult && !result?.lcEncounter && user.pendingLcEncounter && (
+        <LcEncounterNotice
+          encounter={{ type: "lc_base_discovered", baseFloor: user.pendingLcEncounter.baseFloor }}
+          doAction={doAction}
+          isDisabled={isDisabled}
+        />
+      )}
+
+      {/* Character stats + stamina */}
+      <CharacterStats user={user} onSetTitle={onSetTitle}>
+        <StaminaDisplay
+          displayStamina={displayStamina}
+          maxStamina={maxStamina}
+          secondsToNext={secondsToNext}
+          secondsToFull={secondsToFull}
+          isFull={isFull}
+        />
+      </CharacterStats>
+
+      <MineSection
+        doAction={doAction}
+        isDisabled={isDisabled}
+        busy={busy}
+        cooldownActive={cooldownActive}
+        displayStamina={displayStamina}
+        mineLevel={user.mineLevel ?? 1}
+      />
+      <SectionFeedback source="mine" error={error} errorSource={errorSource} result={result} resultSource={resultSource} setResult={setResult} setResultSource={setResultSource} doAction={doAction} isDisabled={isDisabled} />
+
+      <ForgeSection
+        user={user}
+        doAction={doAction}
+        isDisabled={isDisabled}
+        displayStamina={displayStamina}
+        forgeLevel={user.forgeLevel ?? 1}
+      />
+      <SectionFeedback source="forge" error={error} errorSource={errorSource} result={result} resultSource={resultSource} setResult={setResult} setResultSource={setResultSource} doAction={doAction} isDisabled={isDisabled} />
+
+      <UpgradeSection
+        user={user}
+        doAction={doAction}
+        isDisabled={isDisabled}
+        displayStamina={displayStamina}
+      />
+      <SectionFeedback source="upgrade" error={error} errorSource={errorSource} result={result} resultSource={resultSource} setResult={setResult} setResultSource={setResultSource} doAction={doAction} isDisabled={isDisabled} />
+
+      <AdventureSection
+        user={user}
+        doAction={doAction}
+        isDisabled={isDisabled}
+        busy={busy}
+        cooldownActive={cooldownActive}
+        onUserUpdate={onUserUpdate}
+      />
+      <SectionFeedback source="adventure" error={error} errorSource={errorSource} result={result} resultSource={resultSource} setResult={setResult} setResultSource={setResultSource} doAction={doAction} isDisabled={isDisabled} />
+
+      <SoloAdvSection
+        user={user}
+        doAction={doAction}
+        isDisabled={isDisabled}
+        busy={busy}
+        cooldownActive={cooldownActive}
+        displayStamina={displayStamina}
+      />
+      <SectionFeedback source="soloAdv" error={error} errorSource={errorSource} result={result} resultSource={resultSource} setResult={setResult} setResultSource={setResultSource} doAction={doAction} isDisabled={isDisabled} />
+
+      <DuelSetupSection
+        user={user}
+        isDisabled={isDisabled}
+        onUserUpdate={onUserUpdate}
+      />
+    </div>
+  );
+}
+
+function SectionFeedback({ source, error, errorSource, result, resultSource, setResult, setResultSource, doAction, isDisabled }) {
+  return (
+    <>
+      {error && errorSource === source && (
+        <div className="error-msg">{error}</div>
+      )}
+      {result && resultSource === source && (
         <div className="card result-card-highlight">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <h2>結果</h2>
             <button
               className="btn-secondary"
-              onClick={() => setResult(null)}
+              onClick={() => { setResult(null); setResultSource(null); }}
               style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
             >
               關閉
@@ -208,78 +308,7 @@ export default function GamePanel({ user, onAction, setCooldown, onUserUpdate, c
           </div>
         </div>
       )}
-
-      {/* LC 潛入結果（獨立於 LcEncounterNotice，不受元件卸載影響） */}
-      {lcResult && <LcInfiltrationResult result={lcResult} />}
-
-      {/* 潛在的 LC 據點遭遇（從 user 讀取，跨重新整理保留） */}
-      {!lcResult && !result?.lcEncounter && user.pendingLcEncounter && (
-        <LcEncounterNotice
-          encounter={{ type: "lc_base_discovered", baseFloor: user.pendingLcEncounter.baseFloor }}
-          doAction={doAction}
-          isDisabled={isDisabled}
-        />
-      )}
-
-      {/* Character stats + stamina */}
-      <CharacterStats user={user} onSetTitle={onSetTitle}>
-        <StaminaDisplay
-          displayStamina={displayStamina}
-          maxStamina={maxStamina}
-          secondsToNext={secondsToNext}
-          secondsToFull={secondsToFull}
-          isFull={isFull}
-        />
-      </CharacterStats>
-
-      <MineSection
-        doAction={doAction}
-        isDisabled={isDisabled}
-        busy={busy}
-        cooldownActive={cooldownActive}
-        displayStamina={displayStamina}
-        mineLevel={user.mineLevel ?? 1}
-      />
-
-      <ForgeSection
-        user={user}
-        doAction={doAction}
-        isDisabled={isDisabled}
-        displayStamina={displayStamina}
-        forgeLevel={user.forgeLevel ?? 1}
-      />
-
-      <UpgradeSection
-        user={user}
-        doAction={doAction}
-        isDisabled={isDisabled}
-        displayStamina={displayStamina}
-      />
-
-      <AdventureSection
-        user={user}
-        doAction={doAction}
-        isDisabled={isDisabled}
-        busy={busy}
-        cooldownActive={cooldownActive}
-        onUserUpdate={onUserUpdate}
-      />
-
-      <SoloAdvSection
-        user={user}
-        doAction={doAction}
-        isDisabled={isDisabled}
-        busy={busy}
-        cooldownActive={cooldownActive}
-        displayStamina={displayStamina}
-      />
-
-      <DuelSetupSection
-        user={user}
-        isDisabled={isDisabled}
-        onUserUpdate={onUserUpdate}
-      />
-    </div>
+    </>
   );
 }
 
