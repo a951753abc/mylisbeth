@@ -192,7 +192,6 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive,
           participants={bossStatus.participants}
           currentWeapon={bossStatus.active ? bossStatus.currentWeapon : null}
           phases={floor.boss.phases}
-          specialMechanics={floor.boss.specialMechanics}
         />
 
         {bossStatus.active && bossStatus.expiresAt && (

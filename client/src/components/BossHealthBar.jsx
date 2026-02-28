@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function BossHealthBar({ bossName, currentHp, totalHp, participants, currentWeapon, phases, specialMechanics }) {
+export default function BossHealthBar({ bossName, currentHp, totalHp, participants, currentWeapon, phases }) {
   const pct = totalHp > 0 ? Math.max(0, Math.min(100, (currentHp / totalHp) * 100)) : 0;
 
   const barColor = pct > 50 ? 'var(--success)' : pct > 25 ? 'var(--warning)' : 'var(--danger)';
@@ -15,20 +15,6 @@ export default function BossHealthBar({ bossName, currentHp, totalHp, participan
           </span>
         )}
       </div>
-      {specialMechanics && (
-        <div style={{ fontSize: '0.8rem', marginBottom: '0.3rem' }}>
-          {specialMechanics.agiPenalty && (
-            <div style={{ color: '#f59e0b', padding: '0.2rem 0' }}>
-              ⚡ {specialMechanics.agiPenalty.descriptionCn}
-            </div>
-          )}
-          {specialMechanics.weaponAffinity && (
-            <div style={{ color: '#8b5cf6', padding: '0.2rem 0' }}>
-              🗡️ {specialMechanics.weaponAffinity.descriptionCn}
-            </div>
-          )}
-        </div>
-      )}
       <div className="boss-hp-track" style={{ position: 'relative' }}>
         <div
           className="boss-hp-fill"
