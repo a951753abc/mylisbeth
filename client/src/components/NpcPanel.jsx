@@ -443,6 +443,25 @@ export default function NpcPanel({ user, onRefresh }) {
                 </div>
               </div>
 
+              {/* 詛咒（持續性 debuff） */}
+              {(() => {
+                const now = Date.now();
+                const activeDebuffs = (npc.debuffs || []).filter(d => d.expiresAt > now);
+                if (activeDebuffs.length === 0) return null;
+                return (
+                  <div style={{ marginTop: "0.3rem" }}>
+                    {activeDebuffs.map((d, di) => {
+                      const remaining = Math.max(0, Math.ceil((d.expiresAt - now) / 60000));
+                      return (
+                        <div key={di} style={{ fontSize: "0.7rem", color: "#a855f7", padding: "0.1rem 0.3rem", background: "rgba(168, 85, 247, 0.1)", borderRadius: "3px", marginBottom: "0.15rem" }}>
+                          ☠️ {d.stat.toUpperCase()} x{d.mult}（剩餘 {remaining} 分鐘）
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+
               {/* 素質 */}
               <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.3rem" }}>
                 HP:{npc.baseStats.hp} ATK:{npc.baseStats.atk} DEF:{npc.baseStats.def} AGI:{npc.baseStats.agi}

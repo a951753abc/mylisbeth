@@ -290,10 +290,12 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive,
                 {result.battleLog?.specialMechanics && result.battleLog.specialMechanics.length > 0 && (
                   <div style={{ marginTop: '0.3rem' }}>
                     {result.battleLog.specialMechanics.map((sm, mi) => {
+                      const isDanger = sm.mechanic === 'weapon_break' || sm.mechanic === 'persistent_debuff';
                       const isPenalty = sm.triggered === true || (sm.mechanic === 'weapon_affinity' && sm.affinityType !== 'neutral' && sm.affinityType !== 'weak');
                       const isBonus = sm.affinityType === 'weak';
-                      const color = isBonus ? '#22c55e' : isPenalty ? '#f59e0b' : '#22c55e';
-                      const bg = isBonus ? 'rgba(34, 197, 94, 0.08)' : isPenalty ? 'rgba(245, 158, 11, 0.08)' : 'rgba(34, 197, 94, 0.08)';
+                      const color = isDanger ? '#ef4444' : isBonus ? '#22c55e' : isPenalty ? '#f59e0b' : '#22c55e';
+                      const bg = isDanger ? 'rgba(239, 68, 68, 0.08)' : isBonus ? 'rgba(34, 197, 94, 0.08)' : isPenalty ? 'rgba(245, 158, 11, 0.08)' : 'rgba(34, 197, 94, 0.08)';
+                      const iconMap = { agi_penalty: '⚡', weapon_affinity: '🗡️', weapon_break: '🔨', persistent_debuff: '☠️' };
                       return (
                         <div key={mi} style={{
                           fontSize: '0.85rem', padding: '0.2rem 0.4rem', marginBottom: '0.2rem',
@@ -301,11 +303,28 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive,
                           background: bg,
                         }}>
                           <span style={{ color }}>
-                            {sm.mechanic === 'agi_penalty' ? '⚡' : '🗡️'} {sm.text}
+                            {iconMap[sm.mechanic] || '⚡'} {sm.text}
                           </span>
                         </div>
                       );
                     })}
+                  </div>
+                )}
+                {/* 武器耐久損傷 / 詛咒 */}
+                {result.weaponDurabilityDamage > 0 && (
+                  <div style={{ marginTop: '0.3rem', fontSize: '0.85rem', padding: '0.2rem 0.4rem', borderLeft: '2px solid #ef4444', background: 'rgba(239, 68, 68, 0.08)' }}>
+                    <span style={{ color: '#ef4444' }}>
+                      {result.weaponBroken
+                        ? `💥 ${result.weaponName} 被 Boss 擊碎了！（-${result.weaponDurabilityDamage} 耐久）`
+                        : `🔨 ${result.weaponName} 受到損傷（-${result.weaponDurabilityDamage} 耐久）`}
+                    </span>
+                  </div>
+                )}
+                {result.debuffApplied && (
+                  <div style={{ marginTop: '0.3rem', fontSize: '0.85rem', padding: '0.2rem 0.4rem', borderLeft: '2px solid #a855f7', background: 'rgba(168, 85, 247, 0.08)' }}>
+                    <span style={{ color: '#a855f7' }}>
+                      ☠️ {result.npcName} 被施加了{result.debuffApplied.bossName}的詛咒！{result.debuffApplied.stat.toUpperCase()} x{result.debuffApplied.mult}（{Math.round(result.debuffApplied.durationMs / 60000)} 分鐘）
+                    </span>
                   </div>
                 )}
                 {/* 劍技事件 */}
@@ -366,6 +385,9 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive,
                           }
                           if (entry.type === 'heal') {
                             return <div key={li} style={{ marginLeft: '0.5rem', color: 'var(--success)' }}>💚 {entry.target} 回復 {entry.value} HP</div>;
+                          }
+                          if (entry.type === 'weapon_break') {
+                            return <div key={li} style={{ marginLeft: '0.5rem', color: '#ef4444' }}>🔨 {entry.text}</div>;
                           }
                           if (entry.type === 'end') {
                             const outcomeText = entry.outcome === 'win' ? '🏆 勝利！' : entry.outcome === 'lose' ? '💀 敗北' : '⏱️ 平手';

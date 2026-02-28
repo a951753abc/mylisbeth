@@ -1378,6 +1378,18 @@
           "threshold": 17,
           "damageMult": 0.35,
           "descriptionCn": "混沌領域：AGI 不足 17 時，傷害降為 35%"
+        },
+        "weaponBreak": {
+          "chance": 10,
+          "durabilityDamage": [1, 4],
+          "descriptionCn": "混沌侵蝕：Boss 命中時 10% 機率腐蝕武器 1~4 耐久"
+        },
+        "persistentDebuff": {
+          "chance": 15,
+          "effects": [
+            { "stat": "atk", "mult": 0.8, "durationMs": 1800000 }
+          ],
+          "descriptionCn": "混沌詛咒：15% 機率降低 ATK 20%，持續 30 分鐘"
         }
       }
     },

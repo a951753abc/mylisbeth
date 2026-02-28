@@ -10,7 +10,7 @@ const {
   applyEndOfRoundEffects,
 } = require("../skill/skillCombat.js");
 const { trySkillConnect } = require("../skill/skillConnect.js");
-const { applySpecialMechanics } = require("./specialMechanics.js");
+const { applySpecialMechanics, applyPerRoundMechanics } = require("./specialMechanics.js");
 
 const { ROUND_LIMIT } = config.BATTLE;
 
@@ -130,6 +130,7 @@ function runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx, weaponType 
   };
 
   let connectChain = 0;
+  let totalDurabilityDamage = 0;
 
   while (playerSide.hp > 0 && enemySide.hp > 0 && round <= ROUND_LIMIT) {
     checkConditionalSkills(playerSide, skillCtx);
@@ -160,6 +161,8 @@ function runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx, weaponType 
       initData = { npcRoll: npcInitRoll, eneRoll: eneInitRoll, npcAct, eneAct };
     }
     battleResult.log.push({ type: "round", number: round, initiative: initData });
+
+    let bossHitThisRound = false;
 
     if (playerFirst) {
       let stunTarget = false;
@@ -205,11 +208,15 @@ function runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx, weaponType 
       if (enemySide.hp <= 0) { battleResult.win = 1; break; }
 
       if (!stunTarget && enemySide.hp > 0) {
+        const npcHpBefore = playerSide.hp;
         processAttack(enemySide, playerSide, battleResult.log, enemyInnate, playerInnate);
+        if (playerSide.hp < npcHpBefore) bossHitThisRound = true;
         if (playerSide.hp <= 0) { battleResult.dead = 1; break; }
       }
     } else {
+      const npcHpBefore = playerSide.hp;
       const r1 = processAttack(enemySide, playerSide, battleResult.log, enemyInnate, playerInnate);
+      if (playerSide.hp < npcHpBefore) bossHitThisRound = true;
       if (r1.defenderHp <= 0) { battleResult.dead = 1; break; }
 
       if (triggeredEntry) {
@@ -245,6 +252,11 @@ function runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx, weaponType 
       if (enemySide.hp <= 0) { battleResult.win = 1; break; }
     }
 
+    // Boss 每回合特殊機制（武器破壞等）
+    const mechResult = applyPerRoundMechanics(enemySide, bossHitThisRound);
+    if (mechResult.logs.length > 0) battleResult.log.push(...mechResult.logs);
+    totalDurabilityDamage += mechResult.durabilityDamage;
+
     const healLog = applyEndOfRoundEffects(playerSide, skillCtx);
     if (healLog) battleResult.log.push(healLog);
 
@@ -260,6 +272,7 @@ function runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx, weaponType 
   }
 
   battleResult.finalHp = { npc: playerSide.hp, enemy: enemySide.hp };
+  battleResult.weaponDurabilityDamage = totalDurabilityDamage;
   if (mechanicsLog.length > 0) {
     return {
       ...battleResult,
@@ -273,6 +286,7 @@ function runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx, weaponType 
 // 內部輔助：已套用 innatePassives 後的無技能 loop
 function _runLoopNoSkills(playerSide, enemySide, playerInnate, enemyInnate) {
   let round = 1;
+  let totalDurabilityDamage = 0;
   const battleResult = {
     log: [], win: 0, dead: 0,
     enemyName: enemySide.name, npcName: playerSide.name,
@@ -294,17 +308,23 @@ function _runLoopNoSkills(playerSide, enemySide, playerInnate, enemyInnate) {
         forced: playerInnate.initiative || false },
     });
 
+    let bossHitThisRound = false;
+
     if (playerFirst) {
       const r1 = processAttack(playerSide, enemySide, battleResult.log, playerInnate, enemyInnate);
       if (r1.defenderHp <= 0) { battleResult.win = 1; break; }
       if (!r1.stunned && enemySide.hp > 0) {
+        const npcHpBefore = playerSide.hp;
         const r2 = processAttack(enemySide, playerSide, battleResult.log, enemyInnate, playerInnate);
+        if (playerSide.hp < npcHpBefore) bossHitThisRound = true;
         if (r2.defenderHp <= 0) { battleResult.dead = 1; break; }
       } else if (r1.stunned) {
         battleResult.log.push({ type: "stun", target: enemySide.name });
       }
     } else {
+      const npcHpBefore = playerSide.hp;
       const r1 = processAttack(enemySide, playerSide, battleResult.log, enemyInnate, playerInnate);
+      if (playerSide.hp < npcHpBefore) bossHitThisRound = true;
       if (r1.defenderHp <= 0) { battleResult.dead = 1; break; }
       if (!r1.stunned && playerSide.hp > 0) {
         const r2 = processAttack(playerSide, enemySide, battleResult.log, playerInnate, enemyInnate);
@@ -313,6 +333,12 @@ function _runLoopNoSkills(playerSide, enemySide, playerInnate, enemyInnate) {
         battleResult.log.push({ type: "stun", target: playerSide.name });
       }
     }
+
+    // Boss 每回合特殊機制（武器破壞等）
+    const mechResult = applyPerRoundMechanics(enemySide, bossHitThisRound);
+    if (mechResult.logs.length > 0) battleResult.log.push(...mechResult.logs);
+    totalDurabilityDamage += mechResult.durabilityDamage;
+
     round++;
   }
 
@@ -324,6 +350,7 @@ function _runLoopNoSkills(playerSide, enemySide, playerInnate, enemyInnate) {
     battleResult.log.push({ type: "end", outcome: "lose", winner: enemySide.name });
   }
   battleResult.finalHp = { npc: playerSide.hp, enemy: enemySide.hp };
+  battleResult.weaponDurabilityDamage = totalDurabilityDamage;
   return battleResult;
 }
 

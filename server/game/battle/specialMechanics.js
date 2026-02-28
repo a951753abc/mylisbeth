@@ -2,7 +2,11 @@
  * Boss 特殊戰鬥機制處理
  * - agiPenalty: AGI 不足時最終傷害倍率懲罰
  * - weaponAffinity: 武器類型弱點/抗性/免疫
+ * - weaponBreak: Boss 命中時有機率損傷武器耐久
+ * - persistentDebuff: 戰後有機率施加持續性減益（提示用，實際邏輯在 bossAttack.js）
  */
+
+const roll = require("../roll");
 
 /**
  * 套用 Boss 特殊機制（戰前一次性呼叫）
@@ -79,7 +83,60 @@ function applySpecialMechanics(playerSide, bossSide, weaponType) {
     });
   }
 
+  if (mechanics.weaponBreak) {
+    const { chance, durabilityDamage, descriptionCn } = mechanics.weaponBreak;
+    logs.push({
+      type: "special_mechanic",
+      mechanic: "weapon_break",
+      triggered: false,
+      chance,
+      durabilityDamage,
+      text: descriptionCn || `武器破壞：Boss 命中時 ${chance}% 機率損傷武器耐久`,
+    });
+  }
+
+  if (mechanics.persistentDebuff) {
+    const { chance, descriptionCn } = mechanics.persistentDebuff;
+    logs.push({
+      type: "special_mechanic",
+      mechanic: "persistent_debuff",
+      triggered: false,
+      chance,
+      text: descriptionCn || `詛咒：戰後 ${chance}% 機率施加持續性減益`,
+    });
+  }
+
   return logs;
 }
 
-module.exports = { applySpecialMechanics };
+/**
+ * 每回合 Boss 特殊機制（Boss 命中後呼叫）
+ * @param {object} bossSide - Boss 方 fighter（含 specialMechanics）
+ * @param {boolean} bossHit - Boss 本回合是否命中
+ * @returns {{ logs: object[], durabilityDamage: number }}
+ */
+function applyPerRoundMechanics(bossSide, bossHit) {
+  const mechanics = bossSide.specialMechanics;
+  if (!mechanics) return { logs: [], durabilityDamage: 0 };
+
+  const logs = [];
+  let durabilityDamage = 0;
+
+  if (mechanics.weaponBreak && bossHit) {
+    const { chance, durabilityDamage: dmgRange } = mechanics.weaponBreak;
+    if (roll.d100Check(chance)) {
+      const [min, max] = dmgRange;
+      const dmg = min + Math.floor(Math.random() * (max - min + 1));
+      durabilityDamage = dmg;
+      logs.push({
+        type: "weapon_break",
+        durabilityDamage: dmg,
+        text: `Boss 的攻擊損傷了武器！耐久 -${dmg}`,
+      });
+    }
+  }
+
+  return { logs, durabilityDamage };
+}
+
+module.exports = { applySpecialMechanics, applyPerRoundMechanics };

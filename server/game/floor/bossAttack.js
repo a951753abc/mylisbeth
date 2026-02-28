@@ -19,6 +19,8 @@ const { buildSkillContext } = require("../skill/skillCombat.js");
 const { resolveWeaponType } = require("../weapon/weaponType.js");
 const { tryNpcLearnSkill } = require("../skill/npcSkillLearning.js");
 const { isNpcOnExpedition } = require("../expedition/expedition.js");
+const roll = require("../roll");
+const { destroyWeapon } = require("../weapon/weapon.js");
 
 async function getOrInitServerState(floorNumber, bossData) {
   let state = await db.findOne("server_state", { _id: "aincrad" });
@@ -274,6 +276,60 @@ module.exports = async function bossAttack(cmd, rawUser) {
       user.userId, npcId, outcomeKey, BOSS_NPC_EXP_GAIN, title, 0, bossCondLoss,
     );
 
+    // ── 武器耐久損傷（Boss 特殊機制：weaponBreak）──
+    let weaponBroken = false;
+    let weaponDurabilityDamage = battleResult.weaponDurabilityDamage || 0;
+    if (weaponDurabilityDamage > 0) {
+      const durPath = `weaponStock.${weaponIdx}.durability`;
+      const updatedUser = await db.findOneAndUpdate(
+        "user",
+        { userId: user.userId },
+        { $inc: { [durPath]: -weaponDurabilityDamage } },
+        { returnDocument: "after" },
+      );
+      const newDurability = updatedUser?.weaponStock?.[weaponIdx]?.durability;
+      if (newDurability != null && newDurability <= 0) {
+        weaponBroken = true;
+        await destroyWeapon(user.userId, weaponIdx);
+        await increment(user.userId, "weaponsBroken");
+      }
+    }
+
+    // ── 持續性詛咒（Boss 特殊機制：persistentDebuff）──
+    let debuffApplied = null;
+    const debuffCfg = bossData.specialMechanics?.persistentDebuff;
+    if (debuffCfg && !npcResult.died) {
+      if (roll.d100Check(debuffCfg.chance)) {
+        const effectPool = debuffCfg.effects || [];
+        if (effectPool.length > 0) {
+          const chosen = effectPool[Math.floor(Math.random() * effectPool.length)];
+          const now = Date.now();
+          const debuffEntry = {
+            id: `boss_${currentFloor}_${now}_${Math.random().toString(36).slice(2, 8)}`,
+            stat: chosen.stat,
+            mult: chosen.mult,
+            appliedAt: now,
+            expiresAt: now + chosen.durationMs,
+            bossName: bossData.name,
+          };
+          // 使用 positional operator 避免陣列索引偏移問題
+          await db.update(
+            "user",
+            { userId: user.userId, "hiredNpcs.npcId": npcId },
+            { $push: { "hiredNpcs.$.debuffs": debuffEntry } },
+          );
+          {
+            debuffApplied = {
+              stat: chosen.stat,
+              mult: chosen.mult,
+              durationMs: chosen.durationMs,
+              bossName: bossData.name,
+            };
+          }
+        }
+      }
+    }
+
     // ── 原子減少 Boss HP ──
 
     const updatedState = await db.findOneAndUpdate(
@@ -525,6 +581,10 @@ module.exports = async function bossAttack(cmd, rawUser) {
           condBefore,
           condAfter,
           npcResult: buildNpcResultPayload(npcResult),
+          weaponDurabilityDamage,
+          weaponBroken,
+          weaponName: weapon.weaponName,
+          debuffApplied,
           socketEvents,
         };
       }
@@ -544,6 +604,10 @@ module.exports = async function bossAttack(cmd, rawUser) {
         condBefore,
         condAfter,
         npcResult: buildNpcResultPayload(npcResult),
+        weaponDurabilityDamage,
+        weaponBroken,
+        weaponName: weapon.weaponName,
+        debuffApplied,
         socketEvents,
       };
     }
@@ -563,6 +627,10 @@ module.exports = async function bossAttack(cmd, rawUser) {
       condBefore,
       condAfter,
       npcResult: buildNpcResultPayload(npcResult),
+      weaponDurabilityDamage,
+      weaponBroken,
+      weaponName: weapon.weaponName,
+      debuffApplied,
       socketEvents,
     };
   } catch (err) {

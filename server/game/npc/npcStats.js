@@ -23,12 +23,25 @@ function getEffectiveStats(npc) {
   const level = npc.level || 1;
   const levelMult = 1 + (level - 1) * config.NPC.LEVEL_STAT_GROWTH;
 
-  return {
+  const stats = {
     hp:  Math.floor(s.hp  * mult * levelMult),
     atk: Math.max(1, Math.floor(s.atk * mult * levelMult)),
     def: Math.floor(s.def * mult * levelMult),
     agi: Math.max(1, Math.floor(s.agi * mult * levelMult)),
   };
+
+  // 持續性 debuff（Boss 詛咒）
+  const now = Date.now();
+  const debuffs = npc.debuffs || [];
+  for (const d of debuffs) {
+    if (d.expiresAt > now && d.stat && d.mult) {
+      if (stats[d.stat] !== undefined) {
+        stats[d.stat] = Math.max(d.stat === "hp" ? 1 : (d.stat === "def" ? 0 : 1), Math.floor(stats[d.stat] * d.mult));
+      }
+    }
+  }
+
+  return stats;
 }
 
 /**
@@ -57,4 +70,14 @@ function getExpToNextLevel(level) {
   return Math.floor(config.NPC.EXP_BASE * Math.pow(config.NPC.EXP_MULTIPLIER, level - 1));
 }
 
-module.exports = { getEffectiveStats, getCombinedBattleStats, getExpToNextLevel };
+/**
+ * 取得 NPC 活躍的 debuff 列表（已過期的自動排除）
+ * @param {object} npc
+ * @returns {object[]}
+ */
+function getActiveDebuffs(npc) {
+  const now = Date.now();
+  return (npc.debuffs || []).filter((d) => d.expiresAt > now);
+}
+
+module.exports = { getEffectiveStats, getCombinedBattleStats, getExpToNextLevel, getActiveDebuffs };
