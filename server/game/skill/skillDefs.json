@@ -357,6 +357,26 @@
     "description": "將巨劍砸向地面，震動使敵方暈眩。"
   },
   {
+    "id": "meteor_fall",
+    "nameJp": "メテオフォール",
+    "nameCn": "隕星墜落",
+    "category": "weapon",
+    "weaponType": "two_handed_sword",
+    "tier": 4,
+    "requiredProficiency": 500,
+    "triggerType": "probability",
+    "triggerChance": 13,
+    "triggerCondition": null,
+    "color": "#dc2626",
+    "postMotionDelay": 3,
+    "effects": [
+      { "type": "damage_mult", "value": 2.5 },
+      { "type": "ignore_def", "value": 0.2 },
+      { "type": "stun", "value": 30 }
+    ],
+    "description": "將巨劍高舉，如隕星墜落般的重擊——兼具穿透與暈眩。"
+  },
+  {
     "id": "calamity",
     "nameJp": "カラミティ",
     "nameCn": "災厄",
@@ -432,6 +452,26 @@
       { "type": "initiative", "value": true }
     ],
     "description": "從陰影中發動的突襲，無視部分防禦且必定先手。"
+  },
+  {
+    "id": "venom_fang",
+    "nameJp": "ヴェノムファング",
+    "nameCn": "毒牙連刺",
+    "category": "weapon",
+    "weaponType": "dagger",
+    "tier": 4,
+    "requiredProficiency": 500,
+    "triggerType": "probability",
+    "triggerChance": 14,
+    "triggerCondition": null,
+    "color": "#dc2626",
+    "postMotionDelay": 3,
+    "effects": [
+      { "type": "multi_hit", "value": 4 },
+      { "type": "damage_mult", "value": 0.6 },
+      { "type": "ignore_def", "value": 0.2 }
+    ],
+    "description": "如毒蛇般的四連刺擊，每一擊都穿透部分防禦。"
   },
   {
     "id": "accel_raid",
@@ -511,6 +551,27 @@
     "description": "旋轉中的四連斬擊，彎刀高段劍技。"
   },
   {
+    "id": "crimson_crescent",
+    "nameJp": "クリムゾンクレセント",
+    "nameCn": "緋紅新月",
+    "category": "weapon",
+    "weaponType": "curved_sword",
+    "tier": 5,
+    "requiredProficiency": 800,
+    "triggerType": "probability",
+    "triggerChance": 10,
+    "triggerCondition": null,
+    "color": "#991b1b",
+    "postMotionDelay": 4,
+    "effects": [
+      { "type": "multi_hit", "value": 5 },
+      { "type": "damage_mult", "value": 0.6 },
+      { "type": "lifesteal", "value": 0.15 },
+      { "type": "ignore_def", "value": 0.2 }
+    ],
+    "description": "彎刀最高位劍技——緋紅色的五連斬月，每一擊汲取敵方生命。"
+  },
+  {
     "id": "smash",
     "nameJp": "スマッシュ",
     "nameCn": "粉碎",
@@ -568,6 +629,26 @@
     "description": "瞄準頭部的致命一擊，高機率暈眩。"
   },
   {
+    "id": "mjolnir_impact",
+    "nameJp": "ミョルニルインパクト",
+    "nameCn": "雷神之鎚",
+    "category": "weapon",
+    "weaponType": "mace",
+    "tier": 5,
+    "requiredProficiency": 800,
+    "triggerType": "probability",
+    "triggerChance": 8,
+    "triggerCondition": null,
+    "color": "#991b1b",
+    "postMotionDelay": 4,
+    "effects": [
+      { "type": "damage_mult", "value": 3.0 },
+      { "type": "stun", "value": 60 },
+      { "type": "ignore_def", "value": 0.3 }
+    ],
+    "description": "棍系最高位劍技——如雷神降臨般的毀滅之擊，極高暈眩率。"
+  },
+  {
     "id": "cleave",
     "nameJp": "クリーヴ",
     "nameCn": "劈砍",
@@ -601,6 +682,26 @@
       { "type": "ignore_def", "value": 0.3 }
     ],
     "description": "處刑般的致命一擊，無視部分防禦。"
+  },
+  {
+    "id": "rampage",
+    "nameJp": "ランページ",
+    "nameCn": "暴走劈砍",
+    "category": "weapon",
+    "weaponType": "two_handed_axe",
+    "tier": 4,
+    "requiredProficiency": 500,
+    "triggerType": "probability",
+    "triggerChance": 12,
+    "triggerCondition": null,
+    "color": "#dc2626",
+    "postMotionDelay": 3,
+    "effects": [
+      { "type": "damage_mult", "value": 2.8 },
+      { "type": "ignore_def", "value": 0.3 },
+      { "type": "lifesteal", "value": 0.1 }
+    ],
+    "description": "進入暴走狀態的狂猛劈砍，撕裂防禦並吸取生命。"
   },
   {
     "id": "berserker_rage",
@@ -681,6 +782,27 @@
     "description": "疾風般的三連突刺，必定先手。"
   },
   {
+    "id": "gungnir",
+    "nameJp": "グングニル",
+    "nameCn": "神槍突擊",
+    "category": "weapon",
+    "weaponType": "spear",
+    "tier": 5,
+    "requiredProficiency": 800,
+    "triggerType": "probability",
+    "triggerChance": 9,
+    "triggerCondition": null,
+    "color": "#991b1b",
+    "postMotionDelay": 4,
+    "effects": [
+      { "type": "multi_hit", "value": 5 },
+      { "type": "damage_mult", "value": 0.75 },
+      { "type": "ignore_def", "value": 0.5 },
+      { "type": "initiative", "value": true }
+    ],
+    "description": "槍系最高位劍技——必中的神槍五連突刺，穿透半數防禦且必定先手。"
+  },
+  {
     "id": "single_shot",
     "nameJp": "シングルショット",
     "nameCn": "單箭射擊",
@@ -739,6 +861,27 @@
     "description": "瞄準弱點的精確狙擊——必定暴擊且穿透半數防禦。"
   },
   {
+    "id": "meteor_shower",
+    "nameJp": "メテオシャワー",
+    "nameCn": "流星箭雨",
+    "category": "weapon",
+    "weaponType": "bow",
+    "tier": 5,
+    "requiredProficiency": 800,
+    "triggerType": "probability",
+    "triggerChance": 8,
+    "triggerCondition": null,
+    "color": "#f97316",
+    "postMotionDelay": 4,
+    "effects": [
+      { "type": "multi_hit", "value": 6 },
+      { "type": "damage_mult", "value": 0.5 },
+      { "type": "guaranteed_crit", "value": true },
+      { "type": "initiative", "value": true }
+    ],
+    "description": "弓系最高位劍技——如流星般的六連射擊，全彈必定暴擊且先手發動。"
+  },
+  {
     "id": "shield_bash",
     "nameJp": "シールドバッシュ",
     "nameCn": "盾擊",
@@ -794,6 +937,27 @@
       { "type": "counter", "value": 50 }
     ],
     "description": "HP 低於 50% 時自動啟動——產生護盾並獲得反擊能力。"
+  },
+  {
+    "id": "holy_shield",
+    "nameJp": "ホーリーシールド",
+    "nameCn": "聖盾守護",
+    "category": "weapon",
+    "weaponType": "shield",
+    "tier": 5,
+    "requiredProficiency": 800,
+    "triggerType": "conditional",
+    "triggerChance": 0,
+    "triggerCondition": "hp_below_30",
+    "color": "#eab308",
+    "postMotionDelay": 0,
+    "effects": [
+      { "type": "shield_hp", "value": 50 },
+      { "type": "damage_reduction", "value": 0.4 },
+      { "type": "counter", "value": 60 },
+      { "type": "heal_per_round", "value": 5 }
+    ],
+    "description": "盾系最高位劍技——HP 低於 30% 時自動展開聖盾，大幅減傷、高反擊率並持續回復。"
   },
   {
     "id": "battle_cry",
