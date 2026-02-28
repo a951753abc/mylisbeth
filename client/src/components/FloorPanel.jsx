@@ -192,6 +192,7 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive,
           participants={bossStatus.participants}
           currentWeapon={bossStatus.active ? bossStatus.currentWeapon : null}
           phases={floor.boss.phases}
+          specialMechanics={floor.boss.specialMechanics}
         />
 
         {bossStatus.active && bossStatus.expiresAt && (
@@ -284,6 +285,28 @@ export default function FloorPanel({ user, onAction, bossUpdate, cooldownActive,
                         <div key={di} style={{ marginLeft: '1rem' }}>{d.playerName}: {'★'.repeat(d.itemLevel)}{d.itemName}{d.isMvp ? ' (MVP保證掉落)' : ''}</div>
                       ))}</div>
                     )}
+                  </div>
+                )}
+                {/* 特殊機制觸發 */}
+                {result.battleLog?.specialMechanics && result.battleLog.specialMechanics.length > 0 && (
+                  <div style={{ marginTop: '0.3rem' }}>
+                    {result.battleLog.specialMechanics.map((sm, mi) => {
+                      const isPenalty = sm.triggered === true || (sm.mechanic === 'weapon_affinity' && sm.affinityType !== 'neutral' && sm.affinityType !== 'weak');
+                      const isBonus = sm.affinityType === 'weak';
+                      const color = isBonus ? '#22c55e' : isPenalty ? '#f59e0b' : '#22c55e';
+                      const bg = isBonus ? 'rgba(34, 197, 94, 0.08)' : isPenalty ? 'rgba(245, 158, 11, 0.08)' : 'rgba(34, 197, 94, 0.08)';
+                      return (
+                        <div key={mi} style={{
+                          fontSize: '0.85rem', padding: '0.2rem 0.4rem', marginBottom: '0.2rem',
+                          borderLeft: `2px solid ${color}`,
+                          background: bg,
+                        }}>
+                          <span style={{ color }}>
+                            {sm.mechanic === 'agi_penalty' ? '⚡' : '🗡️'} {sm.text}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
                 {/* 劍技事件 */}

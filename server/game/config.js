@@ -216,6 +216,16 @@ module.exports = {
     { floors: [15, 16], itemIds: ["mat_floor15_ore", "mat_floor15_crystal", "mat_gem_ruby", "mat_fabric_tough"] },
     { floors: [17, 18], itemIds: ["mat_floor17_ore", "mat_floor17_crystal", "mat_gem_sapphire", "mat_leather_dragon"] },
     { floors: [19, 20], itemIds: ["mat_floor19_ore", "mat_floor19_crystal", "mat_gem_diamond", "mat_gem_emerald"] },
+    { floors: [21, 22], itemIds: ["mat_floor21_ore", "mat_floor21_crystal", "mat_fabric_silk", "mat_gem_ruby"] },
+    { floors: [23, 24], itemIds: ["mat_floor23_ore", "mat_floor23_crystal", "mat_leather_light", "mat_gem_sapphire"] },
+    { floors: [25, 26], itemIds: ["mat_floor25_ore", "mat_floor25_crystal", "mat_fabric_tough", "mat_gem_diamond"] },
+    { floors: [27, 28], itemIds: ["mat_floor27_ore", "mat_floor27_crystal", "mat_leather_dragon", "mat_gem_emerald"] },
+    { floors: [29, 30], itemIds: ["mat_floor29_ore", "mat_floor29_crystal", "mat_gem_ruby", "mat_gem_diamond"] },
+    { floors: [31, 32], itemIds: ["mat_floor31_ore", "mat_floor31_crystal", "mat_fabric_silk", "mat_gem_sapphire"] },
+    { floors: [33, 34], itemIds: ["mat_floor33_ore", "mat_floor33_crystal", "mat_leather_light", "mat_gem_diamond"] },
+    { floors: [35, 36], itemIds: ["mat_floor35_ore", "mat_floor35_crystal", "mat_fabric_tough", "mat_gem_emerald"] },
+    { floors: [37, 38], itemIds: ["mat_floor37_ore", "mat_floor37_crystal", "mat_leather_dragon", "mat_gem_ruby"] },
+    { floors: [39, 40], itemIds: ["mat_floor39_ore", "mat_floor39_crystal", "mat_gem_diamond", "mat_gem_sapphire"] },
   ],
 
   // Season 3: 玩家體力值

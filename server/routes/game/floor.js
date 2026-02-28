@@ -63,6 +63,7 @@ router.get("/floor", ensureAuth, async (req, res) => {
           totalHp: frontierFloorData.boss.hp,
           initialWeapon: frontierFloorData.boss.initialWeapon || null,
           phases,
+          specialMechanics: frontierFloorData.boss.specialMechanics || null,
         },
         maxExplore: floorData.maxExplore,
       },

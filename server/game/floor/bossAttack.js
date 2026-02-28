@@ -413,6 +413,7 @@ module.exports = async function bossAttack(cmd, rawUser) {
       log: battleResult.log,
       initialHp: { npc: battleResult.initialHp?.npc || 0 },
       finalHp: { npc: Math.max(0, battleResult.finalHp?.npc || 0) },
+      specialMechanics: battleResult.specialMechanics || [],
     };
 
     // 戰鬥摘要（給 socket 廣播用）

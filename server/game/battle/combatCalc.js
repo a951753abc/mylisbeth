@@ -97,6 +97,18 @@ function processAttack(attacker, defender, battleLog, atkInnateCtx, defInnateCtx
       finalDamage = Math.max(1, Math.floor(finalDamage * (1 - defCtx.damageReduction)));
     }
 
+    // Boss 特殊機制：AGI 速度懲罰
+    if (attacker._agiPenaltyMult && attacker._agiPenaltyMult !== 1.0) {
+      finalDamage = Math.max(1, Math.floor(finalDamage * attacker._agiPenaltyMult));
+      attackLog.innateEvents.push({ type: "agi_penalty", mult: attacker._agiPenaltyMult });
+    }
+
+    // Boss 特殊機制：武器類型親和
+    if (attacker._weaponAffinityMult && attacker._weaponAffinityMult !== 1.0) {
+      finalDamage = Math.max(1, Math.floor(finalDamage * attacker._weaponAffinityMult));
+      attackLog.innateEvents.push({ type: "weapon_affinity", mult: attacker._weaponAffinityMult });
+    }
+
     defender.hp -= finalDamage;
 
     attackLog.isCrit = damageResult.isCrit;

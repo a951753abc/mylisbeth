@@ -79,6 +79,7 @@ function buildBossFighter(bossData, activatedPhases, remainingHp) {
       cri: BOSS_COMBAT.BOSS_CRI || 11,
     },
     innateEffects: [],
+    specialMechanics: bossData.specialMechanics || null,
   };
 }
 

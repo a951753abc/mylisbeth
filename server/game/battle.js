@@ -7,6 +7,7 @@ const { buildPvePlayerSide, buildPvpFighter, buildBossFighter } = require("./bat
 const { runPveCombatLoop, runPveCombatLoopWithSkills } = require("./battle/pveCombat.js");
 const { runPvpCombatLoop, runPvpCombatLoopWithSkills } = require("./battle/pvpCombat.js");
 const { buildSkillContext } = require("./skill/skillCombat.js");
+const { resolveWeaponType } = require("./weapon/weaponType.js");
 
 const battleModule = {};
 
@@ -147,7 +148,8 @@ battleModule.bossBattleWithSkills = function (
 ) {
   const playerSide = buildPvePlayerSide(weapon, npc, titleMods);
   const bossSide = buildBossFighter(bossData, activatedPhases, remainingHp);
-  return runPveCombatLoopWithSkills(playerSide, bossSide, skillCtx);
+  const weaponType = resolveWeaponType(weapon);
+  return runPveCombatLoopWithSkills(playerSide, bossSide, skillCtx, weaponType);
 };
 
 /**

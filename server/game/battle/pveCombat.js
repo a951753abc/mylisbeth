@@ -10,6 +10,7 @@ const {
   applyEndOfRoundEffects,
 } = require("../skill/skillCombat.js");
 const { trySkillConnect } = require("../skill/skillConnect.js");
+const { applySpecialMechanics } = require("./specialMechanics.js");
 
 const { ROUND_LIMIT } = config.BATTLE;
 
@@ -88,19 +89,27 @@ function runPveCombatLoop(playerSide, enemySide) {
   return battleResult;
 }
 
-function runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx) {
+function runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx, weaponType = null) {
   // 固有效果初始化（技能戰鬥也適用）
   const playerInnate = buildInnateContext(playerSide.innateEffects);
   const enemyInnate = buildInnateContext([]);
   applyInnatePassives(playerSide, playerInnate);
 
+  // Boss 特殊機制（agiPenalty / weaponAffinity）
+  const mechanicsLog = applySpecialMechanics(playerSide, enemySide, weaponType);
+
   if (!skillCtx || skillCtx.skills.length === 0) {
-    // 已套用 innatePassives，但要走完整的 loop
-    // 直接用上面的 runPveCombatLoop 邏輯不行（因為會重複套用）
-    // 所以在這裡內聯無技能版本的 loop
     playerSide.maxHp = playerSide.hp;
     enemySide.maxHp = enemySide.hp;
-    return _runLoopNoSkills(playerSide, enemySide, playerInnate, enemyInnate);
+    const result = _runLoopNoSkills(playerSide, enemySide, playerInnate, enemyInnate);
+    if (mechanicsLog.length > 0) {
+      return {
+        ...result,
+        log: [...mechanicsLog, ...result.log],
+        specialMechanics: mechanicsLog,
+      };
+    }
+    return result;
   }
 
   playerSide.maxHp = playerSide.hp;
@@ -251,6 +260,13 @@ function runPveCombatLoopWithSkills(playerSide, enemySide, skillCtx) {
   }
 
   battleResult.finalHp = { npc: playerSide.hp, enemy: enemySide.hp };
+  if (mechanicsLog.length > 0) {
+    return {
+      ...battleResult,
+      log: [...mechanicsLog, ...battleResult.log],
+      specialMechanics: mechanicsLog,
+    };
+  }
   return battleResult;
 }
 
