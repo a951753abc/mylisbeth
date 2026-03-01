@@ -226,6 +226,11 @@ module.exports = {
     { floors: [35, 36], itemIds: ["mat_floor35_ore", "mat_floor35_crystal", "mat_fabric_tough", "mat_gem_emerald"] },
     { floors: [37, 38], itemIds: ["mat_floor37_ore", "mat_floor37_crystal", "mat_leather_dragon", "mat_gem_ruby"] },
     { floors: [39, 40], itemIds: ["mat_floor39_ore", "mat_floor39_crystal", "mat_gem_diamond", "mat_gem_sapphire"] },
+    { floors: [41, 42], itemIds: ["mat_floor41_ore", "mat_floor41_crystal", "mat_fabric_silk", "mat_gem_diamond"] },
+    { floors: [43, 44], itemIds: ["mat_floor43_ore", "mat_floor43_crystal", "mat_leather_light", "mat_gem_emerald"] },
+    { floors: [45, 46], itemIds: ["mat_floor45_ore", "mat_floor45_crystal", "mat_fabric_tough", "mat_gem_ruby"] },
+    { floors: [47, 48], itemIds: ["mat_floor47_ore", "mat_floor47_crystal", "mat_leather_dragon", "mat_gem_sapphire"] },
+    { floors: [49, 50], itemIds: ["mat_floor49_ore", "mat_floor49_crystal", "mat_gem_diamond", "mat_gem_emerald"] },
   ],
 
   // Season 3: 玩家體力值
@@ -464,6 +469,7 @@ module.exports = {
     DUNGEONS: [
       { id: "abyss_labyrinth_1", name: "深淵迷宮", requiredFloor: 20, difficulty: 500, rewardMult: 1.0, fourStarChance: 60, skillCategory: "expedition" },
       { id: "abyss_labyrinth_2", name: "深淵迷宮・裏", requiredFloor: 30, difficulty: 1000, rewardMult: 1.5, fourStarChance: 70, skillCategory: "expedition_2" },
+      { id: "abyss_labyrinth_3", name: "深淵迷宮・終", requiredFloor: 40, difficulty: 2000, rewardMult: 2.5, fourStarChance: 80, skillCategory: "expedition_3" },
     ],
 
     // 戰力計算權重

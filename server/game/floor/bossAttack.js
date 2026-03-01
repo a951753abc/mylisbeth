@@ -37,6 +37,7 @@ async function getOrInitServerState(floorNumber, bossData) {
         startedAt: null,
         expiresAt: null,
         currentWeapon: null,
+        copiedWeaponsAtkSum: 0,
       },
       floorHistory: [],
     };
@@ -59,6 +60,7 @@ async function resetBoss(floorNumber, bossData) {
         "bossStatus.expiresAt": null,
         "bossStatus.activatedPhases": [],
         "bossStatus.currentWeapon": null,
+        "bossStatus.copiedWeaponsAtkSum": 0,
       },
     },
   );
@@ -245,10 +247,18 @@ module.exports = async function bossAttack(cmd, rawUser) {
       ? buildSkillContext(npcSkills, npcProf, weaponType)
       : null;
 
+    // ── weaponCopy：計算已拷貝武器的加成 ──
+    let weaponCopyBonus = 0;
+    const weaponCopyCfg = bossData.specialMechanics?.weaponCopy;
+    if (weaponCopyCfg) {
+      const totalCopiedAtk = state.bossStatus.copiedWeaponsAtkSum || 0;
+      weaponCopyBonus = Math.floor(totalCopiedAtk * weaponCopyCfg.copyRate);
+    }
+
     // 執行 5 回合戰鬥（Boss HP 使用實際剩餘值）
     const battleResult = bossBattleWithSkills(
       weapon, npcForBattle, bossData, activatedPhases,
-      Math.max(1, bossHpBefore), titleMods, skillCtx,
+      Math.max(1, bossHpBefore), titleMods, skillCtx, weaponCopyBonus,
     );
 
     // 計算對 Boss 造成的傷害（不超過 Boss 剩餘 HP）
@@ -328,6 +338,15 @@ module.exports = async function bossAttack(cmd, rawUser) {
           }
         }
       }
+    }
+
+    // ── weaponCopy：記錄武器 ATK 到 Boss 狀態（累加） ──
+    if (weaponCopyCfg) {
+      await db.update(
+        "server_state",
+        { _id: "aincrad", "bossStatus.active": true },
+        { $inc: { "bossStatus.copiedWeaponsAtkSum": weapon.atk || 0 } },
+      );
     }
 
     // ── 原子減少 Boss HP ──

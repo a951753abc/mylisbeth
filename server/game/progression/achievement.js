@@ -603,6 +603,73 @@ const ACHIEVEMENTS = [
     check: (user) => (user.stats?.expeditions2Succeeded || 0) >= 1,
     titleReward: "裏迷宮の征服者",
   },
+  // ── 樓層里程碑（25~50） ──
+  {
+    id: "floor_25",
+    name: "第25層到達",
+    nameCn: "到達第 25 層",
+    desc: "解鎖 Aincrad 第 25 層",
+    check: (user) => (user.currentFloor || 1) >= 25,
+    titleReward: "深層開拓者",
+  },
+  {
+    id: "floor_30",
+    name: "第30層制覇",
+    nameCn: "攻略第 30 層",
+    desc: "攻略 Aincrad 第 30 層",
+    check: (user) => (user.currentFloor || 1) >= 30,
+    titleReward: "前線攻略者",
+  },
+  {
+    id: "floor_35",
+    name: "第35層到達",
+    nameCn: "到達第 35 層",
+    desc: "解鎖 Aincrad 第 35 層",
+    check: (user) => (user.currentFloor || 1) >= 35,
+    titleReward: "高層征服者",
+  },
+  {
+    id: "floor_40",
+    name: "第40層制覇",
+    nameCn: "攻略第 40 層",
+    desc: "攻略 Aincrad 第 40 層",
+    check: (user) => (user.currentFloor || 1) >= 40,
+    titleReward: "虛空踏破者",
+  },
+  {
+    id: "floor_45",
+    name: "第45層到達",
+    nameCn: "到達第 45 層",
+    desc: "解鎖 Aincrad 第 45 層",
+    check: (user) => (user.currentFloor || 1) >= 45,
+    titleReward: "深淵の覇者",
+  },
+  {
+    id: "floor_50",
+    name: "第50層制覇",
+    nameCn: "攻略第 50 層",
+    desc: "攻略 Aincrad 第 50 層",
+    check: (user) => (user.currentFloor || 1) >= 50,
+    titleReward: "半百の覇王",
+  },
+  // ── 遠征迷宮・終 ──
+  {
+    id: "expedition_3_first_success",
+    name: "終焉迷宮の征服者",
+    nameCn: "終焉迷宮征服者",
+    desc: "首次在深淵迷宮・終成功歸還",
+    check: (user) => (user.stats?.expeditions3Succeeded || 0) >= 1,
+    titleReward: "終焉の征服者",
+  },
+  // ── 聖遺物收藏 ──
+  {
+    id: "relic_30",
+    name: "遺物収集家・極",
+    nameCn: "遺物收藏家・極",
+    desc: "收集 30 件 Boss 聖遺物",
+    check: (user) => (user.bossRelics || []).length >= 30,
+    titleReward: "遺物の主",
+  },
 ];
 
 async function checkAndAward(userId) {

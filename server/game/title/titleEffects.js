@@ -134,7 +134,7 @@ const TITLE_EFFECTS = {
   },
 
   // 15. 收破爛的 — 回收類
-  "収破爛的": {
+  "收破爛的": {
     shopSellPrice: 0.25,        // 出售價格 +25%
     mineStarChance: 0.15,       // 三星挖掘率 +15%
     forgeCritSuccessAdj: 2,     // 大成功門檻 +2（更難）
@@ -407,6 +407,83 @@ const TITLE_EFFECTS = {
     battleAtk: 0.10,            // 攻擊力 +10%
     battleAgi: 0.10,            // 敏捷 +10%
     bossDamage: 0.08,           // Boss 傷害 +8%
+  },
+
+  // === 41~50 層擴展稱號 ===
+
+  // 50. 深層開拓者 — 到達第 25 層
+  "深層開拓者": {
+    battleAtk: 0.15,            // 攻擊力 +15%
+    battleDef: 0.10,            // 防禦力 +10%
+    battleAgi: 0.08,            // 敏捷 +8%
+    bossDamage: 0.10,           // Boss 傷害 +10%
+    settlementBill: 0.15,       // 帳單 +15%
+  },
+
+  // 51. 前線攻略者 — 攻略第 30 層
+  "前線攻略者": {
+    battleAtk: 0.18,            // 攻擊力 +18%
+    battleDef: 0.12,            // 防禦力 +12%
+    battleAgi: 0.10,            // 敏捷 +10%
+    bossDamage: 0.12,           // Boss 傷害 +12%
+    settlementBill: 0.20,       // 帳單 +20%
+  },
+
+  // 52. 高層征服者 — 到達第 35 層
+  "高層征服者": {
+    battleAtk: 0.20,            // 攻擊力 +20%
+    battleDef: 0.15,            // 防禦力 +15%
+    battleAgi: 0.12,            // 敏捷 +12%
+    bossDamage: 0.15,           // Boss 傷害 +15%
+    settlementBill: 0.22,       // 帳單 +22%
+  },
+
+  // 53. 虛空踏破者 — 攻略第 40 層
+  "虛空踏破者": {
+    battleAtk: 0.22,            // 攻擊力 +22%
+    battleDef: 0.15,            // 防禦力 +15%
+    battleAgi: 0.12,            // 敏捷 +12%
+    bossDamage: 0.18,           // Boss 傷害 +18%
+    settlementBill: 0.25,       // 帳單 +25%
+  },
+
+  // 54. 深淵の覇者 — 到達第 45 層
+  "深淵の覇者": {
+    battleAtk: 0.25,            // 攻擊力 +25%
+    battleDef: 0.18,            // 防禦力 +18%
+    battleAgi: 0.15,            // 敏捷 +15%
+    bossDamage: 0.22,           // Boss 傷害 +22%
+    settlementBill: 0.28,       // 帳單 +28%
+    staminaCost: 0.10,          // 體力消耗 +10%
+  },
+
+  // 55. 半百の覇王 — 攻略第 50 層（目前最強戰鬥稱號）
+  "半百の覇王": {
+    battleAtk: 0.30,            // 攻擊力 +30%
+    battleDef: 0.22,            // 防禦力 +22%
+    battleAgi: 0.20,            // 敏捷 +20%
+    bossDamage: 0.28,           // Boss 傷害 +28%
+    settlementBill: 0.35,       // 帳單 +35%
+    staminaCost: 0.15,          // 體力消耗 +15%
+  },
+
+  // 56. 終焉の征服者 — 深淵迷宮・終首次通關
+  "終焉の征服者": {
+    battleAtk: 0.15,            // 攻擊力 +15%
+    battleDef: 0.12,            // 防禦力 +12%
+    battleAgi: 0.12,            // 敏捷 +12%
+    bossDamage: 0.12,           // Boss 傷害 +12%
+    npcCondLoss: -0.20,         // NPC 損耗 -20%
+  },
+
+  // 57. 遺物の主 — 收集 30 件聖遺物
+  "遺物の主": {
+    battleAtk: 0.18,            // 攻擊力 +18%
+    battleDef: 0.15,            // 防禦力 +15%
+    battleAgi: 0.10,            // 敏捷 +10%
+    bossDamage: 0.15,           // Boss 傷害 +15%
+    mineStarChance: 0.15,       // 三星挖掘率 +15%
+    staminaCost: 0.12,          // 體力消耗 +12%
   },
 };
 

@@ -4,35 +4,117 @@
     "name": "始まりの街",
     "nameCn": "起始之城",
     "enemies": [
-      { "name": "フレンジーボア", "category": "[Easy]", "hp": 10, "atk": 1, "def": 0, "agi": 0, "cri": 10 },
-      { "name": "ゴブリン斥候", "category": "[Easy]", "hp": 12, "atk": 1, "def": 0, "agi": 1, "cri": 10 },
-      { "name": "コボルド", "category": "[Normal]", "hp": 22, "atk": 2, "def": 1, "agi": 0, "cri": 10 },
-      { "name": "コボルド隊長", "category": "[Hard]", "hp": 54, "atk": 3, "def": 1, "agi": 1, "cri": 10 },
-      { "name": "コボルド・トルーパー", "category": "[Hell]", "hp": 100, "atk": 4, "def": 2, "agi": 2, "cri": 10 }
+      {
+        "name": "フレンジーボア",
+        "category": "[Easy]",
+        "hp": 10,
+        "atk": 1,
+        "def": 0,
+        "agi": 0,
+        "cri": 10
+      },
+      {
+        "name": "ゴブリン斥候",
+        "category": "[Easy]",
+        "hp": 12,
+        "atk": 1,
+        "def": 0,
+        "agi": 1,
+        "cri": 10
+      },
+      {
+        "name": "コボルド",
+        "category": "[Normal]",
+        "hp": 22,
+        "atk": 2,
+        "def": 1,
+        "agi": 0,
+        "cri": 10
+      },
+      {
+        "name": "コボルド隊長",
+        "category": "[Hard]",
+        "hp": 54,
+        "atk": 3,
+        "def": 1,
+        "agi": 1,
+        "cri": 10
+      },
+      {
+        "name": "コボルド・トルーパー",
+        "category": "[Hell]",
+        "hp": 100,
+        "atk": 4,
+        "def": 2,
+        "agi": 2,
+        "cri": 10
+      }
     ],
     "boss": {
       "name": "イルファング・ザ・コボルドロード",
-      "hp": 3000, "atk": 8, "def": 4, "agi": 3, "cri": 9,
+      "hp": 3000,
+      "atk": 8,
+      "def": 4,
+      "agi": 3,
+      "cri": 9,
       "initialWeapon": "タルワール",
       "phases": [
-        { "hpThreshold": 0.75, "weapon": "タルワール", "specialMove": "タルワール連斬", "defBoost": 0, "atkBoost": 0 },
-        { "hpThreshold": 0.50, "weapon": "タルワール＋ボーンシールド", "specialMove": "シールドバッシュ", "defBoost": 2, "atkBoost": 0 },
-        { "hpThreshold": 0.25, "weapon": "野太刀", "specialMove": "野太刀・三連斬", "defBoost": -1, "atkBoost": 3 }
+        {
+          "hpThreshold": 0.75,
+          "weapon": "タルワール",
+          "specialMove": "タルワール連斬",
+          "defBoost": 0,
+          "atkBoost": 0
+        },
+        {
+          "hpThreshold": 0.5,
+          "weapon": "タルワール＋ボーンシールド",
+          "specialMove": "シールドバッシュ",
+          "defBoost": 2,
+          "atkBoost": 0
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "野太刀",
+          "specialMove": "野太刀・三連斬",
+          "defBoost": -1,
+          "atkBoost": 3
+        }
       ],
       "drops": [
-        { "type": "material", "name": "コボルドの毛皮", "rarity": 3 },
-        { "type": "material", "name": "コボルドの角", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "コボルドの毛皮",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "コボルドの角",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "illfang_coat",
         "name": "コートオブミッドナイト",
         "nameCn": "午夜之衣",
         "bossFloor": 1,
-        "effects": { "battleDef": 0.10, "bossDamage": 0.05 }
+        "effects": {
+          "battleDef": 0.1,
+          "bossDamage": 0.05
+        }
       }
     },
-    "materials": ["mat_floor1_ore", "mat_floor1_crystal"],
-    "places": ["迷宮入口", "回廊", "中層通路", "塔頂前廳", "BOSS房"],
+    "materials": [
+      "mat_floor1_ore",
+      "mat_floor1_crystal"
+    ],
+    "places": [
+      "迷宮入口",
+      "回廊",
+      "中層通路",
+      "塔頂前廳",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -40,33 +122,101 @@
     "name": "森の迷宮",
     "nameCn": "森林迷宮",
     "enemies": [
-      { "name": "フォレスト・エルフ", "category": "[Easy]", "hp": 14, "atk": 1, "def": 0, "agi": 1, "cri": 10 },
-      { "name": "ダーク・エルフ哨兵", "category": "[Normal]", "hp": 26, "atk": 2, "def": 1, "agi": 1, "cri": 10 },
-      { "name": "ダーク・エルフ戦士", "category": "[Hard]", "hp": 60, "atk": 3, "def": 2, "agi": 1, "cri": 10 },
-      { "name": "ダーク・エルフ隊長", "category": "[Hell]", "hp": 110, "atk": 5, "def": 2, "agi": 2, "cri": 9 }
+      {
+        "name": "フォレスト・エルフ",
+        "category": "[Easy]",
+        "hp": 14,
+        "atk": 1,
+        "def": 0,
+        "agi": 1,
+        "cri": 10
+      },
+      {
+        "name": "ダーク・エルフ哨兵",
+        "category": "[Normal]",
+        "hp": 26,
+        "atk": 2,
+        "def": 1,
+        "agi": 1,
+        "cri": 10
+      },
+      {
+        "name": "ダーク・エルフ戦士",
+        "category": "[Hard]",
+        "hp": 60,
+        "atk": 3,
+        "def": 2,
+        "agi": 1,
+        "cri": 10
+      },
+      {
+        "name": "ダーク・エルフ隊長",
+        "category": "[Hell]",
+        "hp": 110,
+        "atk": 5,
+        "def": 2,
+        "agi": 2,
+        "cri": 9
+      }
     ],
     "boss": {
       "name": "ニューウォーター・ロード",
-      "hp": 3500, "atk": 9, "def": 4, "agi": 4, "cri": 9,
+      "hp": 3500,
+      "atk": 9,
+      "def": 4,
+      "agi": 4,
+      "cri": 9,
       "initialWeapon": "水弓",
       "phases": [
-        { "hpThreshold": 0.50, "weapon": "水弓", "specialMove": "矢雨", "defBoost": 1, "atkBoost": 0 },
-        { "hpThreshold": 0.25, "weapon": "水鞭", "specialMove": "激流の鞭", "defBoost": 0, "atkBoost": 2 }
+        {
+          "hpThreshold": 0.5,
+          "weapon": "水弓",
+          "specialMove": "矢雨",
+          "defBoost": 1,
+          "atkBoost": 0
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "水鞭",
+          "specialMove": "激流の鞭",
+          "defBoost": 0,
+          "atkBoost": 2
+        }
       ],
       "drops": [
-        { "type": "material", "name": "エルフの羽根", "rarity": 3 },
-        { "type": "material", "name": "清水の珠", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "エルフの羽根",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "清水の珠",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "elf_tear",
         "name": "エルフの涙",
         "nameCn": "精靈之淚",
         "bossFloor": 2,
-        "effects": { "battleAgi": 0.10, "mineStarChance": 0.05 }
+        "effects": {
+          "battleAgi": 0.1,
+          "mineStarChance": 0.05
+        }
       }
     },
-    "materials": ["mat_floor1_ore", "mat_floor1_crystal"],
-    "places": ["森の入口", "深い木立", "苔むした回廊", "樹上都市", "BOSS房"],
+    "materials": [
+      "mat_floor1_ore",
+      "mat_floor1_crystal"
+    ],
+    "places": [
+      "森の入口",
+      "深い木立",
+      "苔むした回廊",
+      "樹上都市",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -74,33 +224,101 @@
     "name": "山の都",
     "nameCn": "山之都",
     "enemies": [
-      { "name": "岩石ゴーレム", "category": "[Easy]", "hp": 18, "atk": 2, "def": 1, "agi": 0, "cri": 10 },
-      { "name": "山岳オーガ", "category": "[Normal]", "hp": 32, "atk": 3, "def": 1, "agi": 0, "cri": 10 },
-      { "name": "岩山の守護者", "category": "[Hard]", "hp": 70, "atk": 4, "def": 2, "agi": 1, "cri": 9 },
-      { "name": "マウンテン・キング", "category": "[Hell]", "hp": 125, "atk": 5, "def": 3, "agi": 1, "cri": 9 }
+      {
+        "name": "岩石ゴーレム",
+        "category": "[Easy]",
+        "hp": 18,
+        "atk": 2,
+        "def": 1,
+        "agi": 0,
+        "cri": 10
+      },
+      {
+        "name": "山岳オーガ",
+        "category": "[Normal]",
+        "hp": 32,
+        "atk": 3,
+        "def": 1,
+        "agi": 0,
+        "cri": 10
+      },
+      {
+        "name": "岩山の守護者",
+        "category": "[Hard]",
+        "hp": 70,
+        "atk": 4,
+        "def": 2,
+        "agi": 1,
+        "cri": 9
+      },
+      {
+        "name": "マウンテン・キング",
+        "category": "[Hell]",
+        "hp": 125,
+        "atk": 5,
+        "def": 3,
+        "agi": 1,
+        "cri": 9
+      }
     ],
     "boss": {
       "name": "ライジング・ドラゴン",
-      "hp": 4200, "atk": 10, "def": 5, "agi": 3, "cri": 9,
+      "hp": 4200,
+      "atk": 10,
+      "def": 5,
+      "agi": 3,
+      "cri": 9,
       "initialWeapon": "竜爪",
       "phases": [
-        { "hpThreshold": 0.50, "weapon": "竜爪", "specialMove": "ドラゴンブレス", "defBoost": 1, "atkBoost": 1 },
-        { "hpThreshold": 0.25, "weapon": "翼（飛行形態）", "specialMove": "急降下ブレス", "defBoost": -1, "atkBoost": 3 }
+        {
+          "hpThreshold": 0.5,
+          "weapon": "竜爪",
+          "specialMove": "ドラゴンブレス",
+          "defBoost": 1,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "翼（飛行形態）",
+          "specialMove": "急降下ブレス",
+          "defBoost": -1,
+          "atkBoost": 3
+        }
       ],
       "drops": [
-        { "type": "material", "name": "竜の鱗片", "rarity": 3 },
-        { "type": "material", "name": "竜の牙", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "竜の鱗片",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "竜の牙",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "dragon_charm",
         "name": "竜のお守り",
         "nameCn": "龍之護符",
         "bossFloor": 3,
-        "effects": { "battleAtk": 0.08, "advColReward": 0.05 }
+        "effects": {
+          "battleAtk": 0.08,
+          "advColReward": 0.05
+        }
       }
     },
-    "materials": ["mat_floor3_ore", "mat_floor3_crystal"],
-    "places": ["山麓の村", "岩場の道", "洞窟内", "山頂付近", "BOSS房"],
+    "materials": [
+      "mat_floor3_ore",
+      "mat_floor3_crystal"
+    ],
+    "places": [
+      "山麓の村",
+      "岩場の道",
+      "洞窟内",
+      "山頂付近",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -108,33 +326,101 @@
     "name": "沼地の砦",
     "nameCn": "沼澤要塞",
     "enemies": [
-      { "name": "沼蛙", "category": "[Easy]", "hp": 20, "atk": 2, "def": 1, "agi": 1, "cri": 10 },
-      { "name": "リザードマン", "category": "[Normal]", "hp": 36, "atk": 3, "def": 2, "agi": 1, "cri": 10 },
-      { "name": "リザードマン戦士", "category": "[Hard]", "hp": 78, "atk": 4, "def": 3, "agi": 2, "cri": 9 },
-      { "name": "沼の王", "category": "[Hell]", "hp": 140, "atk": 6, "def": 3, "agi": 2, "cri": 9 }
+      {
+        "name": "沼蛙",
+        "category": "[Easy]",
+        "hp": 20,
+        "atk": 2,
+        "def": 1,
+        "agi": 1,
+        "cri": 10
+      },
+      {
+        "name": "リザードマン",
+        "category": "[Normal]",
+        "hp": 36,
+        "atk": 3,
+        "def": 2,
+        "agi": 1,
+        "cri": 10
+      },
+      {
+        "name": "リザードマン戦士",
+        "category": "[Hard]",
+        "hp": 78,
+        "atk": 4,
+        "def": 3,
+        "agi": 2,
+        "cri": 9
+      },
+      {
+        "name": "沼の王",
+        "category": "[Hell]",
+        "hp": 140,
+        "atk": 6,
+        "def": 3,
+        "agi": 2,
+        "cri": 9
+      }
     ],
     "boss": {
       "name": "グレート・リザード・キング",
-      "hp": 4800, "atk": 11, "def": 5, "agi": 4, "cri": 8,
+      "hp": 4800,
+      "atk": 11,
+      "def": 5,
+      "agi": 4,
+      "cri": 8,
       "initialWeapon": "王者の爪",
       "phases": [
-        { "hpThreshold": 0.50, "weapon": "王者の爪", "specialMove": "毒霧", "defBoost": 1, "atkBoost": 1 },
-        { "hpThreshold": 0.25, "weapon": "毒爪", "specialMove": "猛毒乱爪", "defBoost": 0, "atkBoost": 3 }
+        {
+          "hpThreshold": 0.5,
+          "weapon": "王者の爪",
+          "specialMove": "毒霧",
+          "defBoost": 1,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "毒爪",
+          "specialMove": "猛毒乱爪",
+          "defBoost": 0,
+          "atkBoost": 3
+        }
       ],
       "drops": [
-        { "type": "material", "name": "古代の牙", "rarity": 3 },
-        { "type": "material", "name": "沼王の鱗", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "古代の牙",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "沼王の鱗",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "swamp_ring",
         "name": "沼王の指輪",
         "nameCn": "沼王之戒",
         "bossFloor": 4,
-        "effects": { "npcCondLoss": -0.10, "repairSuccess": 0.08 }
+        "effects": {
+          "npcCondLoss": -0.1,
+          "repairSuccess": 0.08
+        }
       }
     },
-    "materials": ["mat_floor3_ore", "mat_floor3_crystal"],
-    "places": ["沼地の入口", "泥道", "霧の中", "砦の外壁", "BOSS房"],
+    "materials": [
+      "mat_floor3_ore",
+      "mat_floor3_crystal"
+    ],
+    "places": [
+      "沼地の入口",
+      "泥道",
+      "霧の中",
+      "砦の外壁",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -142,34 +428,108 @@
     "name": "砂漠の神殿",
     "nameCn": "沙漠神殿",
     "enemies": [
-      { "name": "砂漠スコーピオン", "category": "[Easy]", "hp": 24, "atk": 2, "def": 1, "agi": 1, "cri": 9 },
-      { "name": "マミー兵士", "category": "[Normal]", "hp": 42, "atk": 3, "def": 2, "agi": 0, "cri": 9 },
-      { "name": "砂漠の刺客", "category": "[Hard]", "hp": 88, "atk": 5, "def": 3, "agi": 3, "cri": 8 },
-      { "name": "黄金の守護者", "category": "[Hell]", "hp": 160, "atk": 7, "def": 4, "agi": 2, "cri": 8 }
+      {
+        "name": "砂漠スコーピオン",
+        "category": "[Easy]",
+        "hp": 24,
+        "atk": 2,
+        "def": 1,
+        "agi": 1,
+        "cri": 9
+      },
+      {
+        "name": "マミー兵士",
+        "category": "[Normal]",
+        "hp": 42,
+        "atk": 3,
+        "def": 2,
+        "agi": 0,
+        "cri": 9
+      },
+      {
+        "name": "砂漠の刺客",
+        "category": "[Hard]",
+        "hp": 88,
+        "atk": 5,
+        "def": 3,
+        "agi": 3,
+        "cri": 8
+      },
+      {
+        "name": "黄金の守護者",
+        "category": "[Hell]",
+        "hp": 160,
+        "atk": 7,
+        "def": 4,
+        "agi": 2,
+        "cri": 8
+      }
     ],
     "boss": {
       "name": "アンケイ・ザ・ファラオ",
-      "hp": 5800, "atk": 12, "def": 6, "agi": 3, "cri": 8,
+      "hp": 5800,
+      "atk": 12,
+      "def": 6,
+      "agi": 3,
+      "cri": 8,
       "initialWeapon": "ファラオの杖",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "ファラオの杖", "specialMove": "砂嵐召喚", "defBoost": 1, "atkBoost": 0 },
-        { "hpThreshold": 0.40, "weapon": "死神の鎌", "specialMove": "砂嵐の鎌", "defBoost": 0, "atkBoost": 2 },
-        { "hpThreshold": 0.20, "weapon": "双鎌", "specialMove": "死神の舞", "defBoost": -1, "atkBoost": 4 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "ファラオの杖",
+          "specialMove": "砂嵐召喚",
+          "defBoost": 1,
+          "atkBoost": 0
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "死神の鎌",
+          "specialMove": "砂嵐の鎌",
+          "defBoost": 0,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "双鎌",
+          "specialMove": "死神の舞",
+          "defBoost": -1,
+          "atkBoost": 4
+        }
       ],
       "drops": [
-        { "type": "material", "name": "黄金の欠片", "rarity": 3 },
-        { "type": "material", "name": "砂漠の宝石", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "黄金の欠片",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "砂漠の宝石",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "pharaoh_necklace",
         "name": "ファラオの首飾り",
         "nameCn": "法老王項鍊",
         "bossFloor": 5,
-        "effects": { "advColReward": 0.10, "bossDamage": 0.08 }
+        "effects": {
+          "advColReward": 0.1,
+          "bossDamage": 0.08
+        }
       }
     },
-    "materials": ["mat_floor5_ore", "mat_floor5_crystal"],
-    "places": ["砂丘の麓", "神殿前廊", "罠の回廊", "王の間への階段", "BOSS房"],
+    "materials": [
+      "mat_floor5_ore",
+      "mat_floor5_crystal"
+    ],
+    "places": [
+      "砂丘の麓",
+      "神殿前廊",
+      "罠の回廊",
+      "王の間への階段",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -177,33 +537,101 @@
     "name": "火山地帯",
     "nameCn": "火山地帶",
     "enemies": [
-      { "name": "ラバ・クリープ", "category": "[Easy]", "hp": 28, "atk": 3, "def": 1, "agi": 0, "cri": 9 },
-      { "name": "炎の精霊", "category": "[Normal]", "hp": 48, "atk": 4, "def": 2, "agi": 2, "cri": 9 },
-      { "name": "マグマ・ゴーレム", "category": "[Hard]", "hp": 98, "atk": 5, "def": 4, "agi": 1, "cri": 8 },
-      { "name": "火山の番人", "category": "[Hell]", "hp": 175, "atk": 7, "def": 4, "agi": 2, "cri": 8 }
+      {
+        "name": "ラバ・クリープ",
+        "category": "[Easy]",
+        "hp": 28,
+        "atk": 3,
+        "def": 1,
+        "agi": 0,
+        "cri": 9
+      },
+      {
+        "name": "炎の精霊",
+        "category": "[Normal]",
+        "hp": 48,
+        "atk": 4,
+        "def": 2,
+        "agi": 2,
+        "cri": 9
+      },
+      {
+        "name": "マグマ・ゴーレム",
+        "category": "[Hard]",
+        "hp": 98,
+        "atk": 5,
+        "def": 4,
+        "agi": 1,
+        "cri": 8
+      },
+      {
+        "name": "火山の番人",
+        "category": "[Hell]",
+        "hp": 175,
+        "atk": 7,
+        "def": 4,
+        "agi": 2,
+        "cri": 8
+      }
     ],
     "boss": {
       "name": "炎帝グラガン",
-      "hp": 6600, "atk": 13, "def": 7, "agi": 3, "cri": 8,
+      "hp": 6600,
+      "atk": 13,
+      "def": 7,
+      "agi": 3,
+      "cri": 8,
       "initialWeapon": "炎の拳",
       "phases": [
-        { "hpThreshold": 0.50, "weapon": "炎の拳", "specialMove": "溶岩噴射", "defBoost": 1, "atkBoost": 1 },
-        { "hpThreshold": 0.25, "weapon": "溶岩の鎧（全身溶岩化）", "specialMove": "炎帝爆砕", "defBoost": 2, "atkBoost": 3 }
+        {
+          "hpThreshold": 0.5,
+          "weapon": "炎の拳",
+          "specialMove": "溶岩噴射",
+          "defBoost": 1,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "溶岩の鎧（全身溶岩化）",
+          "specialMove": "炎帝爆砕",
+          "defBoost": 2,
+          "atkBoost": 3
+        }
       ],
       "drops": [
-        { "type": "material", "name": "炎の核", "rarity": 3 },
-        { "type": "material", "name": "溶岩の結晶", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "炎の核",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "溶岩の結晶",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "flame_bracelet",
         "name": "炎帝の腕輪",
         "nameCn": "炎帝腕輪",
         "bossFloor": 6,
-        "effects": { "battleAtk": 0.10, "forgeDurability": 0.10 }
+        "effects": {
+          "battleAtk": 0.1,
+          "forgeDurability": 0.1
+        }
       }
     },
-    "materials": ["mat_floor5_ore", "mat_floor5_crystal"],
-    "places": ["火口の縁", "溶岩流の橋", "灼熱の廊下", "巨人の住処", "BOSS房"],
+    "materials": [
+      "mat_floor5_ore",
+      "mat_floor5_crystal"
+    ],
+    "places": [
+      "火口の縁",
+      "溶岩流の橋",
+      "灼熱の廊下",
+      "巨人の住処",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -211,33 +639,101 @@
     "name": "氷の城塞",
     "nameCn": "冰雪城塞",
     "enemies": [
-      { "name": "アイスゴーレム", "category": "[Easy]", "hp": 32, "atk": 3, "def": 2, "agi": 0, "cri": 9 },
-      { "name": "霜の騎士", "category": "[Normal]", "hp": 55, "atk": 4, "def": 3, "agi": 1, "cri": 9 },
-      { "name": "氷魔術師", "category": "[Hard]", "hp": 108, "atk": 6, "def": 3, "agi": 3, "cri": 8 },
-      { "name": "氷の公爵", "category": "[Hell]", "hp": 195, "atk": 8, "def": 5, "agi": 3, "cri": 7 }
+      {
+        "name": "アイスゴーレム",
+        "category": "[Easy]",
+        "hp": 32,
+        "atk": 3,
+        "def": 2,
+        "agi": 0,
+        "cri": 9
+      },
+      {
+        "name": "霜の騎士",
+        "category": "[Normal]",
+        "hp": 55,
+        "atk": 4,
+        "def": 3,
+        "agi": 1,
+        "cri": 9
+      },
+      {
+        "name": "氷魔術師",
+        "category": "[Hard]",
+        "hp": 108,
+        "atk": 6,
+        "def": 3,
+        "agi": 3,
+        "cri": 8
+      },
+      {
+        "name": "氷の公爵",
+        "category": "[Hell]",
+        "hp": 195,
+        "atk": 8,
+        "def": 5,
+        "agi": 3,
+        "cri": 7
+      }
     ],
     "boss": {
       "name": "フロスト・クイーン",
-      "hp": 7600, "atk": 14, "def": 7, "agi": 5, "cri": 7,
+      "hp": 7600,
+      "atk": 14,
+      "def": 7,
+      "agi": 5,
+      "cri": 7,
       "initialWeapon": "氷杖",
       "phases": [
-        { "hpThreshold": 0.50, "weapon": "氷杖", "specialMove": "絶対零度", "defBoost": 2, "atkBoost": 0 },
-        { "hpThreshold": 0.25, "weapon": "吹雪の剣", "specialMove": "吹雪の剣・氷嵐斬", "defBoost": 0, "atkBoost": 3 }
+        {
+          "hpThreshold": 0.5,
+          "weapon": "氷杖",
+          "specialMove": "絶対零度",
+          "defBoost": 2,
+          "atkBoost": 0
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "吹雪の剣",
+          "specialMove": "吹雪の剣・氷嵐斬",
+          "defBoost": 0,
+          "atkBoost": 3
+        }
       ],
       "drops": [
-        { "type": "material", "name": "女王の氷晶", "rarity": 3 },
-        { "type": "material", "name": "永久凍土の欠片", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "女王の氷晶",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "永久凍土の欠片",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "frost_tiara",
         "name": "氷晶のティアラ",
         "nameCn": "冰晶皇冠",
         "bossFloor": 7,
-        "effects": { "battleDef": 0.12, "npcDeathChance": -0.10 }
+        "effects": {
+          "battleDef": 0.12,
+          "npcDeathChance": -0.1
+        }
       }
     },
-    "materials": ["mat_floor7_ore", "mat_floor7_crystal"],
-    "places": ["城門前広場", "氷の廊下", "冷気の地下室", "王座の間", "BOSS房"],
+    "materials": [
+      "mat_floor7_ore",
+      "mat_floor7_crystal"
+    ],
+    "places": [
+      "城門前広場",
+      "氷の廊下",
+      "冷気の地下室",
+      "王座の間",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -245,33 +741,101 @@
     "name": "巨人の里",
     "nameCn": "巨人之鄉",
     "enemies": [
-      { "name": "ヒル・ジャイアント", "category": "[Easy]", "hp": 36, "atk": 4, "def": 2, "agi": 0, "cri": 9 },
-      { "name": "ストーン・ジャイアント", "category": "[Normal]", "hp": 62, "atk": 5, "def": 3, "agi": 0, "cri": 9 },
-      { "name": "フロスト・ジャイアント", "category": "[Hard]", "hp": 120, "atk": 6, "def": 4, "agi": 1, "cri": 8 },
-      { "name": "ジャイアント・キング衛兵", "category": "[Hell]", "hp": 215, "atk": 9, "def": 5, "agi": 2, "cri": 7 }
+      {
+        "name": "ヒル・ジャイアント",
+        "category": "[Easy]",
+        "hp": 36,
+        "atk": 4,
+        "def": 2,
+        "agi": 0,
+        "cri": 9
+      },
+      {
+        "name": "ストーン・ジャイアント",
+        "category": "[Normal]",
+        "hp": 62,
+        "atk": 5,
+        "def": 3,
+        "agi": 0,
+        "cri": 9
+      },
+      {
+        "name": "フロスト・ジャイアント",
+        "category": "[Hard]",
+        "hp": 120,
+        "atk": 6,
+        "def": 4,
+        "agi": 1,
+        "cri": 8
+      },
+      {
+        "name": "ジャイアント・キング衛兵",
+        "category": "[Hell]",
+        "hp": 215,
+        "atk": 9,
+        "def": 5,
+        "agi": 2,
+        "cri": 7
+      }
     ],
     "boss": {
       "name": "ジャイアント・キング・オルガー",
-      "hp": 8800, "atk": 15, "def": 8, "agi": 3, "cri": 7,
+      "hp": 8800,
+      "atk": 15,
+      "def": 8,
+      "agi": 3,
+      "cri": 7,
       "initialWeapon": "大斧",
       "phases": [
-        { "hpThreshold": 0.50, "weapon": "大斧", "specialMove": "地砕き", "defBoost": 1, "atkBoost": 1 },
-        { "hpThreshold": 0.25, "weapon": "二刀流（大斧＋大剣）", "specialMove": "巨人の怒り・二刀乱舞", "defBoost": -1, "atkBoost": 4 }
+        {
+          "hpThreshold": 0.5,
+          "weapon": "大斧",
+          "specialMove": "地砕き",
+          "defBoost": 1,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "二刀流（大斧＋大剣）",
+          "specialMove": "巨人の怒り・二刀乱舞",
+          "defBoost": -1,
+          "atkBoost": 4
+        }
       ],
       "drops": [
-        { "type": "material", "name": "巨人の心臓", "rarity": 3 },
-        { "type": "material", "name": "巨人の骨", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "巨人の心臓",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "巨人の骨",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "giant_heart_stone",
         "name": "巨人の心臓石",
         "nameCn": "巨人心臟石",
         "bossFloor": 8,
-        "effects": { "bossDamage": 0.12, "staminaCost": -0.08 }
+        "effects": {
+          "bossDamage": 0.12,
+          "staminaCost": -0.08
+        }
       }
     },
-    "materials": ["mat_floor7_ore", "mat_floor7_crystal"],
-    "places": ["巨人の村入口", "広大な平原", "巨人の神殿", "王の宴会場", "BOSS房"],
+    "materials": [
+      "mat_floor7_ore",
+      "mat_floor7_crystal"
+    ],
+    "places": [
+      "巨人の村入口",
+      "広大な平原",
+      "巨人の神殿",
+      "王の宴会場",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -279,34 +843,108 @@
     "name": "闇の迷宮",
     "nameCn": "黑暗迷宮",
     "enemies": [
-      { "name": "シャドウ・ビースト", "category": "[Easy]", "hp": 40, "atk": 4, "def": 2, "agi": 2, "cri": 8 },
-      { "name": "ダーク・ナイト", "category": "[Normal]", "hp": 70, "atk": 5, "def": 4, "agi": 2, "cri": 8 },
-      { "name": "闇の暗殺者", "category": "[Hard]", "hp": 135, "atk": 7, "def": 4, "agi": 4, "cri": 7 },
-      { "name": "暗黒騎士団長", "category": "[Hell]", "hp": 240, "atk": 10, "def": 6, "agi": 4, "cri": 7 }
+      {
+        "name": "シャドウ・ビースト",
+        "category": "[Easy]",
+        "hp": 40,
+        "atk": 4,
+        "def": 2,
+        "agi": 2,
+        "cri": 8
+      },
+      {
+        "name": "ダーク・ナイト",
+        "category": "[Normal]",
+        "hp": 70,
+        "atk": 5,
+        "def": 4,
+        "agi": 2,
+        "cri": 8
+      },
+      {
+        "name": "闇の暗殺者",
+        "category": "[Hard]",
+        "hp": 135,
+        "atk": 7,
+        "def": 4,
+        "agi": 4,
+        "cri": 7
+      },
+      {
+        "name": "暗黒騎士団長",
+        "category": "[Hell]",
+        "hp": 240,
+        "atk": 10,
+        "def": 6,
+        "agi": 4,
+        "cri": 7
+      }
     ],
     "boss": {
       "name": "ダーク・ロード・レクサー",
-      "hp": 10000, "atk": 16, "def": 9, "agi": 5, "cri": 7,
+      "hp": 10000,
+      "atk": 16,
+      "def": 9,
+      "agi": 5,
+      "cri": 7,
       "initialWeapon": "闇の剣",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "闇の剣", "specialMove": "闇の爪", "defBoost": 1, "atkBoost": 1 },
-        { "hpThreshold": 0.40, "weapon": "闇盾＋闇の剣", "specialMove": "暗黒結界", "defBoost": 3, "atkBoost": 0 },
-        { "hpThreshold": 0.20, "weapon": "暗黒の力（素手）", "specialMove": "暗黒崩壊", "defBoost": -2, "atkBoost": 5 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "闇の剣",
+          "specialMove": "闇の爪",
+          "defBoost": 1,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "闇盾＋闇の剣",
+          "specialMove": "暗黒結界",
+          "defBoost": 3,
+          "atkBoost": 0
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "暗黒の力（素手）",
+          "specialMove": "暗黒崩壊",
+          "defBoost": -2,
+          "atkBoost": 5
+        }
       ],
       "drops": [
-        { "type": "material", "name": "暗黒の核", "rarity": 3 },
-        { "type": "material", "name": "闇の結晶", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "暗黒の核",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "闇の結晶",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "dark_amulet",
         "name": "暗黒の護符",
         "nameCn": "暗黑護符",
         "bossFloor": 9,
-        "effects": { "battleAtk": 0.12, "battleDef": 0.08 }
+        "effects": {
+          "battleAtk": 0.12,
+          "battleDef": 0.08
+        }
       }
     },
-    "materials": ["mat_floor9_ore", "mat_floor9_crystal"],
-    "places": ["闇の入口", "無限の回廊", "錯覚の間", "絶望の広間", "BOSS房"],
+    "materials": [
+      "mat_floor9_ore",
+      "mat_floor9_crystal"
+    ],
+    "places": [
+      "闇の入口",
+      "無限の回廊",
+      "錯覚の間",
+      "絶望の広間",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -314,34 +952,109 @@
     "name": "アインクラッドの頂",
     "nameCn": "艾恩葛朗特之巔",
     "enemies": [
-      { "name": "鋼鉄の番人", "category": "[Easy]", "hp": 45, "atk": 5, "def": 3, "agi": 2, "cri": 8 },
-      { "name": "黄金騎士", "category": "[Normal]", "hp": 80, "atk": 6, "def": 4, "agi": 2, "cri": 8 },
-      { "name": "頂点の守護者", "category": "[Hard]", "hp": 150, "atk": 8, "def": 5, "agi": 3, "cri": 7 },
-      { "name": "頂点の騎士長", "category": "[Hell]", "hp": 270, "atk": 11, "def": 7, "agi": 4, "cri": 6 }
+      {
+        "name": "鋼鉄の番人",
+        "category": "[Easy]",
+        "hp": 45,
+        "atk": 5,
+        "def": 3,
+        "agi": 2,
+        "cri": 8
+      },
+      {
+        "name": "黄金騎士",
+        "category": "[Normal]",
+        "hp": 80,
+        "atk": 6,
+        "def": 4,
+        "agi": 2,
+        "cri": 8
+      },
+      {
+        "name": "頂点の守護者",
+        "category": "[Hard]",
+        "hp": 150,
+        "atk": 8,
+        "def": 5,
+        "agi": 3,
+        "cri": 7
+      },
+      {
+        "name": "頂点の騎士長",
+        "category": "[Hell]",
+        "hp": 270,
+        "atk": 11,
+        "def": 7,
+        "agi": 4,
+        "cri": 6
+      }
     ],
     "boss": {
       "name": "アインクラッド守護神",
-      "hp": 12000, "atk": 18, "def": 10, "agi": 6, "cri": 6,
+      "hp": 12000,
+      "atk": 18,
+      "def": 10,
+      "agi": 6,
+      "cri": 6,
       "initialWeapon": "聖剣",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "聖剣", "specialMove": "聖剣の一閃", "defBoost": 1, "atkBoost": 1 },
-        { "hpThreshold": 0.40, "weapon": "光盾＋聖剣", "specialMove": "聖光結界", "defBoost": 3, "atkBoost": 1 },
-        { "hpThreshold": 0.20, "weapon": "天剣", "specialMove": "天地崩壊", "defBoost": -2, "atkBoost": 6 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "聖剣",
+          "specialMove": "聖剣の一閃",
+          "defBoost": 1,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "光盾＋聖剣",
+          "specialMove": "聖光結界",
+          "defBoost": 3,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "天剣",
+          "specialMove": "天地崩壊",
+          "defBoost": -2,
+          "atkBoost": 6
+        }
       ],
       "drops": [
-        { "type": "material", "name": "守護神の結晶", "rarity": 3 },
-        { "type": "material", "name": "神聖の欠片", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "守護神の結晶",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "神聖の欠片",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "guardian_crest",
         "name": "守護神の紋章",
         "nameCn": "守護神紋章",
         "bossFloor": 10,
-        "effects": { "bossDamage": 0.15, "battleAtk": 0.10, "battleDef": 0.05 }
+        "effects": {
+          "bossDamage": 0.15,
+          "battleAtk": 0.1,
+          "battleDef": 0.05
+        }
       }
     },
-    "materials": ["mat_floor9_ore", "mat_floor9_crystal"],
-    "places": ["頂点への階段", "雲上の広場", "神殿の前廊", "守護の間", "BOSS房"],
+    "materials": [
+      "mat_floor9_ore",
+      "mat_floor9_crystal"
+    ],
+    "places": [
+      "頂点への階段",
+      "雲上の広場",
+      "神殿の前廊",
+      "守護の間",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -349,34 +1062,108 @@
     "name": "霧の湖",
     "nameCn": "霧之湖",
     "enemies": [
-      { "name": "ミストスライム", "category": "[Easy]", "hp": 50, "atk": 5, "def": 3, "agi": 2, "cri": 8 },
-      { "name": "水棲リザード", "category": "[Normal]", "hp": 90, "atk": 7, "def": 5, "agi": 3, "cri": 8 },
-      { "name": "湖底のセイレーン", "category": "[Hard]", "hp": 165, "atk": 9, "def": 6, "agi": 4, "cri": 7 },
-      { "name": "霧の大蛇", "category": "[Hell]", "hp": 300, "atk": 12, "def": 7, "agi": 5, "cri": 6 }
+      {
+        "name": "ミストスライム",
+        "category": "[Easy]",
+        "hp": 50,
+        "atk": 5,
+        "def": 3,
+        "agi": 2,
+        "cri": 8
+      },
+      {
+        "name": "水棲リザード",
+        "category": "[Normal]",
+        "hp": 90,
+        "atk": 7,
+        "def": 5,
+        "agi": 3,
+        "cri": 8
+      },
+      {
+        "name": "湖底のセイレーン",
+        "category": "[Hard]",
+        "hp": 165,
+        "atk": 9,
+        "def": 6,
+        "agi": 4,
+        "cri": 7
+      },
+      {
+        "name": "霧の大蛇",
+        "category": "[Hell]",
+        "hp": 300,
+        "atk": 12,
+        "def": 7,
+        "agi": 5,
+        "cri": 6
+      }
     ],
     "boss": {
       "name": "湖底の覇王レヴィアタン",
-      "hp": 14000, "atk": 19, "def": 11, "agi": 5, "cri": 6,
+      "hp": 14000,
+      "atk": 19,
+      "def": 11,
+      "agi": 5,
+      "cri": 6,
       "initialWeapon": "大渦の尾",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "大渦の尾", "specialMove": "津波一掃", "defBoost": 1, "atkBoost": 1 },
-        { "hpThreshold": 0.40, "weapon": "霧の障壁", "specialMove": "霧隠れ", "defBoost": 3, "atkBoost": 0 },
-        { "hpThreshold": 0.20, "weapon": "双顎", "specialMove": "深淵の咆哮", "defBoost": -1, "atkBoost": 4 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "大渦の尾",
+          "specialMove": "津波一掃",
+          "defBoost": 1,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "霧の障壁",
+          "specialMove": "霧隠れ",
+          "defBoost": 3,
+          "atkBoost": 0
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "双顎",
+          "specialMove": "深淵の咆哮",
+          "defBoost": -1,
+          "atkBoost": 4
+        }
       ],
       "drops": [
-        { "type": "material", "name": "レヴィアタンの鱗", "rarity": 3 },
-        { "type": "material", "name": "霧の真珠", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "レヴィアタンの鱗",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "霧の真珠",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "mist_necklace",
         "name": "霧の首飾り",
         "nameCn": "霧之項鍊",
         "bossFloor": 11,
-        "effects": { "mineStarChance": 0.08, "battleAgi": 0.08 }
+        "effects": {
+          "mineStarChance": 0.08,
+          "battleAgi": 0.08
+        }
       }
     },
-    "materials": ["mat_floor11_ore", "mat_floor11_crystal"],
-    "places": ["湖畔の桟橋", "霧の水路", "沈没船", "湖底神殿", "BOSS房"],
+    "materials": [
+      "mat_floor11_ore",
+      "mat_floor11_crystal"
+    ],
+    "places": [
+      "湖畔の桟橋",
+      "霧の水路",
+      "沈没船",
+      "湖底神殿",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -384,33 +1171,101 @@
     "name": "地下神殿",
     "nameCn": "地下神殿",
     "enemies": [
-      { "name": "石像兵", "category": "[Easy]", "hp": 55, "atk": 5, "def": 4, "agi": 1, "cri": 8 },
-      { "name": "古代ゴーレム", "category": "[Normal]", "hp": 95, "atk": 7, "def": 5, "agi": 2, "cri": 8 },
-      { "name": "神殿の番兵", "category": "[Hard]", "hp": 175, "atk": 10, "def": 7, "agi": 3, "cri": 7 },
-      { "name": "遺跡の守護者", "category": "[Hell]", "hp": 320, "atk": 13, "def": 8, "agi": 4, "cri": 6 }
+      {
+        "name": "石像兵",
+        "category": "[Easy]",
+        "hp": 55,
+        "atk": 5,
+        "def": 4,
+        "agi": 1,
+        "cri": 8
+      },
+      {
+        "name": "古代ゴーレム",
+        "category": "[Normal]",
+        "hp": 95,
+        "atk": 7,
+        "def": 5,
+        "agi": 2,
+        "cri": 8
+      },
+      {
+        "name": "神殿の番兵",
+        "category": "[Hard]",
+        "hp": 175,
+        "atk": 10,
+        "def": 7,
+        "agi": 3,
+        "cri": 7
+      },
+      {
+        "name": "遺跡の守護者",
+        "category": "[Hell]",
+        "hp": 320,
+        "atk": 13,
+        "def": 8,
+        "agi": 4,
+        "cri": 6
+      }
     ],
     "boss": {
       "name": "石帝ガーゴイル",
-      "hp": 16500, "atk": 20, "def": 11, "agi": 6, "cri": 6,
+      "hp": 16500,
+      "atk": 20,
+      "def": 11,
+      "agi": 6,
+      "cri": 6,
       "initialWeapon": "石の拳",
       "phases": [
-        { "hpThreshold": 0.50, "weapon": "石の拳", "specialMove": "地震撃", "defBoost": 2, "atkBoost": 1 },
-        { "hpThreshold": 0.25, "weapon": "神殿の剣（覚醒形態）", "specialMove": "石帝崩壊拳", "defBoost": 0, "atkBoost": 4 }
+        {
+          "hpThreshold": 0.5,
+          "weapon": "石の拳",
+          "specialMove": "地震撃",
+          "defBoost": 2,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "神殿の剣（覚醒形態）",
+          "specialMove": "石帝崩壊拳",
+          "defBoost": 0,
+          "atkBoost": 4
+        }
       ],
       "drops": [
-        { "type": "material", "name": "ガーゴイルの心核", "rarity": 3 },
-        { "type": "material", "name": "古代の石板", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "ガーゴイルの心核",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "古代の石板",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "gargoyle_heart",
         "name": "石像の心臓",
         "nameCn": "石像之心",
         "bossFloor": 12,
-        "effects": { "battleDef": 0.12, "repairSuccess": 0.10 }
+        "effects": {
+          "battleDef": 0.12,
+          "repairSuccess": 0.1
+        }
       }
     },
-    "materials": ["mat_floor11_ore", "mat_floor11_crystal"],
-    "places": ["遺跡入口", "壁画の回廊", "崩壊した広間", "封印の扉", "BOSS房"],
+    "materials": [
+      "mat_floor11_ore",
+      "mat_floor11_crystal"
+    ],
+    "places": [
+      "遺跡入口",
+      "壁画の回廊",
+      "崩壊した広間",
+      "封印の扉",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -418,34 +1273,108 @@
     "name": "毒の森",
     "nameCn": "毒之森",
     "enemies": [
-      { "name": "毒キノコ", "category": "[Easy]", "hp": 58, "atk": 6, "def": 3, "agi": 3, "cri": 8 },
-      { "name": "ポイズンスパイダー", "category": "[Normal]", "hp": 100, "atk": 8, "def": 5, "agi": 4, "cri": 7 },
-      { "name": "毒樹の精", "category": "[Hard]", "hp": 185, "atk": 10, "def": 6, "agi": 5, "cri": 7 },
-      { "name": "毒の森の主", "category": "[Hell]", "hp": 340, "atk": 14, "def": 8, "agi": 5, "cri": 6 }
+      {
+        "name": "毒キノコ",
+        "category": "[Easy]",
+        "hp": 58,
+        "atk": 6,
+        "def": 3,
+        "agi": 3,
+        "cri": 8
+      },
+      {
+        "name": "ポイズンスパイダー",
+        "category": "[Normal]",
+        "hp": 100,
+        "atk": 8,
+        "def": 5,
+        "agi": 4,
+        "cri": 7
+      },
+      {
+        "name": "毒樹の精",
+        "category": "[Hard]",
+        "hp": 185,
+        "atk": 10,
+        "def": 6,
+        "agi": 5,
+        "cri": 7
+      },
+      {
+        "name": "毒の森の主",
+        "category": "[Hell]",
+        "hp": 340,
+        "atk": 14,
+        "def": 8,
+        "agi": 5,
+        "cri": 6
+      }
     ],
     "boss": {
       "name": "蟲帝アラクネ",
-      "hp": 19000, "atk": 21, "def": 12, "agi": 5, "cri": 6,
+      "hp": 19000,
+      "atk": 21,
+      "def": 12,
+      "agi": 5,
+      "cri": 6,
       "initialWeapon": "毒糸",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "毒糸", "specialMove": "毒霧散布", "defBoost": 1, "atkBoost": 1 },
-        { "hpThreshold": 0.40, "weapon": "毒爪", "specialMove": "猛毒乱刺", "defBoost": 0, "atkBoost": 3 },
-        { "hpThreshold": 0.20, "weapon": "蟲の鎧（硬化形態）", "specialMove": "蟲帝の怒り", "defBoost": 2, "atkBoost": 4 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "毒糸",
+          "specialMove": "毒霧散布",
+          "defBoost": 1,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "毒爪",
+          "specialMove": "猛毒乱刺",
+          "defBoost": 0,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "蟲の鎧（硬化形態）",
+          "specialMove": "蟲帝の怒り",
+          "defBoost": 2,
+          "atkBoost": 4
+        }
       ],
       "drops": [
-        { "type": "material", "name": "蟲帝の毒牙", "rarity": 3 },
-        { "type": "material", "name": "毒蜘蛛の糸", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "蟲帝の毒牙",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "毒蜘蛛の糸",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "spider_fang",
         "name": "毒蜘蛛の牙飾り",
         "nameCn": "毒蛛牙飾",
         "bossFloor": 13,
-        "effects": { "battleAtk": 0.10, "npcCondLoss": -0.12 }
+        "effects": {
+          "battleAtk": 0.1,
+          "npcCondLoss": -0.12
+        }
       }
     },
-    "materials": ["mat_floor13_ore", "mat_floor13_crystal"],
-    "places": ["毒沼の入口", "蜘蛛の巣", "腐食の道", "毒の泉", "BOSS房"],
+    "materials": [
+      "mat_floor13_ore",
+      "mat_floor13_crystal"
+    ],
+    "places": [
+      "毒沼の入口",
+      "蜘蛛の巣",
+      "腐食の道",
+      "毒の泉",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -453,33 +1382,101 @@
     "name": "風の峡谷",
     "nameCn": "風之峽谷",
     "enemies": [
-      { "name": "ウィンドイーグル", "category": "[Easy]", "hp": 62, "atk": 6, "def": 3, "agi": 4, "cri": 7 },
-      { "name": "峡谷のハーピー", "category": "[Normal]", "hp": 108, "atk": 8, "def": 5, "agi": 5, "cri": 7 },
-      { "name": "嵐の鷹騎士", "category": "[Hard]", "hp": 195, "atk": 11, "def": 7, "agi": 5, "cri": 6 },
-      { "name": "風王の近衛", "category": "[Hell]", "hp": 360, "atk": 15, "def": 8, "agi": 6, "cri": 6 }
+      {
+        "name": "ウィンドイーグル",
+        "category": "[Easy]",
+        "hp": 62,
+        "atk": 6,
+        "def": 3,
+        "agi": 4,
+        "cri": 7
+      },
+      {
+        "name": "峡谷のハーピー",
+        "category": "[Normal]",
+        "hp": 108,
+        "atk": 8,
+        "def": 5,
+        "agi": 5,
+        "cri": 7
+      },
+      {
+        "name": "嵐の鷹騎士",
+        "category": "[Hard]",
+        "hp": 195,
+        "atk": 11,
+        "def": 7,
+        "agi": 5,
+        "cri": 6
+      },
+      {
+        "name": "風王の近衛",
+        "category": "[Hell]",
+        "hp": 360,
+        "atk": 15,
+        "def": 8,
+        "agi": 6,
+        "cri": 6
+      }
     ],
     "boss": {
       "name": "風王グリフォン",
-      "hp": 22000, "atk": 22, "def": 12, "agi": 7, "cri": 5,
+      "hp": 22000,
+      "atk": 22,
+      "def": 12,
+      "agi": 7,
+      "cri": 5,
       "initialWeapon": "嵐の翼",
       "phases": [
-        { "hpThreshold": 0.50, "weapon": "嵐の翼", "specialMove": "暴風連撃", "defBoost": 0, "atkBoost": 2 },
-        { "hpThreshold": 0.25, "weapon": "雷嵐の爪", "specialMove": "雷鳴嵐舞", "defBoost": -1, "atkBoost": 5 }
+        {
+          "hpThreshold": 0.5,
+          "weapon": "嵐の翼",
+          "specialMove": "暴風連撃",
+          "defBoost": 0,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "雷嵐の爪",
+          "specialMove": "雷鳴嵐舞",
+          "defBoost": -1,
+          "atkBoost": 5
+        }
       ],
       "drops": [
-        { "type": "material", "name": "グリフォンの羽根", "rarity": 3 },
-        { "type": "material", "name": "嵐の核", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "グリフォンの羽根",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "嵐の核",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "wind_cloak",
         "name": "風王のマント",
         "nameCn": "風王斗篷",
         "bossFloor": 14,
-        "effects": { "battleAgi": 0.15, "advColReward": 0.08 }
+        "effects": {
+          "battleAgi": 0.15,
+          "advColReward": 0.08
+        }
       }
     },
-    "materials": ["mat_floor13_ore", "mat_floor13_crystal"],
-    "places": ["峡谷の入口", "風の吊橋", "鷹の巣", "頂上の祭壇", "BOSS房"],
+    "materials": [
+      "mat_floor13_ore",
+      "mat_floor13_crystal"
+    ],
+    "places": [
+      "峡谷の入口",
+      "風の吊橋",
+      "鷹の巣",
+      "頂上の祭壇",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -487,34 +1484,108 @@
     "name": "魔獣の楽園",
     "nameCn": "魔獸樂園",
     "enemies": [
-      { "name": "ワイルドビースト", "category": "[Easy]", "hp": 68, "atk": 7, "def": 4, "agi": 3, "cri": 7 },
-      { "name": "マンティコア", "category": "[Normal]", "hp": 115, "atk": 9, "def": 6, "agi": 4, "cri": 7 },
-      { "name": "ケルベロス", "category": "[Hard]", "hp": 210, "atk": 12, "def": 7, "agi": 5, "cri": 6 },
-      { "name": "魔獣王の番兵", "category": "[Hell]", "hp": 385, "atk": 16, "def": 9, "agi": 5, "cri": 5 }
+      {
+        "name": "ワイルドビースト",
+        "category": "[Easy]",
+        "hp": 68,
+        "atk": 7,
+        "def": 4,
+        "agi": 3,
+        "cri": 7
+      },
+      {
+        "name": "マンティコア",
+        "category": "[Normal]",
+        "hp": 115,
+        "atk": 9,
+        "def": 6,
+        "agi": 4,
+        "cri": 7
+      },
+      {
+        "name": "ケルベロス",
+        "category": "[Hard]",
+        "hp": 210,
+        "atk": 12,
+        "def": 7,
+        "agi": 5,
+        "cri": 6
+      },
+      {
+        "name": "魔獣王の番兵",
+        "category": "[Hell]",
+        "hp": 385,
+        "atk": 16,
+        "def": 9,
+        "agi": 5,
+        "cri": 5
+      }
     ],
     "boss": {
       "name": "魔獣王キメラ",
-      "hp": 26000, "atk": 24, "def": 13, "agi": 6, "cri": 5,
+      "hp": 26000,
+      "atk": 24,
+      "def": 13,
+      "agi": 6,
+      "cri": 5,
       "initialWeapon": "三頭の顎",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "三頭の顎", "specialMove": "三頭連撃", "defBoost": 1, "atkBoost": 1 },
-        { "hpThreshold": 0.40, "weapon": "獅子の爪＋蛇の尾", "specialMove": "魔獣咆哮", "defBoost": 0, "atkBoost": 3 },
-        { "hpThreshold": 0.20, "weapon": "竜翼（飛行形態）", "specialMove": "キメラブレス", "defBoost": -1, "atkBoost": 5 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "三頭の顎",
+          "specialMove": "三頭連撃",
+          "defBoost": 1,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "獅子の爪＋蛇の尾",
+          "specialMove": "魔獣咆哮",
+          "defBoost": 0,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "竜翼（飛行形態）",
+          "specialMove": "キメラブレス",
+          "defBoost": -1,
+          "atkBoost": 5
+        }
       ],
       "drops": [
-        { "type": "material", "name": "キメラの角", "rarity": 3 },
-        { "type": "material", "name": "魔獣の心臓", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "キメラの角",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "魔獣の心臓",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "chimera_crown",
         "name": "キメラの角冠",
         "nameCn": "奇美拉角冠",
         "bossFloor": 15,
-        "effects": { "bossDamage": 0.12, "battleAtk": 0.08 }
+        "effects": {
+          "bossDamage": 0.12,
+          "battleAtk": 0.08
+        }
       }
     },
-    "materials": ["mat_floor15_ore", "mat_floor15_crystal"],
-    "places": ["魔獣の草原", "骨の谷", "巣窟の入口", "魔獣の闘技場", "BOSS房"],
+    "materials": [
+      "mat_floor15_ore",
+      "mat_floor15_crystal"
+    ],
+    "places": [
+      "魔獣の草原",
+      "骨の谷",
+      "巣窟の入口",
+      "魔獣の闘技場",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -522,33 +1593,101 @@
     "name": "水晶洞窟",
     "nameCn": "水晶洞窟",
     "enemies": [
-      { "name": "クリスタルバット", "category": "[Easy]", "hp": 72, "atk": 7, "def": 5, "agi": 3, "cri": 7 },
-      { "name": "鉱精スプライト", "category": "[Normal]", "hp": 122, "atk": 9, "def": 7, "agi": 3, "cri": 7 },
-      { "name": "水晶ゴーレム", "category": "[Hard]", "hp": 225, "atk": 12, "def": 8, "agi": 4, "cri": 6 },
-      { "name": "晶帝の守衛", "category": "[Hell]", "hp": 410, "atk": 17, "def": 10, "agi": 5, "cri": 5 }
+      {
+        "name": "クリスタルバット",
+        "category": "[Easy]",
+        "hp": 72,
+        "atk": 7,
+        "def": 5,
+        "agi": 3,
+        "cri": 7
+      },
+      {
+        "name": "鉱精スプライト",
+        "category": "[Normal]",
+        "hp": 122,
+        "atk": 9,
+        "def": 7,
+        "agi": 3,
+        "cri": 7
+      },
+      {
+        "name": "水晶ゴーレム",
+        "category": "[Hard]",
+        "hp": 225,
+        "atk": 12,
+        "def": 8,
+        "agi": 4,
+        "cri": 6
+      },
+      {
+        "name": "晶帝の守衛",
+        "category": "[Hell]",
+        "hp": 410,
+        "atk": 17,
+        "def": 10,
+        "agi": 5,
+        "cri": 5
+      }
     ],
     "boss": {
       "name": "晶帝ダイヤモンドゴーレム",
-      "hp": 30000, "atk": 25, "def": 14, "agi": 6, "cri": 5,
+      "hp": 30000,
+      "atk": 25,
+      "def": 14,
+      "agi": 6,
+      "cri": 5,
       "initialWeapon": "水晶の拳",
       "phases": [
-        { "hpThreshold": 0.50, "weapon": "水晶の拳", "specialMove": "水晶弾幕", "defBoost": 2, "atkBoost": 1 },
-        { "hpThreshold": 0.25, "weapon": "ダイヤモンドブレード", "specialMove": "晶帝粉砕", "defBoost": 0, "atkBoost": 5 }
+        {
+          "hpThreshold": 0.5,
+          "weapon": "水晶の拳",
+          "specialMove": "水晶弾幕",
+          "defBoost": 2,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "ダイヤモンドブレード",
+          "specialMove": "晶帝粉砕",
+          "defBoost": 0,
+          "atkBoost": 5
+        }
       ],
       "drops": [
-        { "type": "material", "name": "ダイヤモンドの欠片", "rarity": 3 },
-        { "type": "material", "name": "水晶の心核", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "ダイヤモンドの欠片",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "水晶の心核",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "crystal_ring",
         "name": "水晶の指輪",
         "nameCn": "水晶之戒",
         "bossFloor": 16,
-        "effects": { "forgeDurability": 0.12, "mineStarChance": 0.08 }
+        "effects": {
+          "forgeDurability": 0.12,
+          "mineStarChance": 0.08
+        }
       }
     },
-    "materials": ["mat_floor15_ore", "mat_floor15_crystal"],
-    "places": ["洞窟の入口", "水晶の回廊", "輝く地底湖", "晶帝の玉座", "BOSS房"],
+    "materials": [
+      "mat_floor15_ore",
+      "mat_floor15_crystal"
+    ],
+    "places": [
+      "洞窟の入口",
+      "水晶の回廊",
+      "輝く地底湖",
+      "晶帝の玉座",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -556,34 +1695,108 @@
     "name": "雷の塔",
     "nameCn": "雷之塔",
     "enemies": [
-      { "name": "雷スライム", "category": "[Easy]", "hp": 78, "atk": 8, "def": 4, "agi": 4, "cri": 7 },
-      { "name": "サンダーナイト", "category": "[Normal]", "hp": 130, "atk": 10, "def": 6, "agi": 5, "cri": 6 },
-      { "name": "雷獣", "category": "[Hard]", "hp": 240, "atk": 13, "def": 8, "agi": 6, "cri": 6 },
-      { "name": "雷帝の近衛", "category": "[Hell]", "hp": 440, "atk": 18, "def": 10, "agi": 6, "cri": 5 }
+      {
+        "name": "雷スライム",
+        "category": "[Easy]",
+        "hp": 78,
+        "atk": 8,
+        "def": 4,
+        "agi": 4,
+        "cri": 7
+      },
+      {
+        "name": "サンダーナイト",
+        "category": "[Normal]",
+        "hp": 130,
+        "atk": 10,
+        "def": 6,
+        "agi": 5,
+        "cri": 6
+      },
+      {
+        "name": "雷獣",
+        "category": "[Hard]",
+        "hp": 240,
+        "atk": 13,
+        "def": 8,
+        "agi": 6,
+        "cri": 6
+      },
+      {
+        "name": "雷帝の近衛",
+        "category": "[Hell]",
+        "hp": 440,
+        "atk": 18,
+        "def": 10,
+        "agi": 6,
+        "cri": 5
+      }
     ],
     "boss": {
       "name": "雷帝トール",
-      "hp": 35000, "atk": 27, "def": 15, "agi": 7, "cri": 5,
+      "hp": 35000,
+      "atk": 27,
+      "def": 15,
+      "agi": 7,
+      "cri": 5,
       "initialWeapon": "雷槌ミョルニル",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "雷槌ミョルニル", "specialMove": "雷鳴一撃", "defBoost": 1, "atkBoost": 2 },
-        { "hpThreshold": 0.40, "weapon": "雷槌＋雷盾", "specialMove": "雷神結界", "defBoost": 3, "atkBoost": 1 },
-        { "hpThreshold": 0.20, "weapon": "雷神の力（素手）", "specialMove": "万雷崩壊", "defBoost": -2, "atkBoost": 6 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "雷槌ミョルニル",
+          "specialMove": "雷鳴一撃",
+          "defBoost": 1,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "雷槌＋雷盾",
+          "specialMove": "雷神結界",
+          "defBoost": 3,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "雷神の力（素手）",
+          "specialMove": "万雷崩壊",
+          "defBoost": -2,
+          "atkBoost": 6
+        }
       ],
       "drops": [
-        { "type": "material", "name": "雷帝の核", "rarity": 3 },
-        { "type": "material", "name": "雷鉄の欠片", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "雷帝の核",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "雷鉄の欠片",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "thunder_bracelet",
         "name": "雷神の腕輪",
         "nameCn": "雷神腕輪",
         "bossFloor": 17,
-        "effects": { "battleAtk": 0.15, "bossDamage": 0.10 }
+        "effects": {
+          "battleAtk": 0.15,
+          "bossDamage": 0.1
+        }
       }
     },
-    "materials": ["mat_floor17_ore", "mat_floor17_crystal"],
-    "places": ["塔の麓", "回転階段", "雷の回廊", "雷帝の間", "BOSS房"],
+    "materials": [
+      "mat_floor17_ore",
+      "mat_floor17_crystal"
+    ],
+    "places": [
+      "塔の麓",
+      "回転階段",
+      "雷の回廊",
+      "雷帝の間",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -591,34 +1804,108 @@
     "name": "死者の都",
     "nameCn": "死者之都",
     "enemies": [
-      { "name": "スケルトン兵", "category": "[Easy]", "hp": 82, "atk": 8, "def": 5, "agi": 3, "cri": 7 },
-      { "name": "ゾンビナイト", "category": "[Normal]", "hp": 138, "atk": 10, "def": 7, "agi": 3, "cri": 7 },
-      { "name": "ヴァンパイア", "category": "[Hard]", "hp": 255, "atk": 14, "def": 9, "agi": 6, "cri": 5 },
-      { "name": "死霊王の近衛", "category": "[Hell]", "hp": 470, "atk": 19, "def": 11, "agi": 6, "cri": 5 }
+      {
+        "name": "スケルトン兵",
+        "category": "[Easy]",
+        "hp": 82,
+        "atk": 8,
+        "def": 5,
+        "agi": 3,
+        "cri": 7
+      },
+      {
+        "name": "ゾンビナイト",
+        "category": "[Normal]",
+        "hp": 138,
+        "atk": 10,
+        "def": 7,
+        "agi": 3,
+        "cri": 7
+      },
+      {
+        "name": "ヴァンパイア",
+        "category": "[Hard]",
+        "hp": 255,
+        "atk": 14,
+        "def": 9,
+        "agi": 6,
+        "cri": 5
+      },
+      {
+        "name": "死霊王の近衛",
+        "category": "[Hell]",
+        "hp": 470,
+        "atk": 19,
+        "def": 11,
+        "agi": 6,
+        "cri": 5
+      }
     ],
     "boss": {
       "name": "不死王ノスフェラトゥ",
-      "hp": 40000, "atk": 28, "def": 16, "agi": 7, "cri": 4,
+      "hp": 40000,
+      "atk": 28,
+      "def": 16,
+      "agi": 7,
+      "cri": 4,
       "initialWeapon": "血の剣",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "血の剣", "specialMove": "吸血斬撃", "defBoost": 1, "atkBoost": 1 },
-        { "hpThreshold": 0.40, "weapon": "闇のマント", "specialMove": "闇夜の霧", "defBoost": 3, "atkBoost": 0 },
-        { "hpThreshold": 0.20, "weapon": "真祖の力（変身形態）", "specialMove": "真祖の裁き", "defBoost": -1, "atkBoost": 6 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "血の剣",
+          "specialMove": "吸血斬撃",
+          "defBoost": 1,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "闇のマント",
+          "specialMove": "闇夜の霧",
+          "defBoost": 3,
+          "atkBoost": 0
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "真祖の力（変身形態）",
+          "specialMove": "真祖の裁き",
+          "defBoost": -1,
+          "atkBoost": 6
+        }
       ],
       "drops": [
-        { "type": "material", "name": "不死王の血晶", "rarity": 3 },
-        { "type": "material", "name": "死者の骨", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "不死王の血晶",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "死者の骨",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "undead_crown",
         "name": "不死王の冠",
         "nameCn": "不死王之冠",
         "bossFloor": 18,
-        "effects": { "battleDef": 0.15, "npcDeathChance": -0.12 }
+        "effects": {
+          "battleDef": 0.15,
+          "npcDeathChance": -0.12
+        }
       }
     },
-    "materials": ["mat_floor17_ore", "mat_floor17_crystal"],
-    "places": ["墓地の入口", "亡者の街路", "血の教会", "不死王の城", "BOSS房"],
+    "materials": [
+      "mat_floor17_ore",
+      "mat_floor17_crystal"
+    ],
+    "places": [
+      "墓地の入口",
+      "亡者の街路",
+      "血の教会",
+      "不死王の城",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -626,34 +1913,108 @@
     "name": "深淵の森",
     "nameCn": "深淵之森",
     "enemies": [
-      { "name": "シャドウウルフ", "category": "[Easy]", "hp": 88, "atk": 9, "def": 5, "agi": 4, "cri": 6 },
-      { "name": "ダークドレイク", "category": "[Normal]", "hp": 148, "atk": 11, "def": 7, "agi": 5, "cri": 6 },
-      { "name": "深淵の騎士", "category": "[Hard]", "hp": 270, "atk": 15, "def": 10, "agi": 6, "cri": 5 },
-      { "name": "深淵竜の眷属", "category": "[Hell]", "hp": 500, "atk": 20, "def": 12, "agi": 7, "cri": 5 }
+      {
+        "name": "シャドウウルフ",
+        "category": "[Easy]",
+        "hp": 88,
+        "atk": 9,
+        "def": 5,
+        "agi": 4,
+        "cri": 6
+      },
+      {
+        "name": "ダークドレイク",
+        "category": "[Normal]",
+        "hp": 148,
+        "atk": 11,
+        "def": 7,
+        "agi": 5,
+        "cri": 6
+      },
+      {
+        "name": "深淵の騎士",
+        "category": "[Hard]",
+        "hp": 270,
+        "atk": 15,
+        "def": 10,
+        "agi": 6,
+        "cri": 5
+      },
+      {
+        "name": "深淵竜の眷属",
+        "category": "[Hell]",
+        "hp": 500,
+        "atk": 20,
+        "def": 12,
+        "agi": 7,
+        "cri": 5
+      }
     ],
     "boss": {
       "name": "深淵竜ニーズヘッグ",
-      "hp": 47000, "atk": 30, "def": 17, "agi": 8, "cri": 4,
+      "hp": 47000,
+      "atk": 30,
+      "def": 17,
+      "agi": 8,
+      "cri": 4,
       "initialWeapon": "深淵の爪",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "深淵の爪", "specialMove": "暗黒ブレス", "defBoost": 1, "atkBoost": 2 },
-        { "hpThreshold": 0.40, "weapon": "深淵の翼", "specialMove": "深淵の嵐", "defBoost": 0, "atkBoost": 3 },
-        { "hpThreshold": 0.20, "weapon": "深淵の力（全開放）", "specialMove": "世界終焉", "defBoost": -2, "atkBoost": 7 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "深淵の爪",
+          "specialMove": "暗黒ブレス",
+          "defBoost": 1,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "深淵の翼",
+          "specialMove": "深淵の嵐",
+          "defBoost": 0,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "深淵の力（全開放）",
+          "specialMove": "世界終焉",
+          "defBoost": -2,
+          "atkBoost": 7
+        }
       ],
       "drops": [
-        { "type": "material", "name": "深淵竜の鱗", "rarity": 3 },
-        { "type": "material", "name": "深淵の核", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "深淵竜の鱗",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "深淵の核",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "abyss_scale",
         "name": "深淵竜の鱗飾り",
         "nameCn": "深淵龍鱗",
         "bossFloor": 19,
-        "effects": { "bossDamage": 0.15, "battleAtk": 0.12 }
+        "effects": {
+          "bossDamage": 0.15,
+          "battleAtk": 0.12
+        }
       }
     },
-    "materials": ["mat_floor19_ore", "mat_floor19_crystal"],
-    "places": ["深淵の入口", "闇の樹海", "竜の棲家", "深淵の祭壇", "BOSS房"],
+    "materials": [
+      "mat_floor19_ore",
+      "mat_floor19_crystal"
+    ],
+    "places": [
+      "深淵の入口",
+      "闇の樹海",
+      "竜の棲家",
+      "深淵の祭壇",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -661,34 +2022,109 @@
     "name": "天空の城",
     "nameCn": "天空之城",
     "enemies": [
-      { "name": "天使兵", "category": "[Easy]", "hp": 95, "atk": 10, "def": 6, "agi": 5, "cri": 6 },
-      { "name": "熾天使", "category": "[Normal]", "hp": 160, "atk": 12, "def": 8, "agi": 6, "cri": 5 },
-      { "name": "天空の守護者", "category": "[Hard]", "hp": 290, "atk": 16, "def": 11, "agi": 7, "cri": 5 },
-      { "name": "天空王の親衛", "category": "[Hell]", "hp": 540, "atk": 22, "def": 13, "agi": 8, "cri": 4 }
+      {
+        "name": "天使兵",
+        "category": "[Easy]",
+        "hp": 95,
+        "atk": 10,
+        "def": 6,
+        "agi": 5,
+        "cri": 6
+      },
+      {
+        "name": "熾天使",
+        "category": "[Normal]",
+        "hp": 160,
+        "atk": 12,
+        "def": 8,
+        "agi": 6,
+        "cri": 5
+      },
+      {
+        "name": "天空の守護者",
+        "category": "[Hard]",
+        "hp": 290,
+        "atk": 16,
+        "def": 11,
+        "agi": 7,
+        "cri": 5
+      },
+      {
+        "name": "天空王の親衛",
+        "category": "[Hell]",
+        "hp": 540,
+        "atk": 22,
+        "def": 13,
+        "agi": 8,
+        "cri": 4
+      }
     ],
     "boss": {
       "name": "天空王ウリエル",
-      "hp": 55000, "atk": 33, "def": 18, "agi": 9, "cri": 4,
+      "hp": 55000,
+      "atk": 33,
+      "def": 18,
+      "agi": 9,
+      "cri": 4,
       "initialWeapon": "聖剣エクスカリバー",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "聖剣エクスカリバー", "specialMove": "聖光の剣閃", "defBoost": 1, "atkBoost": 2 },
-        { "hpThreshold": 0.40, "weapon": "六翼展開＋聖盾", "specialMove": "天空結界", "defBoost": 4, "atkBoost": 1 },
-        { "hpThreshold": 0.20, "weapon": "天空の力（神化形態）", "specialMove": "天空崩壊", "defBoost": -2, "atkBoost": 8 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "聖剣エクスカリバー",
+          "specialMove": "聖光の剣閃",
+          "defBoost": 1,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "六翼展開＋聖盾",
+          "specialMove": "天空結界",
+          "defBoost": 4,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "天空の力（神化形態）",
+          "specialMove": "天空崩壊",
+          "defBoost": -2,
+          "atkBoost": 8
+        }
       ],
       "drops": [
-        { "type": "material", "name": "天空の結晶", "rarity": 3 },
-        { "type": "material", "name": "天使の羽根", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "天空の結晶",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "天使の羽根",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "sky_crest",
         "name": "天空王の紋章",
         "nameCn": "天空王紋章",
         "bossFloor": 20,
-        "effects": { "bossDamage": 0.18, "battleAtk": 0.12, "battleDef": 0.08 }
+        "effects": {
+          "bossDamage": 0.18,
+          "battleAtk": 0.12,
+          "battleDef": 0.08
+        }
       }
     },
-    "materials": ["mat_floor19_ore", "mat_floor19_crystal"],
-    "places": ["天空への階段", "雲海の道", "天使の回廊", "天空王の玉座", "BOSS房"],
+    "materials": [
+      "mat_floor19_ore",
+      "mat_floor19_crystal"
+    ],
+    "places": [
+      "天空への階段",
+      "雲海の道",
+      "天使の回廊",
+      "天空王の玉座",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -696,34 +2132,108 @@
     "name": "灼熱の砂丘",
     "nameCn": "灼熱沙丘",
     "enemies": [
-      { "name": "砂嵐のジン", "category": "[Easy]", "hp": 102, "atk": 11, "def": 6, "agi": 5, "cri": 6 },
-      { "name": "デザートウォーム", "category": "[Normal]", "hp": 172, "atk": 13, "def": 9, "agi": 6, "cri": 5 },
-      { "name": "灼熱の魔剣士", "category": "[Hard]", "hp": 310, "atk": 17, "def": 12, "agi": 7, "cri": 5 },
-      { "name": "砂帝の守護者", "category": "[Hell]", "hp": 580, "atk": 23, "def": 14, "agi": 8, "cri": 4 }
+      {
+        "name": "砂嵐のジン",
+        "category": "[Easy]",
+        "hp": 102,
+        "atk": 11,
+        "def": 6,
+        "agi": 5,
+        "cri": 6
+      },
+      {
+        "name": "デザートウォーム",
+        "category": "[Normal]",
+        "hp": 172,
+        "atk": 13,
+        "def": 9,
+        "agi": 6,
+        "cri": 5
+      },
+      {
+        "name": "灼熱の魔剣士",
+        "category": "[Hard]",
+        "hp": 310,
+        "atk": 17,
+        "def": 12,
+        "agi": 7,
+        "cri": 5
+      },
+      {
+        "name": "砂帝の守護者",
+        "category": "[Hell]",
+        "hp": 580,
+        "atk": 23,
+        "def": 14,
+        "agi": 8,
+        "cri": 4
+      }
     ],
     "boss": {
       "name": "砂帝スルト",
-      "hp": 65000, "atk": 35, "def": 19, "agi": 10, "cri": 4,
+      "hp": 65000,
+      "atk": 35,
+      "def": 19,
+      "agi": 10,
+      "cri": 4,
       "initialWeapon": "炎砂の大剣",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "炎砂の大剣", "specialMove": "砂塵灼熱斬", "defBoost": 1, "atkBoost": 2 },
-        { "hpThreshold": 0.40, "weapon": "炎砂の盾＋大剣", "specialMove": "灼熱結界", "defBoost": 3, "atkBoost": 1 },
-        { "hpThreshold": 0.20, "weapon": "炎砂の力（砂嵐形態）", "specialMove": "砂帝崩壊", "defBoost": -2, "atkBoost": 7 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "炎砂の大剣",
+          "specialMove": "砂塵灼熱斬",
+          "defBoost": 1,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "炎砂の盾＋大剣",
+          "specialMove": "灼熱結界",
+          "defBoost": 3,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "炎砂の力（砂嵐形態）",
+          "specialMove": "砂帝崩壊",
+          "defBoost": -2,
+          "atkBoost": 7
+        }
       ],
       "drops": [
-        { "type": "material", "name": "砂帝の炎核", "rarity": 3 },
-        { "type": "material", "name": "灼熱砂の結晶", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "砂帝の炎核",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "灼熱砂の結晶",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "sand_emperor_ring",
         "name": "砂帝の指輪",
         "nameCn": "砂帝之戒",
         "bossFloor": 21,
-        "effects": { "battleAtk": 0.15, "bossDamage": 0.12 }
+        "effects": {
+          "battleAtk": 0.15,
+          "bossDamage": 0.12
+        }
       }
     },
-    "materials": ["mat_floor21_ore", "mat_floor21_crystal"],
-    "places": ["灼熱の砂道", "蜃気楼の街", "砂嵐の回廊", "砂帝の宮殿", "BOSS房"],
+    "materials": [
+      "mat_floor21_ore",
+      "mat_floor21_crystal"
+    ],
+    "places": [
+      "灼熱の砂道",
+      "蜃気楼の街",
+      "砂嵐の回廊",
+      "砂帝の宮殿",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -731,34 +2241,108 @@
     "name": "古代図書館",
     "nameCn": "古代圖書館",
     "enemies": [
-      { "name": "魔導書ゴーレム", "category": "[Easy]", "hp": 108, "atk": 11, "def": 7, "agi": 5, "cri": 6 },
-      { "name": "呪文の番人", "category": "[Normal]", "hp": 182, "atk": 14, "def": 9, "agi": 6, "cri": 5 },
-      { "name": "大魔導士", "category": "[Hard]", "hp": 330, "atk": 18, "def": 12, "agi": 8, "cri": 5 },
-      { "name": "禁書の守護者", "category": "[Hell]", "hp": 615, "atk": 24, "def": 15, "agi": 9, "cri": 4 }
+      {
+        "name": "魔導書ゴーレム",
+        "category": "[Easy]",
+        "hp": 108,
+        "atk": 11,
+        "def": 7,
+        "agi": 5,
+        "cri": 6
+      },
+      {
+        "name": "呪文の番人",
+        "category": "[Normal]",
+        "hp": 182,
+        "atk": 14,
+        "def": 9,
+        "agi": 6,
+        "cri": 5
+      },
+      {
+        "name": "大魔導士",
+        "category": "[Hard]",
+        "hp": 330,
+        "atk": 18,
+        "def": 12,
+        "agi": 8,
+        "cri": 5
+      },
+      {
+        "name": "禁書の守護者",
+        "category": "[Hell]",
+        "hp": 615,
+        "atk": 24,
+        "def": 15,
+        "agi": 9,
+        "cri": 4
+      }
     ],
     "boss": {
       "name": "禁書王グリモワール",
-      "hp": 76000, "atk": 37, "def": 20, "agi": 10, "cri": 4,
+      "hp": 76000,
+      "atk": 37,
+      "def": 20,
+      "agi": 10,
+      "cri": 4,
       "initialWeapon": "禁断の魔導書",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "禁断の魔導書", "specialMove": "古代魔法・連鎖詠唱", "defBoost": 2, "atkBoost": 1 },
-        { "hpThreshold": 0.40, "weapon": "魔導杖＋浮遊書籍", "specialMove": "万巻の呪い", "defBoost": 1, "atkBoost": 3 },
-        { "hpThreshold": 0.20, "weapon": "禁書の力（真の姿）", "specialMove": "禁忌大魔法・世界改変", "defBoost": -1, "atkBoost": 7 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "禁断の魔導書",
+          "specialMove": "古代魔法・連鎖詠唱",
+          "defBoost": 2,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "魔導杖＋浮遊書籍",
+          "specialMove": "万巻の呪い",
+          "defBoost": 1,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "禁書の力（真の姿）",
+          "specialMove": "禁忌大魔法・世界改変",
+          "defBoost": -1,
+          "atkBoost": 7
+        }
       ],
       "drops": [
-        { "type": "material", "name": "禁書の頁", "rarity": 3 },
-        { "type": "material", "name": "古代のインク", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "禁書の頁",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "古代のインク",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "grimoire_pendant",
         "name": "禁書のペンダント",
         "nameCn": "禁書墜飾",
         "bossFloor": 22,
-        "effects": { "mineStarChance": 0.12, "advColReward": 0.10 }
+        "effects": {
+          "mineStarChance": 0.12,
+          "advColReward": 0.1
+        }
       }
     },
-    "materials": ["mat_floor21_ore", "mat_floor21_crystal"],
-    "places": ["図書館入口", "無限の書架", "禁書の間", "知識の祭壇", "BOSS房"],
+    "materials": [
+      "mat_floor21_ore",
+      "mat_floor21_crystal"
+    ],
+    "places": [
+      "図書館入口",
+      "無限の書架",
+      "禁書の間",
+      "知識の祭壇",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -766,34 +2350,108 @@
     "name": "血の監獄",
     "nameCn": "血之監獄",
     "enemies": [
-      { "name": "獄卒ゴブリン", "category": "[Easy]", "hp": 115, "atk": 12, "def": 7, "agi": 6, "cri": 6 },
-      { "name": "鉄鎖の囚人", "category": "[Normal]", "hp": 195, "atk": 15, "def": 10, "agi": 6, "cri": 5 },
-      { "name": "血の処刑人", "category": "[Hard]", "hp": 350, "atk": 19, "def": 13, "agi": 8, "cri": 4 },
-      { "name": "監獄長ブラッド", "category": "[Hell]", "hp": 650, "atk": 26, "def": 15, "agi": 9, "cri": 4 }
+      {
+        "name": "獄卒ゴブリン",
+        "category": "[Easy]",
+        "hp": 115,
+        "atk": 12,
+        "def": 7,
+        "agi": 6,
+        "cri": 6
+      },
+      {
+        "name": "鉄鎖の囚人",
+        "category": "[Normal]",
+        "hp": 195,
+        "atk": 15,
+        "def": 10,
+        "agi": 6,
+        "cri": 5
+      },
+      {
+        "name": "血の処刑人",
+        "category": "[Hard]",
+        "hp": 350,
+        "atk": 19,
+        "def": 13,
+        "agi": 8,
+        "cri": 4
+      },
+      {
+        "name": "監獄長ブラッド",
+        "category": "[Hell]",
+        "hp": 650,
+        "atk": 26,
+        "def": 15,
+        "agi": 9,
+        "cri": 4
+      }
     ],
     "boss": {
       "name": "血帝ヴラドリア",
-      "hp": 88000, "atk": 39, "def": 21, "agi": 11, "cri": 4,
+      "hp": 88000,
+      "atk": 39,
+      "def": 21,
+      "agi": 11,
+      "cri": 4,
       "initialWeapon": "血の鎖鞭",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "血の鎖鞭", "specialMove": "血鎖縛殺", "defBoost": 1, "atkBoost": 2 },
-        { "hpThreshold": 0.40, "weapon": "血の大斧", "specialMove": "処刑宣告", "defBoost": 0, "atkBoost": 4 },
-        { "hpThreshold": 0.20, "weapon": "血の力（吸血形態）", "specialMove": "血帝の裁き・生命簒奪", "defBoost": -1, "atkBoost": 8 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "血の鎖鞭",
+          "specialMove": "血鎖縛殺",
+          "defBoost": 1,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "血の大斧",
+          "specialMove": "処刑宣告",
+          "defBoost": 0,
+          "atkBoost": 4
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "血の力（吸血形態）",
+          "specialMove": "血帝の裁き・生命簒奪",
+          "defBoost": -1,
+          "atkBoost": 8
+        }
       ],
       "drops": [
-        { "type": "material", "name": "血帝の牙", "rarity": 3 },
-        { "type": "material", "name": "血鉄の鎖", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "血帝の牙",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "血鉄の鎖",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "blood_crown",
         "name": "血帝の王冠",
         "nameCn": "血帝王冠",
         "bossFloor": 23,
-        "effects": { "battleAtk": 0.18, "npcCondLoss": -0.15 }
+        "effects": {
+          "battleAtk": 0.18,
+          "npcCondLoss": -0.15
+        }
       }
     },
-    "materials": ["mat_floor23_ore", "mat_floor23_crystal"],
-    "places": ["監獄の門", "鉄格子の回廊", "処刑場", "血の玉座", "BOSS房"],
+    "materials": [
+      "mat_floor23_ore",
+      "mat_floor23_crystal"
+    ],
+    "places": [
+      "監獄の門",
+      "鉄格子の回廊",
+      "処刑場",
+      "血の玉座",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -801,34 +2459,108 @@
     "name": "精霊の聖域",
     "nameCn": "精靈聖域",
     "enemies": [
-      { "name": "花精霊", "category": "[Easy]", "hp": 120, "atk": 12, "def": 8, "agi": 7, "cri": 5 },
-      { "name": "古樹の守護者", "category": "[Normal]", "hp": 205, "atk": 15, "def": 11, "agi": 7, "cri": 5 },
-      { "name": "精霊騎士", "category": "[Hard]", "hp": 370, "atk": 20, "def": 14, "agi": 9, "cri": 4 },
-      { "name": "大精霊の従者", "category": "[Hell]", "hp": 690, "atk": 27, "def": 16, "agi": 10, "cri": 4 }
+      {
+        "name": "花精霊",
+        "category": "[Easy]",
+        "hp": 120,
+        "atk": 12,
+        "def": 8,
+        "agi": 7,
+        "cri": 5
+      },
+      {
+        "name": "古樹の守護者",
+        "category": "[Normal]",
+        "hp": 205,
+        "atk": 15,
+        "def": 11,
+        "agi": 7,
+        "cri": 5
+      },
+      {
+        "name": "精霊騎士",
+        "category": "[Hard]",
+        "hp": 370,
+        "atk": 20,
+        "def": 14,
+        "agi": 9,
+        "cri": 4
+      },
+      {
+        "name": "大精霊の従者",
+        "category": "[Hell]",
+        "hp": 690,
+        "atk": 27,
+        "def": 16,
+        "agi": 10,
+        "cri": 4
+      }
     ],
     "boss": {
       "name": "大精霊ティターニア",
-      "hp": 102000, "atk": 41, "def": 22, "agi": 11, "cri": 3,
+      "hp": 102000,
+      "atk": 41,
+      "def": 22,
+      "agi": 11,
+      "cri": 3,
       "initialWeapon": "精霊の杖",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "精霊の杖", "specialMove": "精霊召喚・四大元素", "defBoost": 2, "atkBoost": 1 },
-        { "hpThreshold": 0.40, "weapon": "世界樹の枝", "specialMove": "聖域結界・生命の加護", "defBoost": 4, "atkBoost": 0 },
-        { "hpThreshold": 0.20, "weapon": "精霊王の力（覚醒形態）", "specialMove": "精霊王崩壊・自然の怒り", "defBoost": -1, "atkBoost": 8 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "精霊の杖",
+          "specialMove": "精霊召喚・四大元素",
+          "defBoost": 2,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "世界樹の枝",
+          "specialMove": "聖域結界・生命の加護",
+          "defBoost": 4,
+          "atkBoost": 0
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "精霊王の力（覚醒形態）",
+          "specialMove": "精霊王崩壊・自然の怒り",
+          "defBoost": -1,
+          "atkBoost": 8
+        }
       ],
       "drops": [
-        { "type": "material", "name": "大精霊の涙", "rarity": 3 },
-        { "type": "material", "name": "世界樹の欠片", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "大精霊の涙",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "世界樹の欠片",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "spirit_tiara",
         "name": "精霊王のティアラ",
         "nameCn": "精靈王皇冠",
         "bossFloor": 24,
-        "effects": { "npcDeathChance": -0.18, "battleDef": 0.15 }
+        "effects": {
+          "npcDeathChance": -0.18,
+          "battleDef": 0.15
+        }
       }
     },
-    "materials": ["mat_floor23_ore", "mat_floor23_crystal"],
-    "places": ["聖域の門", "精霊の泉", "世界樹の根元", "精霊王の間", "BOSS房"],
+    "materials": [
+      "mat_floor23_ore",
+      "mat_floor23_crystal"
+    ],
+    "places": [
+      "聖域の門",
+      "精霊の泉",
+      "世界樹の根元",
+      "精霊王の間",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -836,36 +2568,125 @@
     "name": "魔王の城",
     "nameCn": "魔王之城",
     "enemies": [
-      { "name": "デーモンインプ", "category": "[Easy]", "hp": 128, "atk": 13, "def": 8, "agi": 7, "cri": 5 },
-      { "name": "魔族の戦士", "category": "[Normal]", "hp": 218, "atk": 16, "def": 11, "agi": 8, "cri": 5 },
-      { "name": "魔将軍", "category": "[Hard]", "hp": 395, "atk": 21, "def": 14, "agi": 9, "cri": 4 },
-      { "name": "魔王の親衛隊長", "category": "[Hell]", "hp": 735, "atk": 29, "def": 17, "agi": 10, "cri": 3 },
-      { "name": "魔王の影", "category": "[優樹]", "hp": 1200, "atk": 38, "def": 22, "agi": 13, "cri": 3 }
+      {
+        "name": "デーモンインプ",
+        "category": "[Easy]",
+        "hp": 128,
+        "atk": 13,
+        "def": 8,
+        "agi": 7,
+        "cri": 5
+      },
+      {
+        "name": "魔族の戦士",
+        "category": "[Normal]",
+        "hp": 218,
+        "atk": 16,
+        "def": 11,
+        "agi": 8,
+        "cri": 5
+      },
+      {
+        "name": "魔将軍",
+        "category": "[Hard]",
+        "hp": 395,
+        "atk": 21,
+        "def": 14,
+        "agi": 9,
+        "cri": 4
+      },
+      {
+        "name": "魔王の親衛隊長",
+        "category": "[Hell]",
+        "hp": 735,
+        "atk": 29,
+        "def": 17,
+        "agi": 10,
+        "cri": 3
+      },
+      {
+        "name": "魔王の影",
+        "category": "[優樹]",
+        "hp": 1200,
+        "atk": 38,
+        "def": 22,
+        "agi": 13,
+        "cri": 3
+      }
     ],
     "boss": {
       "name": "魔王ベリアル",
-      "hp": 115000, "atk": 44, "def": 24, "agi": 12, "cri": 3,
+      "hp": 115000,
+      "atk": 44,
+      "def": 24,
+      "agi": 12,
+      "cri": 3,
       "initialWeapon": "魔剣ダインスレイブ",
       "phases": [
-        { "hpThreshold": 0.70, "weapon": "魔剣ダインスレイブ", "specialMove": "魔剣一閃・暗黒裂破", "defBoost": 1, "atkBoost": 2 },
-        { "hpThreshold": 0.45, "weapon": "魔剣＋魔盾", "specialMove": "魔王結界・絶対防御", "defBoost": 4, "atkBoost": 1 },
-        { "hpThreshold": 0.25, "weapon": "双魔剣（二刀流）", "specialMove": "魔王双斬・暗黒旋風", "defBoost": 0, "atkBoost": 5 },
-        { "hpThreshold": 0.10, "weapon": "魔王の力（真の姿）", "specialMove": "終焉の業火・全てを焼く炎", "defBoost": -3, "atkBoost": 10 }
+        {
+          "hpThreshold": 0.7,
+          "weapon": "魔剣ダインスレイブ",
+          "specialMove": "魔剣一閃・暗黒裂破",
+          "defBoost": 1,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "魔剣＋魔盾",
+          "specialMove": "魔王結界・絶対防御",
+          "defBoost": 4,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "双魔剣（二刀流）",
+          "specialMove": "魔王双斬・暗黒旋風",
+          "defBoost": 0,
+          "atkBoost": 5
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "魔王の力（真の姿）",
+          "specialMove": "終焉の業火・全てを焼く炎",
+          "defBoost": -3,
+          "atkBoost": 10
+        }
       ],
       "drops": [
-        { "type": "material", "name": "魔王の心臓", "rarity": 3 },
-        { "type": "material", "name": "魔剣の欠片", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "魔王の心臓",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "魔剣の欠片",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "demon_king_crest",
         "name": "魔王の紋章",
         "nameCn": "魔王紋章",
         "bossFloor": 25,
-        "effects": { "bossDamage": 0.20, "battleAtk": 0.15, "battleDef": 0.10 }
+        "effects": {
+          "bossDamage": 0.2,
+          "battleAtk": 0.15,
+          "battleDef": 0.1
+        }
       }
     },
-    "materials": ["mat_floor25_ore", "mat_floor25_crystal"],
-    "places": ["魔城の門", "悪魔の回廊", "魔将軍の間", "玉座への階段", "BOSS房"],
+    "materials": [
+      "mat_floor25_ore",
+      "mat_floor25_crystal"
+    ],
+    "places": [
+      "魔城の門",
+      "悪魔の回廊",
+      "魔将軍の間",
+      "玉座への階段",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -873,34 +2694,108 @@
     "name": "時空の裂け目",
     "nameCn": "時空裂隙",
     "enemies": [
-      { "name": "時空のゆがみ", "category": "[Easy]", "hp": 135, "atk": 14, "def": 9, "agi": 7, "cri": 5 },
-      { "name": "クロノファントム", "category": "[Normal]", "hp": 230, "atk": 17, "def": 12, "agi": 8, "cri": 5 },
-      { "name": "次元の番兵", "category": "[Hard]", "hp": 420, "atk": 22, "def": 15, "agi": 10, "cri": 4 },
-      { "name": "時空の支配者", "category": "[Hell]", "hp": 785, "atk": 30, "def": 18, "agi": 11, "cri": 3 }
+      {
+        "name": "時空のゆがみ",
+        "category": "[Easy]",
+        "hp": 135,
+        "atk": 14,
+        "def": 9,
+        "agi": 7,
+        "cri": 5
+      },
+      {
+        "name": "クロノファントム",
+        "category": "[Normal]",
+        "hp": 230,
+        "atk": 17,
+        "def": 12,
+        "agi": 8,
+        "cri": 5
+      },
+      {
+        "name": "次元の番兵",
+        "category": "[Hard]",
+        "hp": 420,
+        "atk": 22,
+        "def": 15,
+        "agi": 10,
+        "cri": 4
+      },
+      {
+        "name": "時空の支配者",
+        "category": "[Hell]",
+        "hp": 785,
+        "atk": 30,
+        "def": 18,
+        "agi": 11,
+        "cri": 3
+      }
     ],
     "boss": {
       "name": "時空帝クロノス",
-      "hp": 135000, "atk": 46, "def": 25, "agi": 12, "cri": 3,
+      "hp": 135000,
+      "atk": 46,
+      "def": 25,
+      "agi": 12,
+      "cri": 3,
       "initialWeapon": "時空の大鎌",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "時空の大鎌", "specialMove": "時空裂断", "defBoost": 1, "atkBoost": 2 },
-        { "hpThreshold": 0.40, "weapon": "時空の盾（時間停止）", "specialMove": "時間凍結", "defBoost": 4, "atkBoost": 0 },
-        { "hpThreshold": 0.20, "weapon": "時空の力（次元崩壊形態）", "specialMove": "次元崩壊・時空消滅", "defBoost": -2, "atkBoost": 9 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "時空の大鎌",
+          "specialMove": "時空裂断",
+          "defBoost": 1,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "時空の盾（時間停止）",
+          "specialMove": "時間凍結",
+          "defBoost": 4,
+          "atkBoost": 0
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "時空の力（次元崩壊形態）",
+          "specialMove": "次元崩壊・時空消滅",
+          "defBoost": -2,
+          "atkBoost": 9
+        }
       ],
       "drops": [
-        { "type": "material", "name": "時空の歯車", "rarity": 3 },
-        { "type": "material", "name": "次元の欠片", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "時空の歯車",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "次元の欠片",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "chrono_hourglass",
         "name": "クロノスの砂時計",
         "nameCn": "克洛諾斯沙漏",
         "bossFloor": 26,
-        "effects": { "battleAgi": 0.18, "staminaCost": -0.15 }
+        "effects": {
+          "battleAgi": 0.18,
+          "staminaCost": -0.15
+        }
       }
     },
-    "materials": ["mat_floor25_ore", "mat_floor25_crystal"],
-    "places": ["裂け目の入口", "歪んだ回廊", "時計台の残骸", "時空の核心", "BOSS房"],
+    "materials": [
+      "mat_floor25_ore",
+      "mat_floor25_crystal"
+    ],
+    "places": [
+      "裂け目の入口",
+      "歪んだ回廊",
+      "時計台の残骸",
+      "時空の核心",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -908,34 +2803,108 @@
     "name": "毒竜の巣",
     "nameCn": "毒龍之巢",
     "enemies": [
-      { "name": "毒竜の幼体", "category": "[Easy]", "hp": 142, "atk": 14, "def": 10, "agi": 7, "cri": 5 },
-      { "name": "毒竜の眷属", "category": "[Normal]", "hp": 245, "atk": 18, "def": 12, "agi": 9, "cri": 4 },
-      { "name": "瘴気の竜騎士", "category": "[Hard]", "hp": 445, "atk": 23, "def": 16, "agi": 10, "cri": 4 },
-      { "name": "毒竜の近衛", "category": "[Hell]", "hp": 835, "atk": 32, "def": 19, "agi": 11, "cri": 3 }
+      {
+        "name": "毒竜の幼体",
+        "category": "[Easy]",
+        "hp": 142,
+        "atk": 14,
+        "def": 10,
+        "agi": 7,
+        "cri": 5
+      },
+      {
+        "name": "毒竜の眷属",
+        "category": "[Normal]",
+        "hp": 245,
+        "atk": 18,
+        "def": 12,
+        "agi": 9,
+        "cri": 4
+      },
+      {
+        "name": "瘴気の竜騎士",
+        "category": "[Hard]",
+        "hp": 445,
+        "atk": 23,
+        "def": 16,
+        "agi": 10,
+        "cri": 4
+      },
+      {
+        "name": "毒竜の近衛",
+        "category": "[Hell]",
+        "hp": 835,
+        "atk": 32,
+        "def": 19,
+        "agi": 11,
+        "cri": 3
+      }
     ],
     "boss": {
       "name": "毒竜王ファフニール",
-      "hp": 158000, "atk": 49, "def": 27, "agi": 13, "cri": 3,
+      "hp": 158000,
+      "atk": 49,
+      "def": 27,
+      "agi": 13,
+      "cri": 3,
       "initialWeapon": "毒竜の双爪",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "毒竜の双爪", "specialMove": "猛毒ブレス", "defBoost": 1, "atkBoost": 2 },
-        { "hpThreshold": 0.40, "weapon": "瘴気の鎧（硬化形態）", "specialMove": "瘴気の嵐", "defBoost": 3, "atkBoost": 2 },
-        { "hpThreshold": 0.20, "weapon": "毒竜の力（全開放）", "specialMove": "毒竜王の咆哮・致死の瘴気", "defBoost": -2, "atkBoost": 9 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "毒竜の双爪",
+          "specialMove": "猛毒ブレス",
+          "defBoost": 1,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "瘴気の鎧（硬化形態）",
+          "specialMove": "瘴気の嵐",
+          "defBoost": 3,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "毒竜の力（全開放）",
+          "specialMove": "毒竜王の咆哮・致死の瘴気",
+          "defBoost": -2,
+          "atkBoost": 9
+        }
       ],
       "drops": [
-        { "type": "material", "name": "毒竜王の逆鱗", "rarity": 3 },
-        { "type": "material", "name": "瘴気の結晶", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "毒竜王の逆鱗",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "瘴気の結晶",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "fafnir_fang",
         "name": "ファフニールの牙",
         "nameCn": "法夫尼爾之牙",
         "bossFloor": 27,
-        "effects": { "battleAtk": 0.20, "npcCondLoss": -0.18 }
+        "effects": {
+          "battleAtk": 0.2,
+          "npcCondLoss": -0.18
+        }
       }
     },
-    "materials": ["mat_floor27_ore", "mat_floor27_crystal"],
-    "places": ["竜の巣の入口", "瘴気の洞窟", "竜骨の道", "毒竜王の間", "BOSS房"],
+    "materials": [
+      "mat_floor27_ore",
+      "mat_floor27_crystal"
+    ],
+    "places": [
+      "竜の巣の入口",
+      "瘴気の洞窟",
+      "竜骨の道",
+      "毒竜王の間",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -943,34 +2912,108 @@
     "name": "鉄の要塞",
     "nameCn": "鐵之要塞",
     "enemies": [
-      { "name": "鉄のオートマタ", "category": "[Easy]", "hp": 150, "atk": 15, "def": 11, "agi": 6, "cri": 5 },
-      { "name": "鋼鉄の騎兵", "category": "[Normal]", "hp": 260, "atk": 19, "def": 13, "agi": 8, "cri": 4 },
-      { "name": "要塞砲兵", "category": "[Hard]", "hp": 475, "atk": 24, "def": 17, "agi": 9, "cri": 4 },
-      { "name": "鉄帝の近衛", "category": "[Hell]", "hp": 890, "atk": 34, "def": 20, "agi": 11, "cri": 3 }
+      {
+        "name": "鉄のオートマタ",
+        "category": "[Easy]",
+        "hp": 150,
+        "atk": 15,
+        "def": 11,
+        "agi": 6,
+        "cri": 5
+      },
+      {
+        "name": "鋼鉄の騎兵",
+        "category": "[Normal]",
+        "hp": 260,
+        "atk": 19,
+        "def": 13,
+        "agi": 8,
+        "cri": 4
+      },
+      {
+        "name": "要塞砲兵",
+        "category": "[Hard]",
+        "hp": 475,
+        "atk": 24,
+        "def": 17,
+        "agi": 9,
+        "cri": 4
+      },
+      {
+        "name": "鉄帝の近衛",
+        "category": "[Hell]",
+        "hp": 890,
+        "atk": 34,
+        "def": 20,
+        "agi": 11,
+        "cri": 3
+      }
     ],
     "boss": {
       "name": "鉄帝ヘファイストス",
-      "hp": 185000, "atk": 52, "def": 28, "agi": 14, "cri": 3,
+      "hp": 185000,
+      "atk": 52,
+      "def": 28,
+      "agi": 14,
+      "cri": 3,
       "initialWeapon": "鍛冶神の戦鎚",
       "phases": [
-        { "hpThreshold": 0.65, "weapon": "鍛冶神の戦鎚", "specialMove": "鉄槌一撃・大地崩壊", "defBoost": 2, "atkBoost": 2 },
-        { "hpThreshold": 0.40, "weapon": "鋼鉄の鎧（要塞形態）", "specialMove": "鉄壁結界", "defBoost": 5, "atkBoost": 0 },
-        { "hpThreshold": 0.20, "weapon": "溶鉄の拳（融合形態）", "specialMove": "鉄帝崩壊・溶鉄の雨", "defBoost": -2, "atkBoost": 10 }
+        {
+          "hpThreshold": 0.65,
+          "weapon": "鍛冶神の戦鎚",
+          "specialMove": "鉄槌一撃・大地崩壊",
+          "defBoost": 2,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.4,
+          "weapon": "鋼鉄の鎧（要塞形態）",
+          "specialMove": "鉄壁結界",
+          "defBoost": 5,
+          "atkBoost": 0
+        },
+        {
+          "hpThreshold": 0.2,
+          "weapon": "溶鉄の拳（融合形態）",
+          "specialMove": "鉄帝崩壊・溶鉄の雨",
+          "defBoost": -2,
+          "atkBoost": 10
+        }
       ],
       "drops": [
-        { "type": "material", "name": "鉄帝の心核", "rarity": 3 },
-        { "type": "material", "name": "神鉄の欠片", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "鉄帝の心核",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "神鉄の欠片",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "iron_emperor_hammer",
         "name": "鍛冶神の小槌",
         "nameCn": "鍛冶神小槌",
         "bossFloor": 28,
-        "effects": { "forgeDurability": 0.20, "repairSuccess": 0.15 }
+        "effects": {
+          "forgeDurability": 0.2,
+          "repairSuccess": 0.15
+        }
       }
     },
-    "materials": ["mat_floor27_ore", "mat_floor27_crystal"],
-    "places": ["要塞の門", "蒸気の回廊", "鍛冶場", "鉄帝の工房", "BOSS房"],
+    "materials": [
+      "mat_floor27_ore",
+      "mat_floor27_crystal"
+    ],
+    "places": [
+      "要塞の門",
+      "蒸気の回廊",
+      "鍛冶場",
+      "鉄帝の工房",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -978,36 +3021,125 @@
     "name": "冥界の門",
     "nameCn": "冥界之門",
     "enemies": [
-      { "name": "冥界の亡霊", "category": "[Easy]", "hp": 158, "atk": 16, "def": 11, "agi": 8, "cri": 5 },
-      { "name": "冥府の番犬", "category": "[Normal]", "hp": 275, "atk": 20, "def": 14, "agi": 9, "cri": 4 },
-      { "name": "冥界の審判者", "category": "[Hard]", "hp": 505, "atk": 26, "def": 18, "agi": 11, "cri": 3 },
-      { "name": "死神の従者", "category": "[Hell]", "hp": 950, "atk": 36, "def": 21, "agi": 12, "cri": 3 },
-      { "name": "冥界の王子", "category": "[優樹]", "hp": 1600, "atk": 48, "def": 28, "agi": 15, "cri": 2 }
+      {
+        "name": "冥界の亡霊",
+        "category": "[Easy]",
+        "hp": 158,
+        "atk": 16,
+        "def": 11,
+        "agi": 8,
+        "cri": 5
+      },
+      {
+        "name": "冥府の番犬",
+        "category": "[Normal]",
+        "hp": 275,
+        "atk": 20,
+        "def": 14,
+        "agi": 9,
+        "cri": 4
+      },
+      {
+        "name": "冥界の審判者",
+        "category": "[Hard]",
+        "hp": 505,
+        "atk": 26,
+        "def": 18,
+        "agi": 11,
+        "cri": 3
+      },
+      {
+        "name": "死神の従者",
+        "category": "[Hell]",
+        "hp": 950,
+        "atk": 36,
+        "def": 21,
+        "agi": 12,
+        "cri": 3
+      },
+      {
+        "name": "冥界の王子",
+        "category": "[優樹]",
+        "hp": 1600,
+        "atk": 48,
+        "def": 28,
+        "agi": 15,
+        "cri": 2
+      }
     ],
     "boss": {
       "name": "冥王ハデス",
-      "hp": 215000, "atk": 55, "def": 30, "agi": 15, "cri": 2,
+      "hp": 215000,
+      "atk": 55,
+      "def": 30,
+      "agi": 15,
+      "cri": 2,
       "initialWeapon": "冥府の槍ビデント",
       "phases": [
-        { "hpThreshold": 0.70, "weapon": "冥府の槍ビデント", "specialMove": "冥界突刺・魂狩り", "defBoost": 1, "atkBoost": 3 },
-        { "hpThreshold": 0.45, "weapon": "冥王の鎧＋ビデント", "specialMove": "冥界結界・死の支配", "defBoost": 4, "atkBoost": 1 },
-        { "hpThreshold": 0.25, "weapon": "冥王の鎌", "specialMove": "死神降臨・魂の収穫", "defBoost": 0, "atkBoost": 6 },
-        { "hpThreshold": 0.10, "weapon": "冥王の力（冥界神化）", "specialMove": "冥界崩壊・万死帰一", "defBoost": -3, "atkBoost": 12 }
+        {
+          "hpThreshold": 0.7,
+          "weapon": "冥府の槍ビデント",
+          "specialMove": "冥界突刺・魂狩り",
+          "defBoost": 1,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "冥王の鎧＋ビデント",
+          "specialMove": "冥界結界・死の支配",
+          "defBoost": 4,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "冥王の鎌",
+          "specialMove": "死神降臨・魂の収穫",
+          "defBoost": 0,
+          "atkBoost": 6
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "冥王の力（冥界神化）",
+          "specialMove": "冥界崩壊・万死帰一",
+          "defBoost": -3,
+          "atkBoost": 12
+        }
       ],
       "drops": [
-        { "type": "material", "name": "冥王の涙", "rarity": 3 },
-        { "type": "material", "name": "冥界の鍵", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "冥王の涙",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "冥界の鍵",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "hades_scepter",
         "name": "冥王の笏杖",
         "nameCn": "冥王權杖",
         "bossFloor": 29,
-        "effects": { "bossDamage": 0.22, "battleAtk": 0.15, "npcDeathChance": -0.15 }
+        "effects": {
+          "bossDamage": 0.22,
+          "battleAtk": 0.15,
+          "npcDeathChance": -0.15
+        }
       }
     },
-    "materials": ["mat_floor29_ore", "mat_floor29_crystal"],
-    "places": ["冥界の門前", "三途の河", "裁きの法廷", "冥王の宮殿", "BOSS房"],
+    "materials": [
+      "mat_floor29_ore",
+      "mat_floor29_crystal"
+    ],
+    "places": [
+      "冥界の門前",
+      "三途の河",
+      "裁きの法廷",
+      "冥王の宮殿",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -1015,36 +3147,126 @@
     "name": "星辰の塔",
     "nameCn": "星辰之塔",
     "enemies": [
-      { "name": "星屑のスプライト", "category": "[Easy]", "hp": 168, "atk": 17, "def": 12, "agi": 8, "cri": 4 },
-      { "name": "星座の守護者", "category": "[Normal]", "hp": 290, "atk": 21, "def": 15, "agi": 10, "cri": 4 },
-      { "name": "星辰の騎士", "category": "[Hard]", "hp": 535, "atk": 28, "def": 19, "agi": 12, "cri": 3 },
-      { "name": "星神の近衛", "category": "[Hell]", "hp": 1010, "atk": 38, "def": 23, "agi": 13, "cri": 2 },
-      { "name": "星辰の王", "category": "[優樹]", "hp": 1800, "atk": 52, "def": 30, "agi": 16, "cri": 2 }
+      {
+        "name": "星屑のスプライト",
+        "category": "[Easy]",
+        "hp": 168,
+        "atk": 17,
+        "def": 12,
+        "agi": 8,
+        "cri": 4
+      },
+      {
+        "name": "星座の守護者",
+        "category": "[Normal]",
+        "hp": 290,
+        "atk": 21,
+        "def": 15,
+        "agi": 10,
+        "cri": 4
+      },
+      {
+        "name": "星辰の騎士",
+        "category": "[Hard]",
+        "hp": 535,
+        "atk": 28,
+        "def": 19,
+        "agi": 12,
+        "cri": 3
+      },
+      {
+        "name": "星神の近衛",
+        "category": "[Hell]",
+        "hp": 1010,
+        "atk": 38,
+        "def": 23,
+        "agi": 13,
+        "cri": 2
+      },
+      {
+        "name": "星辰の王",
+        "category": "[優樹]",
+        "hp": 1800,
+        "atk": 52,
+        "def": 30,
+        "agi": 16,
+        "cri": 2
+      }
     ],
     "boss": {
       "name": "星神アストライア",
-      "hp": 250000, "atk": 60, "def": 33, "agi": 16, "cri": 2,
+      "hp": 250000,
+      "atk": 60,
+      "def": 33,
+      "agi": 16,
+      "cri": 2,
       "initialWeapon": "星辰の剣",
       "phases": [
-        { "hpThreshold": 0.70, "weapon": "星辰の剣", "specialMove": "流星剣閃・星の雨", "defBoost": 2, "atkBoost": 2 },
-        { "hpThreshold": 0.50, "weapon": "星盾＋星辰の剣", "specialMove": "星辰結界・銀河の壁", "defBoost": 5, "atkBoost": 1 },
-        { "hpThreshold": 0.30, "weapon": "双星剣（二刀流）", "specialMove": "双星乱舞・銀河斬撃", "defBoost": 0, "atkBoost": 7 },
-        { "hpThreshold": 0.10, "weapon": "星神の力（星辰神化）", "specialMove": "星辰崩壊・超新星爆発", "defBoost": -3, "atkBoost": 14 }
+        {
+          "hpThreshold": 0.7,
+          "weapon": "星辰の剣",
+          "specialMove": "流星剣閃・星の雨",
+          "defBoost": 2,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.5,
+          "weapon": "星盾＋星辰の剣",
+          "specialMove": "星辰結界・銀河の壁",
+          "defBoost": 5,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.3,
+          "weapon": "双星剣（二刀流）",
+          "specialMove": "双星乱舞・銀河斬撃",
+          "defBoost": 0,
+          "atkBoost": 7
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "星神の力（星辰神化）",
+          "specialMove": "星辰崩壊・超新星爆発",
+          "defBoost": -3,
+          "atkBoost": 14
+        }
       ],
       "drops": [
-        { "type": "material", "name": "星神の核", "rarity": 3 },
-        { "type": "material", "name": "星辰の結晶", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "星神の核",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "星辰の結晶",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "astraea_crown",
         "name": "星神の冠",
         "nameCn": "星神之冠",
         "bossFloor": 30,
-        "effects": { "bossDamage": 0.25, "battleAtk": 0.18, "battleDef": 0.12, "battleAgi": 0.10 }
+        "effects": {
+          "bossDamage": 0.25,
+          "battleAtk": 0.18,
+          "battleDef": 0.12,
+          "battleAgi": 0.1
+        }
       }
     },
-    "materials": ["mat_floor29_ore", "mat_floor29_crystal"],
-    "places": ["星の階段", "星座の回廊", "銀河の広間", "星神の玉座", "BOSS房"],
+    "materials": [
+      "mat_floor29_ore",
+      "mat_floor29_crystal"
+    ],
+    "places": [
+      "星の階段",
+      "星座の回廊",
+      "銀河の広間",
+      "星神の玉座",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -1052,37 +3274,122 @@
     "name": "鋼殻の巣窟",
     "nameCn": "鋼殼巢穴",
     "enemies": [
-      { "name": "鋼殻の幼虫", "category": "[Easy]", "hp": 180, "atk": 18, "def": 13, "agi": 9, "cri": 4 },
-      { "name": "鋼殻の兵蟲", "category": "[Normal]", "hp": 310, "atk": 22, "def": 16, "agi": 10, "cri": 4 },
-      { "name": "鋼殻の将蟲", "category": "[Hard]", "hp": 570, "atk": 30, "def": 20, "agi": 12, "cri": 3 },
-      { "name": "鋼殻の親衛蟲", "category": "[Hell]", "hp": 1080, "atk": 40, "def": 24, "agi": 14, "cri": 2 },
-      { "name": "鋼殻の蟲皇后", "category": "[優樹]", "hp": 1950, "atk": 55, "def": 32, "agi": 17, "cri": 2 }
+      {
+        "name": "鋼殻の幼虫",
+        "category": "[Easy]",
+        "hp": 180,
+        "atk": 18,
+        "def": 13,
+        "agi": 9,
+        "cri": 4
+      },
+      {
+        "name": "鋼殻の兵蟲",
+        "category": "[Normal]",
+        "hp": 310,
+        "atk": 22,
+        "def": 16,
+        "agi": 10,
+        "cri": 4
+      },
+      {
+        "name": "鋼殻の将蟲",
+        "category": "[Hard]",
+        "hp": 570,
+        "atk": 30,
+        "def": 20,
+        "agi": 12,
+        "cri": 3
+      },
+      {
+        "name": "鋼殻の親衛蟲",
+        "category": "[Hell]",
+        "hp": 1080,
+        "atk": 40,
+        "def": 24,
+        "agi": 14,
+        "cri": 2
+      },
+      {
+        "name": "鋼殻の蟲皇后",
+        "category": "[優樹]",
+        "hp": 1950,
+        "atk": 55,
+        "def": 32,
+        "agi": 17,
+        "cri": 2
+      }
     ],
     "boss": {
       "name": "鋼殻蟲帝メタリオン",
-      "hp": 290000, "atk": 64, "def": 35, "agi": 17, "cri": 2,
+      "hp": 290000,
+      "atk": 64,
+      "def": 35,
+      "agi": 17,
+      "cri": 2,
       "initialWeapon": "鋼殻の大顎",
       "phases": [
-        { "hpThreshold": 0.70, "weapon": "鋼殻の大顎", "specialMove": "鋼鉄粉砕・メタルクラッシュ", "defBoost": 2, "atkBoost": 2 },
-        { "hpThreshold": 0.45, "weapon": "鋼殻の鎧甲＋大顎", "specialMove": "鋼殻硬化・アイアンフォートレス", "defBoost": 6, "atkBoost": 0 },
-        { "hpThreshold": 0.25, "weapon": "鋼殻の双角", "specialMove": "双角突進・メタルランス", "defBoost": -2, "atkBoost": 6 },
-        { "hpThreshold": 0.10, "weapon": "鋼殻帝の力（蟲帝覚醒）", "specialMove": "鋼殻崩壊・メテオインパクト", "defBoost": -3, "atkBoost": 13 }
+        {
+          "hpThreshold": 0.7,
+          "weapon": "鋼殻の大顎",
+          "specialMove": "鋼鉄粉砕・メタルクラッシュ",
+          "defBoost": 2,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "鋼殻の鎧甲＋大顎",
+          "specialMove": "鋼殻硬化・アイアンフォートレス",
+          "defBoost": 6,
+          "atkBoost": 0
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "鋼殻の双角",
+          "specialMove": "双角突進・メタルランス",
+          "defBoost": -2,
+          "atkBoost": 6
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "鋼殻帝の力（蟲帝覚醒）",
+          "specialMove": "鋼殻崩壊・メテオインパクト",
+          "defBoost": -3,
+          "atkBoost": 13
+        }
       ],
       "drops": [
-        { "type": "material", "name": "鋼殻蟲の甲殻", "rarity": 3 },
-        { "type": "material", "name": "鋼殻蟲の宝核", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "鋼殻蟲の甲殻",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "鋼殻蟲の宝核",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "metalion_shell",
         "name": "蟲帝甲殻の盾飾り",
         "nameCn": "鋼殼蟲帝甲殼盾",
         "bossFloor": 31,
-        "effects": { "battleDef": 0.20, "bossDamage": 0.15 }
+        "effects": {
+          "battleDef": 0.2,
+          "bossDamage": 0.15
+        }
       },
       "specialMechanics": {
         "weaponAffinity": {
-          "weak": ["two_handed_axe", "mace"],
-          "resist": ["dagger", "rapier"],
+          "weak": [
+            "two_handed_axe",
+            "mace"
+          ],
+          "resist": [
+            "dagger",
+            "rapier"
+          ],
           "immune": [],
           "weakMult": 1.5,
           "resistMult": 0.5,
@@ -1091,8 +3398,17 @@
         }
       }
     },
-    "materials": ["mat_floor31_ore", "mat_floor31_crystal"],
-    "places": ["蟲の通路", "鋼殻の産卵室", "兵蟲の巡回路", "蟲帝の王座", "BOSS房"],
+    "materials": [
+      "mat_floor31_ore",
+      "mat_floor31_crystal"
+    ],
+    "places": [
+      "蟲の通路",
+      "鋼殻の産卵室",
+      "兵蟲の巡回路",
+      "蟲帝の王座",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -1100,32 +3416,111 @@
     "name": "幻影の迷宮",
     "nameCn": "幻影迷宮",
     "enemies": [
-      { "name": "幻影のゴースト", "category": "[Easy]", "hp": 190, "atk": 19, "def": 13, "agi": 10, "cri": 4 },
-      { "name": "幻影の騎士", "category": "[Normal]", "hp": 330, "atk": 23, "def": 16, "agi": 12, "cri": 4 },
-      { "name": "幻影の将軍", "category": "[Hard]", "hp": 605, "atk": 31, "def": 21, "agi": 14, "cri": 3 },
-      { "name": "幻影の王子", "category": "[Hell]", "hp": 1150, "atk": 42, "def": 25, "agi": 16, "cri": 2 },
-      { "name": "幻影の大公", "category": "[優樹]", "hp": 2100, "atk": 58, "def": 33, "agi": 19, "cri": 2 }
+      {
+        "name": "幻影のゴースト",
+        "category": "[Easy]",
+        "hp": 190,
+        "atk": 19,
+        "def": 13,
+        "agi": 10,
+        "cri": 4
+      },
+      {
+        "name": "幻影の騎士",
+        "category": "[Normal]",
+        "hp": 330,
+        "atk": 23,
+        "def": 16,
+        "agi": 12,
+        "cri": 4
+      },
+      {
+        "name": "幻影の将軍",
+        "category": "[Hard]",
+        "hp": 605,
+        "atk": 31,
+        "def": 21,
+        "agi": 14,
+        "cri": 3
+      },
+      {
+        "name": "幻影の王子",
+        "category": "[Hell]",
+        "hp": 1150,
+        "atk": 42,
+        "def": 25,
+        "agi": 16,
+        "cri": 2
+      },
+      {
+        "name": "幻影の大公",
+        "category": "[優樹]",
+        "hp": 2100,
+        "atk": 58,
+        "def": 33,
+        "agi": 19,
+        "cri": 2
+      }
     ],
     "boss": {
       "name": "幻影王ファントマ",
-      "hp": 335000, "atk": 66, "def": 30, "agi": 22, "cri": 2,
+      "hp": 335000,
+      "atk": 66,
+      "def": 30,
+      "agi": 22,
+      "cri": 2,
       "initialWeapon": "幻影の双刃",
       "phases": [
-        { "hpThreshold": 0.70, "weapon": "幻影の双刃", "specialMove": "幻影斬・ファントムエッジ", "defBoost": 1, "atkBoost": 3 },
-        { "hpThreshold": 0.45, "weapon": "幻影のマント＋双刃", "specialMove": "影分身・ミラージュ", "defBoost": 3, "atkBoost": 2 },
-        { "hpThreshold": 0.25, "weapon": "幻影の大鎌", "specialMove": "死神幻影・デスミラージュ", "defBoost": -1, "atkBoost": 7 },
-        { "hpThreshold": 0.10, "weapon": "幻影王の力（幻影覚醒）", "specialMove": "幻影崩壊・ファントムブレイク", "defBoost": -3, "atkBoost": 14 }
+        {
+          "hpThreshold": 0.7,
+          "weapon": "幻影の双刃",
+          "specialMove": "幻影斬・ファントムエッジ",
+          "defBoost": 1,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "幻影のマント＋双刃",
+          "specialMove": "影分身・ミラージュ",
+          "defBoost": 3,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "幻影の大鎌",
+          "specialMove": "死神幻影・デスミラージュ",
+          "defBoost": -1,
+          "atkBoost": 7
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "幻影王の力（幻影覚醒）",
+          "specialMove": "幻影崩壊・ファントムブレイク",
+          "defBoost": -3,
+          "atkBoost": 14
+        }
       ],
       "drops": [
-        { "type": "material", "name": "幻影王の結晶", "rarity": 3 },
-        { "type": "material", "name": "幻影の布片", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "幻影王の結晶",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "幻影の布片",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "phantoma_cloak",
         "name": "幻影王のマント",
         "nameCn": "幻影王斗篷",
         "bossFloor": 32,
-        "effects": { "battleAgi": 0.22, "bossDamage": 0.12 }
+        "effects": {
+          "battleAgi": 0.22,
+          "bossDamage": 0.12
+        }
       },
       "specialMechanics": {
         "agiPenalty": {
@@ -1134,8 +3529,16 @@
           "descriptionCn": "幻影殘像：AGI 不足 14 時，傷害降為 40%"
         },
         "weaponAffinity": {
-          "weak": ["dagger", "rapier", "katana"],
-          "resist": ["two_handed_sword", "bow", "spear"],
+          "weak": [
+            "dagger",
+            "rapier",
+            "katana"
+          ],
+          "resist": [
+            "two_handed_sword",
+            "bow",
+            "spear"
+          ],
           "immune": [],
           "weakMult": 1.5,
           "resistMult": 0.5,
@@ -1144,8 +3547,17 @@
         }
       }
     },
-    "materials": ["mat_floor31_ore", "mat_floor31_crystal"],
-    "places": ["鏡の回廊", "幻影の広間", "影の迷路", "幻影王の間", "BOSS房"],
+    "materials": [
+      "mat_floor31_ore",
+      "mat_floor31_crystal"
+    ],
+    "places": [
+      "鏡の回廊",
+      "幻影の広間",
+      "影の迷路",
+      "幻影王の間",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -1153,32 +3565,111 @@
     "name": "溶岩の火口",
     "nameCn": "熔岩火口",
     "enemies": [
-      { "name": "溶岩のサラマンダー", "category": "[Easy]", "hp": 200, "atk": 20, "def": 14, "agi": 9, "cri": 4 },
-      { "name": "溶岩のゴーレム", "category": "[Normal]", "hp": 350, "atk": 24, "def": 18, "agi": 10, "cri": 3 },
-      { "name": "溶岩の巨人", "category": "[Hard]", "hp": 645, "atk": 33, "def": 22, "agi": 12, "cri": 3 },
-      { "name": "溶岩の竜人", "category": "[Hell]", "hp": 1220, "atk": 44, "def": 27, "agi": 14, "cri": 2 },
-      { "name": "溶岩の竜王", "category": "[優樹]", "hp": 2250, "atk": 60, "def": 35, "agi": 17, "cri": 2 }
+      {
+        "name": "溶岩のサラマンダー",
+        "category": "[Easy]",
+        "hp": 200,
+        "atk": 20,
+        "def": 14,
+        "agi": 9,
+        "cri": 4
+      },
+      {
+        "name": "溶岩のゴーレム",
+        "category": "[Normal]",
+        "hp": 350,
+        "atk": 24,
+        "def": 18,
+        "agi": 10,
+        "cri": 3
+      },
+      {
+        "name": "溶岩の巨人",
+        "category": "[Hard]",
+        "hp": 645,
+        "atk": 33,
+        "def": 22,
+        "agi": 12,
+        "cri": 3
+      },
+      {
+        "name": "溶岩の竜人",
+        "category": "[Hell]",
+        "hp": 1220,
+        "atk": 44,
+        "def": 27,
+        "agi": 14,
+        "cri": 2
+      },
+      {
+        "name": "溶岩の竜王",
+        "category": "[優樹]",
+        "hp": 2250,
+        "atk": 60,
+        "def": 35,
+        "agi": 17,
+        "cri": 2
+      }
     ],
     "boss": {
       "name": "溶岩竜イグニス",
-      "hp": 385000, "atk": 70, "def": 36, "agi": 18, "cri": 2,
+      "hp": 385000,
+      "atk": 70,
+      "def": 36,
+      "agi": 18,
+      "cri": 2,
       "initialWeapon": "灼熱の爪",
       "phases": [
-        { "hpThreshold": 0.70, "weapon": "灼熱の爪", "specialMove": "灼熱撃・フレイムクロー", "defBoost": 2, "atkBoost": 3 },
-        { "hpThreshold": 0.45, "weapon": "溶岩の鎧＋爪", "specialMove": "溶岩噴火・ラヴァバースト", "defBoost": 5, "atkBoost": 1 },
-        { "hpThreshold": 0.25, "weapon": "竜の火炎ブレス", "specialMove": "竜炎・インフェルノ", "defBoost": -1, "atkBoost": 8 },
-        { "hpThreshold": 0.10, "weapon": "溶岩竜の力（竜覚醒）", "specialMove": "溶岩崩壊・ヴォルカニック", "defBoost": -3, "atkBoost": 15 }
+        {
+          "hpThreshold": 0.7,
+          "weapon": "灼熱の爪",
+          "specialMove": "灼熱撃・フレイムクロー",
+          "defBoost": 2,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "溶岩の鎧＋爪",
+          "specialMove": "溶岩噴火・ラヴァバースト",
+          "defBoost": 5,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "竜の火炎ブレス",
+          "specialMove": "竜炎・インフェルノ",
+          "defBoost": -1,
+          "atkBoost": 8
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "溶岩竜の力（竜覚醒）",
+          "specialMove": "溶岩崩壊・ヴォルカニック",
+          "defBoost": -3,
+          "atkBoost": 15
+        }
       ],
       "drops": [
-        { "type": "material", "name": "溶岩竜の鱗", "rarity": 3 },
-        { "type": "material", "name": "灼熱の竜核", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "溶岩竜の鱗",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "灼熱の竜核",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "ignis_core",
         "name": "イグニスの炉心",
         "nameCn": "伊格尼斯爐心",
         "bossFloor": 33,
-        "effects": { "battleAtk": 0.22, "forgeDurability": 0.15 }
+        "effects": {
+          "battleAtk": 0.22,
+          "forgeDurability": 0.15
+        }
       },
       "specialMechanics": {
         "agiPenalty": {
@@ -1188,8 +3679,17 @@
         }
       }
     },
-    "materials": ["mat_floor33_ore", "mat_floor33_crystal"],
-    "places": ["溶岩の河", "火口の縁", "灼熱の洞窟", "竜の巣", "BOSS房"],
+    "materials": [
+      "mat_floor33_ore",
+      "mat_floor33_crystal"
+    ],
+    "places": [
+      "溶岩の河",
+      "火口の縁",
+      "灼熱の洞窟",
+      "竜の巣",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -1197,37 +3697,122 @@
     "name": "暗黒聖堂",
     "nameCn": "暗黑聖堂",
     "enemies": [
-      { "name": "暗黒の修道士", "category": "[Easy]", "hp": 212, "atk": 21, "def": 15, "agi": 9, "cri": 4 },
-      { "name": "暗黒の聖騎士", "category": "[Normal]", "hp": 370, "atk": 25, "def": 19, "agi": 11, "cri": 3 },
-      { "name": "暗黒の大司教", "category": "[Hard]", "hp": 685, "atk": 35, "def": 23, "agi": 13, "cri": 3 },
-      { "name": "暗黒の聖王子", "category": "[Hell]", "hp": 1300, "atk": 46, "def": 28, "agi": 15, "cri": 2 },
-      { "name": "暗黒の大聖", "category": "[優樹]", "hp": 2400, "atk": 63, "def": 37, "agi": 18, "cri": 2 }
+      {
+        "name": "暗黒の修道士",
+        "category": "[Easy]",
+        "hp": 212,
+        "atk": 21,
+        "def": 15,
+        "agi": 9,
+        "cri": 4
+      },
+      {
+        "name": "暗黒の聖騎士",
+        "category": "[Normal]",
+        "hp": 370,
+        "atk": 25,
+        "def": 19,
+        "agi": 11,
+        "cri": 3
+      },
+      {
+        "name": "暗黒の大司教",
+        "category": "[Hard]",
+        "hp": 685,
+        "atk": 35,
+        "def": 23,
+        "agi": 13,
+        "cri": 3
+      },
+      {
+        "name": "暗黒の聖王子",
+        "category": "[Hell]",
+        "hp": 1300,
+        "atk": 46,
+        "def": 28,
+        "agi": 15,
+        "cri": 2
+      },
+      {
+        "name": "暗黒の大聖",
+        "category": "[優樹]",
+        "hp": 2400,
+        "atk": 63,
+        "def": 37,
+        "agi": 18,
+        "cri": 2
+      }
     ],
     "boss": {
       "name": "暗黒聖王ベリアス",
-      "hp": 440000, "atk": 73, "def": 38, "agi": 19, "cri": 2,
+      "hp": 440000,
+      "atk": 73,
+      "def": 38,
+      "agi": 19,
+      "cri": 2,
       "initialWeapon": "暗黒聖剣",
       "phases": [
-        { "hpThreshold": 0.70, "weapon": "暗黒聖剣", "specialMove": "暗黒斬撃・ダークスマイト", "defBoost": 2, "atkBoost": 3 },
-        { "hpThreshold": 0.45, "weapon": "暗黒聖盾＋聖剣", "specialMove": "暗黒結界・ヴォイドシールド", "defBoost": 5, "atkBoost": 1 },
-        { "hpThreshold": 0.25, "weapon": "暗黒聖槍", "specialMove": "暗黒突撃・ダークランス", "defBoost": -1, "atkBoost": 8 },
-        { "hpThreshold": 0.10, "weapon": "暗黒聖王の力（暗黒覚醒）", "specialMove": "暗黒崩壊・エクリプスブレイク", "defBoost": -3, "atkBoost": 15 }
+        {
+          "hpThreshold": 0.7,
+          "weapon": "暗黒聖剣",
+          "specialMove": "暗黒斬撃・ダークスマイト",
+          "defBoost": 2,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "暗黒聖盾＋聖剣",
+          "specialMove": "暗黒結界・ヴォイドシールド",
+          "defBoost": 5,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "暗黒聖槍",
+          "specialMove": "暗黒突撃・ダークランス",
+          "defBoost": -1,
+          "atkBoost": 8
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "暗黒聖王の力（暗黒覚醒）",
+          "specialMove": "暗黒崩壊・エクリプスブレイク",
+          "defBoost": -3,
+          "atkBoost": 15
+        }
       ],
       "drops": [
-        { "type": "material", "name": "暗黒聖王の核", "rarity": 3 },
-        { "type": "material", "name": "暗黒の聖印", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "暗黒聖王の核",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "暗黒の聖印",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "belias_halo",
         "name": "ベリアスの堕光輪",
         "nameCn": "貝利亞斯墮光輪",
         "bossFloor": 34,
-        "effects": { "bossDamage": 0.18, "battleDef": 0.15 }
+        "effects": {
+          "bossDamage": 0.18,
+          "battleDef": 0.15
+        }
       },
       "specialMechanics": {
         "weaponAffinity": {
-          "weak": ["one_handed_sword", "spear"],
-          "resist": ["curved_sword", "bow"],
+          "weak": [
+            "one_handed_sword",
+            "spear"
+          ],
+          "resist": [
+            "curved_sword",
+            "bow"
+          ],
           "immune": [],
           "weakMult": 1.5,
           "resistMult": 0.5,
@@ -1236,8 +3821,17 @@
         }
       }
     },
-    "materials": ["mat_floor33_ore", "mat_floor33_crystal"],
-    "places": ["暗黒の礼拝堂", "聖騎士の回廊", "告解の間", "暗黒聖王の間", "BOSS房"],
+    "materials": [
+      "mat_floor33_ore",
+      "mat_floor33_crystal"
+    ],
+    "places": [
+      "暗黒の礼拝堂",
+      "聖騎士の回廊",
+      "告解の間",
+      "暗黒聖王の間",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -1245,32 +3839,111 @@
     "name": "雷嵐の頂",
     "nameCn": "雷嵐之頂",
     "enemies": [
-      { "name": "雷のスプライト", "category": "[Easy]", "hp": 225, "atk": 22, "def": 15, "agi": 11, "cri": 4 },
-      { "name": "雷嵐の狼", "category": "[Normal]", "hp": 395, "atk": 27, "def": 19, "agi": 13, "cri": 3 },
-      { "name": "雷嵐の将軍", "category": "[Hard]", "hp": 730, "atk": 37, "def": 24, "agi": 15, "cri": 3 },
-      { "name": "雷嵐の竜騎", "category": "[Hell]", "hp": 1380, "atk": 49, "def": 29, "agi": 17, "cri": 2 },
-      { "name": "雷嵐の皇子", "category": "[優樹]", "hp": 2550, "atk": 67, "def": 38, "agi": 20, "cri": 2 }
+      {
+        "name": "雷のスプライト",
+        "category": "[Easy]",
+        "hp": 225,
+        "atk": 22,
+        "def": 15,
+        "agi": 11,
+        "cri": 4
+      },
+      {
+        "name": "雷嵐の狼",
+        "category": "[Normal]",
+        "hp": 395,
+        "atk": 27,
+        "def": 19,
+        "agi": 13,
+        "cri": 3
+      },
+      {
+        "name": "雷嵐の将軍",
+        "category": "[Hard]",
+        "hp": 730,
+        "atk": 37,
+        "def": 24,
+        "agi": 15,
+        "cri": 3
+      },
+      {
+        "name": "雷嵐の竜騎",
+        "category": "[Hell]",
+        "hp": 1380,
+        "atk": 49,
+        "def": 29,
+        "agi": 17,
+        "cri": 2
+      },
+      {
+        "name": "雷嵐の皇子",
+        "category": "[優樹]",
+        "hp": 2550,
+        "atk": 67,
+        "def": 38,
+        "agi": 20,
+        "cri": 2
+      }
     ],
     "boss": {
       "name": "雷嵐帝ストルム",
-      "hp": 510000, "atk": 76, "def": 34, "agi": 24, "cri": 2,
+      "hp": 510000,
+      "atk": 76,
+      "def": 34,
+      "agi": 24,
+      "cri": 2,
       "initialWeapon": "雷嵐の双剣",
       "phases": [
-        { "hpThreshold": 0.70, "weapon": "雷嵐の双剣", "specialMove": "雷光斬・サンダーエッジ", "defBoost": 1, "atkBoost": 4 },
-        { "hpThreshold": 0.45, "weapon": "雷嵐のマント＋双剣", "specialMove": "雷嵐結界・ライトニングバリア", "defBoost": 4, "atkBoost": 2 },
-        { "hpThreshold": 0.25, "weapon": "雷嵐の大槌", "specialMove": "雷鳴撃・サンダーハンマー", "defBoost": -2, "atkBoost": 9 },
-        { "hpThreshold": 0.10, "weapon": "雷嵐帝の力（雷嵐覚醒）", "specialMove": "雷嵐崩壊・テンペストブレイク", "defBoost": -3, "atkBoost": 16 }
+        {
+          "hpThreshold": 0.7,
+          "weapon": "雷嵐の双剣",
+          "specialMove": "雷光斬・サンダーエッジ",
+          "defBoost": 1,
+          "atkBoost": 4
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "雷嵐のマント＋双剣",
+          "specialMove": "雷嵐結界・ライトニングバリア",
+          "defBoost": 4,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "雷嵐の大槌",
+          "specialMove": "雷鳴撃・サンダーハンマー",
+          "defBoost": -2,
+          "atkBoost": 9
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "雷嵐帝の力（雷嵐覚醒）",
+          "specialMove": "雷嵐崩壊・テンペストブレイク",
+          "defBoost": -3,
+          "atkBoost": 16
+        }
       ],
       "drops": [
-        { "type": "material", "name": "雷嵐帝の結晶", "rarity": 3 },
-        { "type": "material", "name": "雷嵐の核", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "雷嵐帝の結晶",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "雷嵐の核",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "storm_crown",
         "name": "雷嵐帝の冠",
         "nameCn": "雷嵐帝之冠",
         "bossFloor": 35,
-        "effects": { "battleAgi": 0.25, "battleAtk": 0.15 }
+        "effects": {
+          "battleAgi": 0.25,
+          "battleAtk": 0.15
+        }
       },
       "specialMechanics": {
         "agiPenalty": {
@@ -1279,8 +3952,15 @@
           "descriptionCn": "雷速領域：AGI 不足 16 時，傷害降為 35%"
         },
         "weaponAffinity": {
-          "weak": ["dagger", "rapier", "katana"],
-          "resist": ["shield", "two_handed_axe"],
+          "weak": [
+            "dagger",
+            "rapier",
+            "katana"
+          ],
+          "resist": [
+            "shield",
+            "two_handed_axe"
+          ],
           "immune": [],
           "weakMult": 1.5,
           "resistMult": 0.5,
@@ -1289,8 +3969,17 @@
         }
       }
     },
-    "materials": ["mat_floor35_ore", "mat_floor35_crystal"],
-    "places": ["雷雲の階段", "稲妻の回廊", "嵐の広間", "雷嵐帝の玉座", "BOSS房"],
+    "materials": [
+      "mat_floor35_ore",
+      "mat_floor35_crystal"
+    ],
+    "places": [
+      "雷雲の階段",
+      "稲妻の回廊",
+      "嵐の広間",
+      "雷嵐帝の玉座",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -1298,38 +3987,126 @@
     "name": "人形劇場",
     "nameCn": "人偶劇場",
     "enemies": [
-      { "name": "操り人形", "category": "[Easy]", "hp": 238, "atk": 23, "def": 16, "agi": 10, "cri": 4 },
-      { "name": "人形の兵士", "category": "[Normal]", "hp": 415, "atk": 28, "def": 20, "agi": 12, "cri": 3 },
-      { "name": "人形の将軍", "category": "[Hard]", "hp": 770, "atk": 38, "def": 25, "agi": 14, "cri": 3 },
-      { "name": "人形の近衛", "category": "[Hell]", "hp": 1460, "atk": 51, "def": 31, "agi": 16, "cri": 2 },
-      { "name": "人形の女王", "category": "[優樹]", "hp": 2700, "atk": 70, "def": 40, "agi": 19, "cri": 2 }
+      {
+        "name": "操り人形",
+        "category": "[Easy]",
+        "hp": 238,
+        "atk": 23,
+        "def": 16,
+        "agi": 10,
+        "cri": 4
+      },
+      {
+        "name": "人形の兵士",
+        "category": "[Normal]",
+        "hp": 415,
+        "atk": 28,
+        "def": 20,
+        "agi": 12,
+        "cri": 3
+      },
+      {
+        "name": "人形の将軍",
+        "category": "[Hard]",
+        "hp": 770,
+        "atk": 38,
+        "def": 25,
+        "agi": 14,
+        "cri": 3
+      },
+      {
+        "name": "人形の近衛",
+        "category": "[Hell]",
+        "hp": 1460,
+        "atk": 51,
+        "def": 31,
+        "agi": 16,
+        "cri": 2
+      },
+      {
+        "name": "人形の女王",
+        "category": "[優樹]",
+        "hp": 2700,
+        "atk": 70,
+        "def": 40,
+        "agi": 19,
+        "cri": 2
+      }
     ],
     "boss": {
       "name": "人形王マリオネッタ",
-      "hp": 580000, "atk": 78, "def": 40, "agi": 18, "cri": 2,
+      "hp": 580000,
+      "atk": 78,
+      "def": 40,
+      "agi": 18,
+      "cri": 2,
       "initialWeapon": "人形の糸",
       "phases": [
-        { "hpThreshold": 0.70, "weapon": "人形の糸", "specialMove": "操糸術・パペットダンス", "defBoost": 2, "atkBoost": 3 },
-        { "hpThreshold": 0.45, "weapon": "人形の糸＋鎧人形", "specialMove": "鎧人形召喚・アーマードール", "defBoost": 6, "atkBoost": 1 },
-        { "hpThreshold": 0.25, "weapon": "人形の大鋏", "specialMove": "糸斬り・シザースダンス", "defBoost": -1, "atkBoost": 9 },
-        { "hpThreshold": 0.10, "weapon": "人形王の力（人形覚醒）", "specialMove": "人形崩壊・マリオネットブレイク", "defBoost": -3, "atkBoost": 16 }
+        {
+          "hpThreshold": 0.7,
+          "weapon": "人形の糸",
+          "specialMove": "操糸術・パペットダンス",
+          "defBoost": 2,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "人形の糸＋鎧人形",
+          "specialMove": "鎧人形召喚・アーマードール",
+          "defBoost": 6,
+          "atkBoost": 1
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "人形の大鋏",
+          "specialMove": "糸斬り・シザースダンス",
+          "defBoost": -1,
+          "atkBoost": 9
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "人形王の力（人形覚醒）",
+          "specialMove": "人形崩壊・マリオネットブレイク",
+          "defBoost": -3,
+          "atkBoost": 16
+        }
       ],
       "drops": [
-        { "type": "material", "name": "人形王の糸", "rarity": 3 },
-        { "type": "material", "name": "人形の心核", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "人形王の糸",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "人形の心核",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "marionetta_thread",
         "name": "人形王の糸飾り",
         "nameCn": "人偶王之絲",
         "bossFloor": 36,
-        "effects": { "npcCondLoss": -0.20, "repairSuccess": 0.18 }
+        "effects": {
+          "npcCondLoss": -0.2,
+          "repairSuccess": 0.18
+        }
       },
       "specialMechanics": {
         "weaponAffinity": {
-          "weak": ["two_handed_sword", "two_handed_axe", "mace"],
-          "resist": ["dagger", "bow"],
-          "immune": ["shield"],
+          "weak": [
+            "two_handed_sword",
+            "two_handed_axe",
+            "mace"
+          ],
+          "resist": [
+            "dagger",
+            "bow"
+          ],
+          "immune": [
+            "shield"
+          ],
           "weakMult": 1.5,
           "resistMult": 0.5,
           "immuneMult": 0.1,
@@ -1337,8 +4114,17 @@
         }
       }
     },
-    "materials": ["mat_floor35_ore", "mat_floor35_crystal"],
-    "places": ["舞台裏の通路", "人形の展示室", "操り師の工房", "人形王の劇場", "BOSS房"],
+    "materials": [
+      "mat_floor35_ore",
+      "mat_floor35_crystal"
+    ],
+    "places": [
+      "舞台裏の通路",
+      "人形の展示室",
+      "操り師の工房",
+      "人形王の劇場",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -1346,32 +4132,111 @@
     "name": "混沌の渦",
     "nameCn": "混沌漩渦",
     "enemies": [
-      { "name": "混沌のスライム", "category": "[Easy]", "hp": 252, "atk": 24, "def": 17, "agi": 11, "cri": 4 },
-      { "name": "混沌の騎士", "category": "[Normal]", "hp": 440, "atk": 30, "def": 21, "agi": 13, "cri": 3 },
-      { "name": "混沌の将軍", "category": "[Hard]", "hp": 815, "atk": 40, "def": 27, "agi": 15, "cri": 3 },
-      { "name": "混沌の守護者", "category": "[Hell]", "hp": 1550, "atk": 54, "def": 33, "agi": 17, "cri": 2 },
-      { "name": "混沌の大公", "category": "[優樹]", "hp": 2900, "atk": 74, "def": 42, "agi": 20, "cri": 2 }
+      {
+        "name": "混沌のスライム",
+        "category": "[Easy]",
+        "hp": 252,
+        "atk": 24,
+        "def": 17,
+        "agi": 11,
+        "cri": 4
+      },
+      {
+        "name": "混沌の騎士",
+        "category": "[Normal]",
+        "hp": 440,
+        "atk": 30,
+        "def": 21,
+        "agi": 13,
+        "cri": 3
+      },
+      {
+        "name": "混沌の将軍",
+        "category": "[Hard]",
+        "hp": 815,
+        "atk": 40,
+        "def": 27,
+        "agi": 15,
+        "cri": 3
+      },
+      {
+        "name": "混沌の守護者",
+        "category": "[Hell]",
+        "hp": 1550,
+        "atk": 54,
+        "def": 33,
+        "agi": 17,
+        "cri": 2
+      },
+      {
+        "name": "混沌の大公",
+        "category": "[優樹]",
+        "hp": 2900,
+        "atk": 74,
+        "def": 42,
+        "agi": 20,
+        "cri": 2
+      }
     ],
     "boss": {
       "name": "混沌王カオティクス",
-      "hp": 660000, "atk": 82, "def": 42, "agi": 20, "cri": 2,
+      "hp": 660000,
+      "atk": 82,
+      "def": 42,
+      "agi": 20,
+      "cri": 2,
       "initialWeapon": "混沌の触手",
       "phases": [
-        { "hpThreshold": 0.70, "weapon": "混沌の触手", "specialMove": "混沌撃・カオスストライク", "defBoost": 2, "atkBoost": 4 },
-        { "hpThreshold": 0.45, "weapon": "混沌の鎧＋触手", "specialMove": "混沌結界・カオスバリア", "defBoost": 5, "atkBoost": 2 },
-        { "hpThreshold": 0.25, "weapon": "混沌の大爪", "specialMove": "混沌乱舞・カオスダンス", "defBoost": -2, "atkBoost": 10 },
-        { "hpThreshold": 0.10, "weapon": "混沌王の力（混沌覚醒）", "specialMove": "混沌崩壊・カオスブレイク", "defBoost": -3, "atkBoost": 17 }
+        {
+          "hpThreshold": 0.7,
+          "weapon": "混沌の触手",
+          "specialMove": "混沌撃・カオスストライク",
+          "defBoost": 2,
+          "atkBoost": 4
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "混沌の鎧＋触手",
+          "specialMove": "混沌結界・カオスバリア",
+          "defBoost": 5,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "混沌の大爪",
+          "specialMove": "混沌乱舞・カオスダンス",
+          "defBoost": -2,
+          "atkBoost": 10
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "混沌王の力（混沌覚醒）",
+          "specialMove": "混沌崩壊・カオスブレイク",
+          "defBoost": -3,
+          "atkBoost": 17
+        }
       ],
       "drops": [
-        { "type": "material", "name": "混沌の核", "rarity": 3 },
-        { "type": "material", "name": "混沌の結晶", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "混沌の核",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "混沌の結晶",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "chaos_orb",
         "name": "混沌の宝珠",
         "nameCn": "混沌寶珠",
         "bossFloor": 37,
-        "effects": { "bossDamage": 0.25, "battleAtk": 0.18 }
+        "effects": {
+          "bossDamage": 0.25,
+          "battleAtk": 0.18
+        }
       },
       "specialMechanics": {
         "agiPenalty": {
@@ -1381,20 +4246,36 @@
         },
         "weaponBreak": {
           "chance": 10,
-          "durabilityDamage": [1, 4],
+          "durabilityDamage": [
+            1,
+            4
+          ],
           "descriptionCn": "混沌侵蝕：Boss 命中時 10% 機率腐蝕武器 1~4 耐久"
         },
         "persistentDebuff": {
           "chance": 15,
           "effects": [
-            { "stat": "atk", "mult": 0.8, "durationMs": 1800000 }
+            {
+              "stat": "atk",
+              "mult": 0.8,
+              "durationMs": 1800000
+            }
           ],
           "descriptionCn": "混沌詛咒：15% 機率降低 ATK 20%，持續 30 分鐘"
         }
       }
     },
-    "materials": ["mat_floor37_ore", "mat_floor37_crystal"],
-    "places": ["混沌の入口", "渦巻く回廊", "混沌の深淵", "混沌王の間", "BOSS房"],
+    "materials": [
+      "mat_floor37_ore",
+      "mat_floor37_crystal"
+    ],
+    "places": [
+      "混沌の入口",
+      "渦巻く回廊",
+      "混沌の深淵",
+      "混沌王の間",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -1402,32 +4283,111 @@
     "name": "真竜の巣",
     "nameCn": "真龍之巢",
     "enemies": [
-      { "name": "竜の幼生", "category": "[Easy]", "hp": 268, "atk": 25, "def": 18, "agi": 11, "cri": 4 },
-      { "name": "成竜の戦士", "category": "[Normal]", "hp": 468, "atk": 32, "def": 22, "agi": 13, "cri": 3 },
-      { "name": "竜人の将軍", "category": "[Hard]", "hp": 865, "atk": 42, "def": 28, "agi": 15, "cri": 2 },
-      { "name": "古竜の近衛", "category": "[Hell]", "hp": 1650, "atk": 57, "def": 35, "agi": 18, "cri": 2 },
-      { "name": "竜皇子", "category": "[優樹]", "hp": 3100, "atk": 78, "def": 44, "agi": 21, "cri": 2 }
+      {
+        "name": "竜の幼生",
+        "category": "[Easy]",
+        "hp": 268,
+        "atk": 25,
+        "def": 18,
+        "agi": 11,
+        "cri": 4
+      },
+      {
+        "name": "成竜の戦士",
+        "category": "[Normal]",
+        "hp": 468,
+        "atk": 32,
+        "def": 22,
+        "agi": 13,
+        "cri": 3
+      },
+      {
+        "name": "竜人の将軍",
+        "category": "[Hard]",
+        "hp": 865,
+        "atk": 42,
+        "def": 28,
+        "agi": 15,
+        "cri": 2
+      },
+      {
+        "name": "古竜の近衛",
+        "category": "[Hell]",
+        "hp": 1650,
+        "atk": 57,
+        "def": 35,
+        "agi": 18,
+        "cri": 2
+      },
+      {
+        "name": "竜皇子",
+        "category": "[優樹]",
+        "hp": 3100,
+        "atk": 78,
+        "def": 44,
+        "agi": 21,
+        "cri": 2
+      }
     ],
     "boss": {
       "name": "真竜王ドラグニル",
-      "hp": 750000, "atk": 85, "def": 44, "agi": 21, "cri": 2,
+      "hp": 750000,
+      "atk": 85,
+      "def": 44,
+      "agi": 21,
+      "cri": 2,
       "initialWeapon": "真竜の爪",
       "phases": [
-        { "hpThreshold": 0.70, "weapon": "真竜の爪", "specialMove": "竜撃・ドラゴンクロー", "defBoost": 2, "atkBoost": 4 },
-        { "hpThreshold": 0.45, "weapon": "真竜の鱗鎧＋爪", "specialMove": "竜鱗硬化・ドラゴンフォート", "defBoost": 6, "atkBoost": 2 },
-        { "hpThreshold": 0.25, "weapon": "真竜のブレス", "specialMove": "竜炎・ドラゴンインフェルノ", "defBoost": -2, "atkBoost": 11 },
-        { "hpThreshold": 0.10, "weapon": "真竜王の力（竜王覚醒）", "specialMove": "真竜崩壊・ドラグニルブレイク", "defBoost": -4, "atkBoost": 18 }
+        {
+          "hpThreshold": 0.7,
+          "weapon": "真竜の爪",
+          "specialMove": "竜撃・ドラゴンクロー",
+          "defBoost": 2,
+          "atkBoost": 4
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "真竜の鱗鎧＋爪",
+          "specialMove": "竜鱗硬化・ドラゴンフォート",
+          "defBoost": 6,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "真竜のブレス",
+          "specialMove": "竜炎・ドラゴンインフェルノ",
+          "defBoost": -2,
+          "atkBoost": 11
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "真竜王の力（竜王覚醒）",
+          "specialMove": "真竜崩壊・ドラグニルブレイク",
+          "defBoost": -4,
+          "atkBoost": 18
+        }
       ],
       "drops": [
-        { "type": "material", "name": "真竜王の逆鱗", "rarity": 3 },
-        { "type": "material", "name": "真竜の竜核", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "真竜王の逆鱗",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "真竜の竜核",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "dragnil_scale",
         "name": "ドラグニルの逆鱗",
         "nameCn": "龍尼爾逆鱗",
         "bossFloor": 38,
-        "effects": { "battleAtk": 0.25, "npcDeathChance": -0.20 }
+        "effects": {
+          "battleAtk": 0.25,
+          "npcDeathChance": -0.2
+        }
       },
       "specialMechanics": {
         "agiPenalty": {
@@ -1436,9 +4396,17 @@
           "descriptionCn": "龍速領域：AGI 不足 18 時，傷害降為 30%"
         },
         "weaponAffinity": {
-          "weak": ["spear", "bow"],
-          "resist": ["shield", "mace"],
-          "immune": ["curved_sword"],
+          "weak": [
+            "spear",
+            "bow"
+          ],
+          "resist": [
+            "shield",
+            "mace"
+          ],
+          "immune": [
+            "curved_sword"
+          ],
           "weakMult": 1.5,
           "resistMult": 0.5,
           "immuneMult": 0.1,
@@ -1446,8 +4414,17 @@
         }
       }
     },
-    "materials": ["mat_floor37_ore", "mat_floor37_crystal"],
-    "places": ["竜の通路", "竜の孵化場", "竜人の砦", "真竜王の巣", "BOSS房"],
+    "materials": [
+      "mat_floor37_ore",
+      "mat_floor37_crystal"
+    ],
+    "places": [
+      "竜の通路",
+      "竜の孵化場",
+      "竜人の砦",
+      "真竜王の巣",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -1455,32 +4432,112 @@
     "name": "創世の間",
     "nameCn": "創世之間",
     "enemies": [
-      { "name": "創世の天使", "category": "[Easy]", "hp": 285, "atk": 27, "def": 19, "agi": 12, "cri": 3 },
-      { "name": "創世の守護者", "category": "[Normal]", "hp": 498, "atk": 34, "def": 24, "agi": 14, "cri": 3 },
-      { "name": "創世の大天使", "category": "[Hard]", "hp": 920, "atk": 44, "def": 30, "agi": 16, "cri": 2 },
-      { "name": "創世の熾天使", "category": "[Hell]", "hp": 1760, "atk": 60, "def": 37, "agi": 19, "cri": 2 },
-      { "name": "創世の神使", "category": "[優樹]", "hp": 3350, "atk": 82, "def": 46, "agi": 22, "cri": 2 }
+      {
+        "name": "創世の天使",
+        "category": "[Easy]",
+        "hp": 285,
+        "atk": 27,
+        "def": 19,
+        "agi": 12,
+        "cri": 3
+      },
+      {
+        "name": "創世の守護者",
+        "category": "[Normal]",
+        "hp": 498,
+        "atk": 34,
+        "def": 24,
+        "agi": 14,
+        "cri": 3
+      },
+      {
+        "name": "創世の大天使",
+        "category": "[Hard]",
+        "hp": 920,
+        "atk": 44,
+        "def": 30,
+        "agi": 16,
+        "cri": 2
+      },
+      {
+        "name": "創世の熾天使",
+        "category": "[Hell]",
+        "hp": 1760,
+        "atk": 60,
+        "def": 37,
+        "agi": 19,
+        "cri": 2
+      },
+      {
+        "name": "創世の神使",
+        "category": "[優樹]",
+        "hp": 3350,
+        "atk": 82,
+        "def": 46,
+        "agi": 22,
+        "cri": 2
+      }
     ],
     "boss": {
       "name": "創世神エロヒム",
-      "hp": 850000, "atk": 90, "def": 46, "agi": 22, "cri": 2,
+      "hp": 850000,
+      "atk": 90,
+      "def": 46,
+      "agi": 22,
+      "cri": 2,
       "initialWeapon": "創世の杖",
       "phases": [
-        { "hpThreshold": 0.70, "weapon": "創世の杖", "specialMove": "創世光・ジェネシスレイ", "defBoost": 2, "atkBoost": 5 },
-        { "hpThreshold": 0.45, "weapon": "創世の盾＋杖", "specialMove": "創世結界・ジェネシスウォール", "defBoost": 6, "atkBoost": 2 },
-        { "hpThreshold": 0.25, "weapon": "創世の双剣", "specialMove": "創世乱舞・ジェネシスダンス", "defBoost": -2, "atkBoost": 12 },
-        { "hpThreshold": 0.10, "weapon": "創世神の力（神覚醒）", "specialMove": "創世崩壊・ジェネシスブレイク", "defBoost": -4, "atkBoost": 19 }
+        {
+          "hpThreshold": 0.7,
+          "weapon": "創世の杖",
+          "specialMove": "創世光・ジェネシスレイ",
+          "defBoost": 2,
+          "atkBoost": 5
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "創世の盾＋杖",
+          "specialMove": "創世結界・ジェネシスウォール",
+          "defBoost": 6,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "創世の双剣",
+          "specialMove": "創世乱舞・ジェネシスダンス",
+          "defBoost": -2,
+          "atkBoost": 12
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "創世神の力（神覚醒）",
+          "specialMove": "創世崩壊・ジェネシスブレイク",
+          "defBoost": -4,
+          "atkBoost": 19
+        }
       ],
       "drops": [
-        { "type": "material", "name": "創世神の核", "rarity": 3 },
-        { "type": "material", "name": "創世の結晶", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "創世神の核",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "創世の結晶",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "elohim_scepter",
         "name": "創世神の権杖",
         "nameCn": "創世神權杖",
         "bossFloor": 39,
-        "effects": { "bossDamage": 0.28, "battleAtk": 0.20, "npcDeathChance": -0.18 }
+        "effects": {
+          "bossDamage": 0.28,
+          "battleAtk": 0.2,
+          "npcDeathChance": -0.18
+        }
       },
       "specialMechanics": {
         "agiPenalty": {
@@ -1489,8 +4546,14 @@
           "descriptionCn": "神速領域：AGI 不足 19 時，傷害降為 30%"
         },
         "weaponAffinity": {
-          "weak": ["one_handed_sword", "katana"],
-          "resist": ["two_handed_axe", "two_handed_sword"],
+          "weak": [
+            "one_handed_sword",
+            "katana"
+          ],
+          "resist": [
+            "two_handed_axe",
+            "two_handed_sword"
+          ],
           "immune": [],
           "weakMult": 1.5,
           "resistMult": 0.5,
@@ -1499,8 +4562,17 @@
         }
       }
     },
-    "materials": ["mat_floor39_ore", "mat_floor39_crystal"],
-    "places": ["天使の階段", "創世の回廊", "神殿の広間", "創世神の玉座", "BOSS房"],
+    "materials": [
+      "mat_floor39_ore",
+      "mat_floor39_crystal"
+    ],
+    "places": [
+      "天使の階段",
+      "創世の回廊",
+      "神殿の広間",
+      "創世神の玉座",
+      "BOSS房"
+    ],
     "maxExplore": 5
   },
   {
@@ -1508,32 +4580,113 @@
     "name": "虚空の王座",
     "nameCn": "虛空王座",
     "enemies": [
-      { "name": "虚空の残影", "category": "[Easy]", "hp": 305, "atk": 28, "def": 20, "agi": 13, "cri": 3 },
-      { "name": "虚空の騎士", "category": "[Normal]", "hp": 530, "atk": 36, "def": 25, "agi": 15, "cri": 3 },
-      { "name": "虚空の将軍", "category": "[Hard]", "hp": 980, "atk": 47, "def": 32, "agi": 17, "cri": 2 },
-      { "name": "虚空の近衛", "category": "[Hell]", "hp": 1880, "atk": 64, "def": 40, "agi": 20, "cri": 2 },
-      { "name": "虚空の王子", "category": "[優樹]", "hp": 3600, "atk": 88, "def": 50, "agi": 24, "cri": 1 }
+      {
+        "name": "虚空の残影",
+        "category": "[Easy]",
+        "hp": 305,
+        "atk": 28,
+        "def": 20,
+        "agi": 13,
+        "cri": 3
+      },
+      {
+        "name": "虚空の騎士",
+        "category": "[Normal]",
+        "hp": 530,
+        "atk": 36,
+        "def": 25,
+        "agi": 15,
+        "cri": 3
+      },
+      {
+        "name": "虚空の将軍",
+        "category": "[Hard]",
+        "hp": 980,
+        "atk": 47,
+        "def": 32,
+        "agi": 17,
+        "cri": 2
+      },
+      {
+        "name": "虚空の近衛",
+        "category": "[Hell]",
+        "hp": 1880,
+        "atk": 64,
+        "def": 40,
+        "agi": 20,
+        "cri": 2
+      },
+      {
+        "name": "虚空の王子",
+        "category": "[優樹]",
+        "hp": 3600,
+        "atk": 88,
+        "def": 50,
+        "agi": 24,
+        "cri": 1
+      }
     ],
     "boss": {
       "name": "虚空王ヴォイド",
-      "hp": 1000000, "atk": 96, "def": 50, "agi": 24, "cri": 2,
+      "hp": 1000000,
+      "atk": 96,
+      "def": 50,
+      "agi": 24,
+      "cri": 2,
       "initialWeapon": "虚空の大剣",
       "phases": [
-        { "hpThreshold": 0.70, "weapon": "虚空の大剣", "specialMove": "虚空斬・ヴォイドスラッシュ", "defBoost": 2, "atkBoost": 5 },
-        { "hpThreshold": 0.45, "weapon": "虚空の鎧＋大剣", "specialMove": "虚空結界・ヴォイドシールド", "defBoost": 7, "atkBoost": 2 },
-        { "hpThreshold": 0.25, "weapon": "虚空の双大剣", "specialMove": "虚空乱舞・ヴォイドダンス", "defBoost": -2, "atkBoost": 13 },
-        { "hpThreshold": 0.10, "weapon": "虚空王の力（虚空覚醒）", "specialMove": "虚空崩壊・ヴォイドブレイク", "defBoost": -5, "atkBoost": 22 }
+        {
+          "hpThreshold": 0.7,
+          "weapon": "虚空の大剣",
+          "specialMove": "虚空斬・ヴォイドスラッシュ",
+          "defBoost": 2,
+          "atkBoost": 5
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "虚空の鎧＋大剣",
+          "specialMove": "虚空結界・ヴォイドシールド",
+          "defBoost": 7,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "虚空の双大剣",
+          "specialMove": "虚空乱舞・ヴォイドダンス",
+          "defBoost": -2,
+          "atkBoost": 13
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "虚空王の力（虚空覚醒）",
+          "specialMove": "虚空崩壊・ヴォイドブレイク",
+          "defBoost": -5,
+          "atkBoost": 22
+        }
       ],
       "drops": [
-        { "type": "material", "name": "虚空王の核", "rarity": 3 },
-        { "type": "material", "name": "虚空の結晶", "rarity": 2 }
+        {
+          "type": "material",
+          "name": "虚空王の核",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "虚空の結晶",
+          "rarity": 2
+        }
       ],
       "lastAttackDrop": {
         "id": "void_crown",
         "name": "虚空王の王冠",
         "nameCn": "虛空王之冠",
         "bossFloor": 40,
-        "effects": { "bossDamage": 0.30, "battleAtk": 0.22, "battleDef": 0.15, "battleAgi": 0.15 }
+        "effects": {
+          "bossDamage": 0.3,
+          "battleAtk": 0.22,
+          "battleDef": 0.15,
+          "battleAgi": 0.15
+        }
       },
       "specialMechanics": {
         "agiPenalty": {
@@ -1542,8 +4695,16 @@
           "descriptionCn": "虛空領域：AGI 不足 20 時，傷害降為 30%"
         },
         "weaponAffinity": {
-          "weak": ["rapier", "katana", "one_handed_sword"],
-          "resist": ["shield", "bow", "two_handed_axe"],
+          "weak": [
+            "rapier",
+            "katana",
+            "one_handed_sword"
+          ],
+          "resist": [
+            "shield",
+            "bow",
+            "two_handed_axe"
+          ],
           "immune": [],
           "weakMult": 1.5,
           "resistMult": 0.5,
@@ -1552,8 +4713,1658 @@
         }
       }
     },
-    "materials": ["mat_floor39_ore", "mat_floor39_crystal"],
-    "places": ["虚空の階段", "消滅の回廊", "虚無の広間", "虚空王の玉座", "BOSS房"],
+    "materials": [
+      "mat_floor39_ore",
+      "mat_floor39_crystal"
+    ],
+    "places": [
+      "虚空の階段",
+      "消滅の回廊",
+      "虚無の広間",
+      "虚空王の玉座",
+      "BOSS房"
+    ],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 41,
+    "name": "時空の回廊",
+    "nameCn": "時空回廊",
+    "enemies": [
+      {
+        "name": "時空のスライム",
+        "category": "[Easy]",
+        "hp": 330,
+        "atk": 30,
+        "def": 21,
+        "agi": 14,
+        "cri": 3
+      },
+      {
+        "name": "時空の歩兵",
+        "category": "[Normal]",
+        "hp": 570,
+        "atk": 38,
+        "def": 27,
+        "agi": 16,
+        "cri": 3
+      },
+      {
+        "name": "時空の将軍",
+        "category": "[Hard]",
+        "hp": 1050,
+        "atk": 50,
+        "def": 34,
+        "agi": 18,
+        "cri": 2
+      },
+      {
+        "name": "時空の番人",
+        "category": "[Hell]",
+        "hp": 2000,
+        "atk": 68,
+        "def": 42,
+        "agi": 21,
+        "cri": 2
+      },
+      {
+        "name": "時空の竜人",
+        "category": "[優樹]",
+        "hp": 3850,
+        "atk": 94,
+        "def": 54,
+        "agi": 25,
+        "cri": 1
+      }
+    ],
+    "boss": {
+      "name": "時空龍クロノス",
+      "hp": 1300000,
+      "atk": 100,
+      "def": 52,
+      "agi": 25,
+      "cri": 2,
+      "initialWeapon": "時空の爪",
+      "phases": [
+        {
+          "hpThreshold": 0.7,
+          "weapon": "時空の爪",
+          "specialMove": "時空撃・クロノスクロー",
+          "defBoost": 2,
+          "atkBoost": 4
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "時空の鎧＋爪",
+          "specialMove": "時空結界・クロノスウォール",
+          "defBoost": 5,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "時空の双翼",
+          "specialMove": "時空乱舞・クロノスダンス",
+          "defBoost": -2,
+          "atkBoost": 10
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "時空龍の力（時空覚醒）",
+          "specialMove": "時空崩壊・クロノスブレイク",
+          "defBoost": -4,
+          "atkBoost": 18
+        }
+      ],
+      "drops": [
+        {
+          "type": "material",
+          "name": "時空龍の鱗",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "時空の砂",
+          "rarity": 2
+        }
+      ],
+      "lastAttackDrop": {
+        "id": "chronos_hourglass",
+        "name": "時空龍の砂時計",
+        "nameCn": "時空龍之砂時計",
+        "bossFloor": 41,
+        "effects": {
+          "bossDamage": 0.2,
+          "battleAgi": 0.2
+        }
+      },
+      "specialMechanics": {
+        "agiPenalty": {
+          "threshold": 21,
+          "damageMult": 0.3,
+          "descriptionCn": "時空歪曲：AGI 不足 21 時，傷害降為 30%"
+        },
+        "weaponAffinity": {
+          "weak": [
+            "one_handed_sword",
+            "katana"
+          ],
+          "resist": [
+            "two_handed_sword",
+            "two_handed_axe"
+          ],
+          "immune": [],
+          "weakMult": 1.5,
+          "resistMult": 0.5,
+          "immuneMult": 0.1,
+          "descriptionCn": "時空鱗甲：劍/刀有效（+50%），重武器無效（-50%）"
+        },
+        "weaponBreak": {
+          "chance": 12,
+          "durabilityDamage": [
+            2,
+            5
+          ],
+          "descriptionCn": "時空侵蝕：Boss 命中時 12% 機率侵蝕武器 2~5 耐久"
+        },
+        "persistentDebuff": {
+          "chance": 18,
+          "effects": [
+            {
+              "stat": "atk",
+              "mult": 0.75,
+              "durationMs": 1800000
+            }
+          ],
+          "descriptionCn": "時空詛咒：18% 機率降低 ATK 25%，持續 30 分鐘"
+        }
+      }
+    },
+    "materials": [
+      "mat_floor41_ore",
+      "mat_floor41_crystal"
+    ],
+    "places": [
+      "時の階段",
+      "歪みの回廊",
+      "停止した広間",
+      "時空龍の巣",
+      "BOSS房"
+    ],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 42,
+    "name": "永凍の氷窟",
+    "nameCn": "永凍冰窟",
+    "enemies": [
+      {
+        "name": "氷の妖精",
+        "category": "[Easy]",
+        "hp": 351,
+        "atk": 32,
+        "def": 22,
+        "agi": 15,
+        "cri": 3
+      },
+      {
+        "name": "氷結の騎士",
+        "category": "[Normal]",
+        "hp": 607,
+        "atk": 40,
+        "def": 28,
+        "agi": 17,
+        "cri": 3
+      },
+      {
+        "name": "氷結の将軍",
+        "category": "[Hard]",
+        "hp": 1118,
+        "atk": 53,
+        "def": 36,
+        "agi": 19,
+        "cri": 2
+      },
+      {
+        "name": "氷帝の近衛",
+        "category": "[Hell]",
+        "hp": 2133,
+        "atk": 72,
+        "def": 45,
+        "agi": 22,
+        "cri": 2
+      },
+      {
+        "name": "氷の大公",
+        "category": "[優樹]",
+        "hp": 4111,
+        "atk": 100,
+        "def": 57,
+        "agi": 26,
+        "cri": 1
+      }
+    ],
+    "boss": {
+      "name": "氷帝グラシア",
+      "hp": 1600000,
+      "atk": 104,
+      "def": 55,
+      "agi": 26,
+      "cri": 2,
+      "initialWeapon": "氷帝の大剣",
+      "phases": [
+        {
+          "hpThreshold": 0.7,
+          "weapon": "氷帝の大剣",
+          "specialMove": "氷結撃・グラシアスラッシュ",
+          "defBoost": 2,
+          "atkBoost": 4
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "氷帝の鎧＋大剣",
+          "specialMove": "氷結結界・フロストウォール",
+          "defBoost": 6,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "氷帝の双氷剣",
+          "specialMove": "氷結乱舞・ブリザードダンス",
+          "defBoost": -2,
+          "atkBoost": 10
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "氷帝の力（永凍覚醒）",
+          "specialMove": "永凍崩壊・アブソリュートゼロ",
+          "defBoost": -4,
+          "atkBoost": 19
+        }
+      ],
+      "drops": [
+        {
+          "type": "material",
+          "name": "氷帝の結晶",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "永凍の氷",
+          "rarity": 2
+        }
+      ],
+      "lastAttackDrop": {
+        "id": "glacius_core",
+        "name": "氷帝の結晶核",
+        "nameCn": "氷帝結晶核",
+        "bossFloor": 42,
+        "effects": {
+          "battleDef": 0.25,
+          "bossDamage": 0.15
+        }
+      },
+      "specialMechanics": {
+        "agiPenalty": {
+          "threshold": 22,
+          "damageMult": 0.25,
+          "descriptionCn": "永凍領域：AGI 不足 22 時，傷害降為 25%"
+        },
+        "weaponAffinity": {
+          "weak": [
+            "two_handed_axe",
+            "mace"
+          ],
+          "resist": [
+            "dagger",
+            "bow"
+          ],
+          "immune": [],
+          "weakMult": 1.5,
+          "resistMult": 0.5,
+          "immuneMult": 0.1,
+          "descriptionCn": "氷結護甲：斧/棍有效（+50%），短劍/弓無效（-50%）"
+        },
+        "persistentDebuff": {
+          "chance": 20,
+          "effects": [
+            {
+              "stat": "def",
+              "mult": 0.7,
+              "durationMs": 2700000
+            }
+          ],
+          "descriptionCn": "永凍詛咒：20% 機率降低 DEF 30%，持續 45 分鐘"
+        }
+      }
+    },
+    "materials": [
+      "mat_floor41_ore",
+      "mat_floor41_crystal"
+    ],
+    "places": [
+      "氷の階段",
+      "凍てつく回廊",
+      "氷結の広間",
+      "永凍の深部",
+      "BOSS房"
+    ],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 43,
+    "name": "妖樹の迷宮",
+    "nameCn": "妖樹迷宮",
+    "enemies": [
+      {
+        "name": "妖樹の苗木",
+        "category": "[Easy]",
+        "hp": 372,
+        "atk": 33,
+        "def": 23,
+        "agi": 16,
+        "cri": 3
+      },
+      {
+        "name": "妖樹の番兵",
+        "category": "[Normal]",
+        "hp": 643,
+        "atk": 42,
+        "def": 30,
+        "agi": 18,
+        "cri": 3
+      },
+      {
+        "name": "妖樹の将軍",
+        "category": "[Hard]",
+        "hp": 1186,
+        "atk": 56,
+        "def": 38,
+        "agi": 20,
+        "cri": 2
+      },
+      {
+        "name": "妖樹の守護者",
+        "category": "[Hell]",
+        "hp": 2267,
+        "atk": 76,
+        "def": 47,
+        "agi": 23,
+        "cri": 2
+      },
+      {
+        "name": "妖樹の大公",
+        "category": "[優樹]",
+        "hp": 4372,
+        "atk": 105,
+        "def": 61,
+        "agi": 27,
+        "cri": 1
+      }
+    ],
+    "boss": {
+      "name": "妖樹王エント",
+      "hp": 2000000,
+      "atk": 108,
+      "def": 58,
+      "agi": 24,
+      "cri": 2,
+      "initialWeapon": "妖樹の根",
+      "phases": [
+        {
+          "hpThreshold": 0.7,
+          "weapon": "妖樹の根",
+          "specialMove": "妖樹撃・エントルート",
+          "defBoost": 2,
+          "atkBoost": 5
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "妖樹の鎧＋根",
+          "specialMove": "妖樹結界・フォレストウォール",
+          "defBoost": 5,
+          "atkBoost": 2
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "妖樹の大枝",
+          "specialMove": "妖樹乱舞・フォレストダンス",
+          "defBoost": -2,
+          "atkBoost": 11
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "妖樹王の力（妖樹覚醒）",
+          "specialMove": "妖樹崩壊・エントブレイク",
+          "defBoost": -4,
+          "atkBoost": 19
+        }
+      ],
+      "drops": [
+        {
+          "type": "material",
+          "name": "妖樹王の樹液",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "妖樹の根",
+          "rarity": 2
+        }
+      ],
+      "lastAttackDrop": {
+        "id": "ent_heart",
+        "name": "妖樹王の心核",
+        "nameCn": "妖樹王之心",
+        "bossFloor": 43,
+        "effects": {
+          "battleAtk": 0.2,
+          "npcCondLoss": -0.25
+        }
+      },
+      "specialMechanics": {
+        "weaponAffinity": {
+          "weak": [
+            "spear",
+            "bow"
+          ],
+          "resist": [
+            "one_handed_sword",
+            "shield"
+          ],
+          "immune": [],
+          "weakMult": 1.5,
+          "resistMult": 0.5,
+          "immuneMult": 0.1,
+          "descriptionCn": "妖樹之體：槍/弓有效（+50%），劍/盾無效（-50%）"
+        },
+        "weaponBreak": {
+          "chance": 15,
+          "durabilityDamage": [
+            2,
+            6
+          ],
+          "descriptionCn": "妖樹侵蝕：Boss 命中時 15% 機率侵蝕武器 2~6 耐久"
+        },
+        "weaponCopy": {
+          "copyRate": 0.03
+        }
+      }
+    },
+    "materials": [
+      "mat_floor43_ore",
+      "mat_floor43_crystal"
+    ],
+    "places": [
+      "妖樹の入口",
+      "根の迷路",
+      "樹海の広間",
+      "妖樹王の根城",
+      "BOSS房"
+    ],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 44,
+    "name": "黒鉄の砦",
+    "nameCn": "黑鐵堡壘",
+    "enemies": [
+      {
+        "name": "黒鉄の兵士",
+        "category": "[Easy]",
+        "hp": 393,
+        "atk": 35,
+        "def": 25,
+        "agi": 17,
+        "cri": 3
+      },
+      {
+        "name": "黒鉄の重騎士",
+        "category": "[Normal]",
+        "hp": 680,
+        "atk": 45,
+        "def": 31,
+        "agi": 19,
+        "cri": 3
+      },
+      {
+        "name": "黒鉄の将軍",
+        "category": "[Hard]",
+        "hp": 1253,
+        "atk": 59,
+        "def": 40,
+        "agi": 21,
+        "cri": 2
+      },
+      {
+        "name": "黒鉄の近衛隊長",
+        "category": "[Hell]",
+        "hp": 2400,
+        "atk": 80,
+        "def": 50,
+        "agi": 24,
+        "cri": 2
+      },
+      {
+        "name": "黒鉄の副将",
+        "category": "[優樹]",
+        "hp": 4633,
+        "atk": 111,
+        "def": 64,
+        "agi": 28,
+        "cri": 1
+      }
+    ],
+    "boss": {
+      "name": "黒鉄将グラディウス",
+      "hp": 2500000,
+      "atk": 112,
+      "def": 62,
+      "agi": 27,
+      "cri": 2,
+      "initialWeapon": "黒鉄の大槍",
+      "phases": [
+        {
+          "hpThreshold": 0.7,
+          "weapon": "黒鉄の大槍",
+          "specialMove": "黒鉄突撃・グラディウスランス",
+          "defBoost": 2,
+          "atkBoost": 5
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "黒鉄の鎧＋大盾",
+          "specialMove": "黒鉄結界・アイアンフォートレス",
+          "defBoost": 6,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "黒鉄の双大剣",
+          "specialMove": "黒鉄乱舞・グラディウスダンス",
+          "defBoost": -2,
+          "atkBoost": 11
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "黒鉄将の力（黒鉄覚醒）",
+          "specialMove": "黒鉄崩壊・グラディウスブレイク",
+          "defBoost": -4,
+          "atkBoost": 20
+        }
+      ],
+      "drops": [
+        {
+          "type": "material",
+          "name": "黒鉄将の勲章",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "黒鉄の破片",
+          "rarity": 2
+        }
+      ],
+      "lastAttackDrop": {
+        "id": "gladius_insignia",
+        "name": "黒鉄将の軍徽",
+        "nameCn": "黑鐵將軍徽",
+        "bossFloor": 44,
+        "effects": {
+          "battleAtk": 0.22,
+          "battleDef": 0.18
+        }
+      },
+      "specialMechanics": {
+        "agiPenalty": {
+          "threshold": 23,
+          "damageMult": 0.25,
+          "descriptionCn": "鐵壁領域：AGI 不足 23 時，傷害降為 25%"
+        },
+        "weaponAffinity": {
+          "weak": [
+            "dagger",
+            "rapier"
+          ],
+          "resist": [
+            "two_handed_sword",
+            "two_handed_axe"
+          ],
+          "immune": [],
+          "weakMult": 1.5,
+          "resistMult": 0.5,
+          "immuneMult": 0.1,
+          "descriptionCn": "黑鐵重甲：短劍/細劍有效（+50%），重武器無效（-50%）"
+        },
+        "persistentDebuff": {
+          "chance": 20,
+          "effects": [
+            {
+              "stat": "agi",
+              "mult": 0.7,
+              "durationMs": 1800000
+            }
+          ],
+          "descriptionCn": "黑鐵詛咒：20% 機率降低 AGI 30%，持續 30 分鐘"
+        },
+        "weaponCopy": {
+          "copyRate": 0.04
+        }
+      }
+    },
+    "materials": [
+      "mat_floor43_ore",
+      "mat_floor43_crystal"
+    ],
+    "places": [
+      "黒鉄の城門",
+      "鉄壁の回廊",
+      "軍議の間",
+      "黒鉄将の砦",
+      "BOSS房"
+    ],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 45,
+    "name": "星墜の荒野",
+    "nameCn": "星墜荒野",
+    "enemies": [
+      {
+        "name": "星屑のゴーレム",
+        "category": "[Easy]",
+        "hp": 414,
+        "atk": 37,
+        "def": 26,
+        "agi": 18,
+        "cri": 3
+      },
+      {
+        "name": "星墜の戦士",
+        "category": "[Normal]",
+        "hp": 717,
+        "atk": 47,
+        "def": 33,
+        "agi": 20,
+        "cri": 3
+      },
+      {
+        "name": "星墜の将軍",
+        "category": "[Hard]",
+        "hp": 1321,
+        "atk": 62,
+        "def": 42,
+        "agi": 22,
+        "cri": 2
+      },
+      {
+        "name": "星墜の巨人",
+        "category": "[Hell]",
+        "hp": 2533,
+        "atk": 84,
+        "def": 53,
+        "agi": 25,
+        "cri": 2
+      },
+      {
+        "name": "星墜の神官",
+        "category": "[優樹]",
+        "hp": 4894,
+        "atk": 117,
+        "def": 67,
+        "agi": 29,
+        "cri": 1
+      }
+    ],
+    "boss": {
+      "name": "星墜神メテオラ",
+      "hp": 3200000,
+      "atk": 118,
+      "def": 56,
+      "agi": 28,
+      "cri": 2,
+      "initialWeapon": "星墜の拳",
+      "phases": [
+        {
+          "hpThreshold": 0.7,
+          "weapon": "星墜の拳",
+          "specialMove": "星墜撃・メテオストライク",
+          "defBoost": 2,
+          "atkBoost": 5
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "星墜の鎧＋拳",
+          "specialMove": "星墜結界・スターウォール",
+          "defBoost": 6,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "星墜の隕石腕",
+          "specialMove": "星墜乱舞・メテオシャワー",
+          "defBoost": -2,
+          "atkBoost": 12
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "星墜神の力（星墜覚醒）",
+          "specialMove": "星墜崩壊・メテオインパクト",
+          "defBoost": -5,
+          "atkBoost": 21
+        }
+      ],
+      "drops": [
+        {
+          "type": "material",
+          "name": "星墜神の核",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "星屑の欠片",
+          "rarity": 2
+        }
+      ],
+      "lastAttackDrop": {
+        "id": "meteora_fragment",
+        "name": "星墜の欠片",
+        "nameCn": "星墜碎片",
+        "bossFloor": 45,
+        "effects": {
+          "bossDamage": 0.28,
+          "battleAtk": 0.2
+        }
+      },
+      "specialMechanics": {
+        "agiPenalty": {
+          "threshold": 24,
+          "damageMult": 0.25,
+          "descriptionCn": "星墜領域：AGI 不足 24 時，傷害降為 25%"
+        },
+        "weaponAffinity": {
+          "weak": [
+            "one_handed_sword",
+            "spear"
+          ],
+          "resist": [
+            "curved_sword",
+            "bow"
+          ],
+          "immune": [],
+          "weakMult": 1.5,
+          "resistMult": 0.5,
+          "immuneMult": 0.1,
+          "descriptionCn": "星墜護體：劍/槍有效（+50%），彎刀/弓無效（-50%）"
+        },
+        "weaponBreak": {
+          "chance": 15,
+          "durabilityDamage": [
+            3,
+            6
+          ],
+          "descriptionCn": "星墜衝擊：Boss 命中時 15% 機率損傷武器 3~6 耐久"
+        },
+        "persistentDebuff": {
+          "chance": 25,
+          "effects": [
+            {
+              "stat": "atk",
+              "mult": 0.7,
+              "durationMs": 2700000
+            }
+          ],
+          "descriptionCn": "星墜詛咒：25% 機率降低 ATK 30%，持續 45 分鐘"
+        },
+        "weaponCopy": {
+          "copyRate": 0.05
+        }
+      }
+    },
+    "materials": [
+      "mat_floor45_ore",
+      "mat_floor45_crystal"
+    ],
+    "places": [
+      "星墜の平原",
+      "隕石の谷",
+      "星屑の広場",
+      "星墜神の祭壇",
+      "BOSS房"
+    ],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 46,
+    "name": "血霧の回廊",
+    "nameCn": "血霧迴廊",
+    "enemies": [
+      {
+        "name": "血霧のゴースト",
+        "category": "[Easy]",
+        "hp": 436,
+        "atk": 38,
+        "def": 27,
+        "agi": 18,
+        "cri": 3
+      },
+      {
+        "name": "血霧の騎士",
+        "category": "[Normal]",
+        "hp": 753,
+        "atk": 49,
+        "def": 34,
+        "agi": 20,
+        "cri": 3
+      },
+      {
+        "name": "血霧の将軍",
+        "category": "[Hard]",
+        "hp": 1389,
+        "atk": 64,
+        "def": 44,
+        "agi": 22,
+        "cri": 2
+      },
+      {
+        "name": "血霧の貴族",
+        "category": "[Hell]",
+        "hp": 2667,
+        "atk": 89,
+        "def": 55,
+        "agi": 26,
+        "cri": 2
+      },
+      {
+        "name": "血霧の侯爵",
+        "category": "[優樹]",
+        "hp": 5156,
+        "atk": 122,
+        "def": 71,
+        "agi": 30,
+        "cri": 1
+      }
+    ],
+    "boss": {
+      "name": "血霧卿ヴァンパイア",
+      "hp": 4000000,
+      "atk": 122,
+      "def": 60,
+      "agi": 26,
+      "cri": 2,
+      "initialWeapon": "血霧の双爪",
+      "phases": [
+        {
+          "hpThreshold": 0.7,
+          "weapon": "血霧の双爪",
+          "specialMove": "血霧撃・ブラッドクロー",
+          "defBoost": 2,
+          "atkBoost": 6
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "血霧のマント＋爪",
+          "specialMove": "血霧結界・ブラッドミスト",
+          "defBoost": 6,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "血霧の大鎌",
+          "specialMove": "血霧乱舞・ブラッドダンス",
+          "defBoost": -2,
+          "atkBoost": 12
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "血霧卿の力（血霧覚醒）",
+          "specialMove": "血霧崩壊・ブラッドブレイク",
+          "defBoost": -5,
+          "atkBoost": 22
+        }
+      ],
+      "drops": [
+        {
+          "type": "material",
+          "name": "血霧卿の血玉",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "血の結晶",
+          "rarity": 2
+        }
+      ],
+      "lastAttackDrop": {
+        "id": "vampire_fang",
+        "name": "血霧卿の牙",
+        "nameCn": "血霧卿之牙",
+        "bossFloor": 46,
+        "effects": {
+          "battleAtk": 0.25,
+          "npcDeathChance": -0.25
+        }
+      },
+      "specialMechanics": {
+        "weaponAffinity": {
+          "weak": [
+            "dagger",
+            "mace"
+          ],
+          "resist": [
+            "one_handed_sword",
+            "shield"
+          ],
+          "immune": [],
+          "weakMult": 1.5,
+          "resistMult": 0.5,
+          "immuneMult": 0.1,
+          "descriptionCn": "血霧之體：短劍/棍有效（+50%），劍/盾無效（-50%）"
+        },
+        "weaponBreak": {
+          "chance": 18,
+          "durabilityDamage": [
+            3,
+            7
+          ],
+          "descriptionCn": "血霧侵蝕：Boss 命中時 18% 機率侵蝕武器 3~7 耐久"
+        },
+        "persistentDebuff": {
+          "chance": 25,
+          "effects": [
+            {
+              "stat": "def",
+              "mult": 0.65,
+              "durationMs": 2700000
+            }
+          ],
+          "descriptionCn": "血霧詛咒：25% 機率降低 DEF 35%，持續 45 分鐘"
+        },
+        "weaponCopy": {
+          "copyRate": 0.05
+        }
+      }
+    },
+    "materials": [
+      "mat_floor45_ore",
+      "mat_floor45_crystal"
+    ],
+    "places": [
+      "血霧の入口",
+      "赤い回廊",
+      "血の広間",
+      "血霧卿の城",
+      "BOSS房"
+    ],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 47,
+    "name": "天機の殿堂",
+    "nameCn": "天機殿堂",
+    "enemies": [
+      {
+        "name": "天機の自動兵",
+        "category": "[Easy]",
+        "hp": 457,
+        "atk": 40,
+        "def": 28,
+        "agi": 19,
+        "cri": 3
+      },
+      {
+        "name": "天機の機騎士",
+        "category": "[Normal]",
+        "hp": 790,
+        "atk": 51,
+        "def": 36,
+        "agi": 21,
+        "cri": 3
+      },
+      {
+        "name": "天機の将軍",
+        "category": "[Hard]",
+        "hp": 1457,
+        "atk": 67,
+        "def": 46,
+        "agi": 23,
+        "cri": 2
+      },
+      {
+        "name": "天機の守護者",
+        "category": "[Hell]",
+        "hp": 2800,
+        "atk": 93,
+        "def": 58,
+        "agi": 27,
+        "cri": 2
+      },
+      {
+        "name": "天機の副帝",
+        "category": "[優樹]",
+        "hp": 5417,
+        "atk": 128,
+        "def": 74,
+        "agi": 31,
+        "cri": 1
+      }
+    ],
+    "boss": {
+      "name": "天機帝デウスマキナ",
+      "hp": 5000000,
+      "atk": 128,
+      "def": 64,
+      "agi": 29,
+      "cri": 2,
+      "initialWeapon": "天機の大腕",
+      "phases": [
+        {
+          "hpThreshold": 0.7,
+          "weapon": "天機の大腕",
+          "specialMove": "天機撃・マキナストライク",
+          "defBoost": 3,
+          "atkBoost": 6
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "天機の鎧＋腕",
+          "specialMove": "天機結界・マキナウォール",
+          "defBoost": 7,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "天機の双大砲",
+          "specialMove": "天機乱舞・マキナバースト",
+          "defBoost": -3,
+          "atkBoost": 13
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "天機帝の力（天機覚醒）",
+          "specialMove": "天機崩壊・デウスマキナブレイク",
+          "defBoost": -5,
+          "atkBoost": 23
+        }
+      ],
+      "drops": [
+        {
+          "type": "material",
+          "name": "天機帝の歯車",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "天機の部品",
+          "rarity": 2
+        }
+      ],
+      "lastAttackDrop": {
+        "id": "deus_gear",
+        "name": "天機帝の心臓歯車",
+        "nameCn": "天機帝齒輪",
+        "bossFloor": 47,
+        "effects": {
+          "bossDamage": 0.3,
+          "battleAgi": 0.22
+        }
+      },
+      "specialMechanics": {
+        "agiPenalty": {
+          "threshold": 25,
+          "damageMult": 0.2,
+          "descriptionCn": "天機領域：AGI 不足 25 時，傷害降為 20%"
+        },
+        "weaponAffinity": {
+          "weak": [
+            "two_handed_axe",
+            "spear"
+          ],
+          "resist": [
+            "dagger",
+            "bow"
+          ],
+          "immune": [],
+          "weakMult": 1.5,
+          "resistMult": 0.5,
+          "immuneMult": 0.1,
+          "descriptionCn": "天機裝甲：斧/槍有效（+50%），短劍/弓無效（-50%）"
+        },
+        "weaponBreak": {
+          "chance": 20,
+          "durabilityDamage": [
+            3,
+            8
+          ],
+          "descriptionCn": "天機粉碎：Boss 命中時 20% 機率損傷武器 3~8 耐久"
+        },
+        "weaponCopy": {
+          "copyRate": 0.06
+        }
+      }
+    },
+    "materials": [
+      "mat_floor47_ore",
+      "mat_floor47_crystal"
+    ],
+    "places": [
+      "歯車の階段",
+      "機械の回廊",
+      "制御室",
+      "天機帝の宮殿",
+      "BOSS房"
+    ],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 48,
+    "name": "冥界の門",
+    "nameCn": "冥界之門",
+    "enemies": [
+      {
+        "name": "冥界のスケルトン",
+        "category": "[Easy]",
+        "hp": 478,
+        "atk": 42,
+        "def": 30,
+        "agi": 20,
+        "cri": 3
+      },
+      {
+        "name": "冥界の死霊騎士",
+        "category": "[Normal]",
+        "hp": 827,
+        "atk": 54,
+        "def": 37,
+        "agi": 22,
+        "cri": 3
+      },
+      {
+        "name": "冥界の将軍",
+        "category": "[Hard]",
+        "hp": 1524,
+        "atk": 70,
+        "def": 48,
+        "agi": 24,
+        "cri": 2
+      },
+      {
+        "name": "冥界の死神",
+        "category": "[Hell]",
+        "hp": 2933,
+        "atk": 97,
+        "def": 61,
+        "agi": 28,
+        "cri": 2
+      },
+      {
+        "name": "冥界の大公",
+        "category": "[優樹]",
+        "hp": 5678,
+        "atk": 134,
+        "def": 77,
+        "agi": 32,
+        "cri": 1
+      }
+    ],
+    "boss": {
+      "name": "冥王タナトス",
+      "hp": 6300000,
+      "atk": 134,
+      "def": 68,
+      "agi": 30,
+      "cri": 2,
+      "initialWeapon": "冥王の大鎌",
+      "phases": [
+        {
+          "hpThreshold": 0.7,
+          "weapon": "冥王の大鎌",
+          "specialMove": "冥撃・デスサイズ",
+          "defBoost": 3,
+          "atkBoost": 6
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "冥王の鎧＋鎌",
+          "specialMove": "冥界結界・デスウォール",
+          "defBoost": 7,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "冥王の双大鎌",
+          "specialMove": "冥界乱舞・デスダンス",
+          "defBoost": -3,
+          "atkBoost": 14
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "冥王の力（冥界覚醒）",
+          "specialMove": "冥界崩壊・タナトスブレイク",
+          "defBoost": -6,
+          "atkBoost": 24
+        }
+      ],
+      "drops": [
+        {
+          "type": "material",
+          "name": "冥王の魂石",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "冥界の霧",
+          "rarity": 2
+        }
+      ],
+      "lastAttackDrop": {
+        "id": "thanatos_scythe",
+        "name": "冥王の小鎌",
+        "nameCn": "冥王死神鐮",
+        "bossFloor": 48,
+        "effects": {
+          "battleAtk": 0.28,
+          "battleDef": 0.2
+        }
+      },
+      "specialMechanics": {
+        "agiPenalty": {
+          "threshold": 26,
+          "damageMult": 0.2,
+          "descriptionCn": "冥界領域：AGI 不足 26 時，傷害降為 20%"
+        },
+        "weaponAffinity": {
+          "weak": [
+            "katana",
+            "rapier"
+          ],
+          "resist": [
+            "two_handed_sword",
+            "two_handed_axe"
+          ],
+          "immune": [],
+          "weakMult": 1.5,
+          "resistMult": 0.5,
+          "immuneMult": 0.1,
+          "descriptionCn": "冥界護體：刀/細劍有效（+50%），重武器無效（-50%）"
+        },
+        "weaponBreak": {
+          "chance": 20,
+          "durabilityDamage": [
+            4,
+            8
+          ],
+          "descriptionCn": "冥界侵蝕：Boss 命中時 20% 機率侵蝕武器 4~8 耐久"
+        },
+        "persistentDebuff": {
+          "chance": 30,
+          "effects": [
+            {
+              "stat": "atk",
+              "mult": 0.6,
+              "durationMs": 3600000
+            }
+          ],
+          "descriptionCn": "冥界詛咒：30% 機率降低 ATK 40%，持續 60 分鐘"
+        },
+        "weaponCopy": {
+          "copyRate": 0.06
+        }
+      }
+    },
+    "materials": [
+      "mat_floor47_ore",
+      "mat_floor47_crystal"
+    ],
+    "places": [
+      "冥界の入口",
+      "死者の回廊",
+      "亡者の広間",
+      "冥王の玉座",
+      "BOSS房"
+    ],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 49,
+    "name": "神罰の塔",
+    "nameCn": "神罰之塔",
+    "enemies": [
+      {
+        "name": "神罰の使徒",
+        "category": "[Easy]",
+        "hp": 499,
+        "atk": 43,
+        "def": 31,
+        "agi": 21,
+        "cri": 3
+      },
+      {
+        "name": "神罰の裁定兵",
+        "category": "[Normal]",
+        "hp": 863,
+        "atk": 56,
+        "def": 39,
+        "agi": 23,
+        "cri": 3
+      },
+      {
+        "name": "神罰の将軍",
+        "category": "[Hard]",
+        "hp": 1592,
+        "atk": 73,
+        "def": 50,
+        "agi": 25,
+        "cri": 2
+      },
+      {
+        "name": "神罰の大天使",
+        "category": "[Hell]",
+        "hp": 3067,
+        "atk": 101,
+        "def": 63,
+        "agi": 29,
+        "cri": 2
+      },
+      {
+        "name": "神罰の熾天使",
+        "category": "[優樹]",
+        "hp": 5939,
+        "atk": 139,
+        "def": 81,
+        "agi": 33,
+        "cri": 1
+      }
+    ],
+    "boss": {
+      "name": "神罰者ネメシス",
+      "hp": 8000000,
+      "atk": 140,
+      "def": 72,
+      "agi": 31,
+      "cri": 2,
+      "initialWeapon": "神罰の天秤",
+      "phases": [
+        {
+          "hpThreshold": 0.7,
+          "weapon": "神罰の天秤",
+          "specialMove": "神罰撃・ジャッジメントストライク",
+          "defBoost": 3,
+          "atkBoost": 7
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "神罰の鎧＋天秤",
+          "specialMove": "神罰結界・ジャスティスウォール",
+          "defBoost": 7,
+          "atkBoost": 3
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "神罰の双剣",
+          "specialMove": "神罰乱舞・ジャッジメントダンス",
+          "defBoost": -3,
+          "atkBoost": 15
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "神罰者の力（神罰覚醒）",
+          "specialMove": "神罰崩壊・ネメシスブレイク",
+          "defBoost": -6,
+          "atkBoost": 26
+        }
+      ],
+      "drops": [
+        {
+          "type": "material",
+          "name": "神罰者の天秤片",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "神罰の光",
+          "rarity": 2
+        }
+      ],
+      "lastAttackDrop": {
+        "id": "nemesis_scale",
+        "name": "神罰者の天秤",
+        "nameCn": "神罰者天秤",
+        "bossFloor": 49,
+        "effects": {
+          "bossDamage": 0.32,
+          "battleAtk": 0.25,
+          "battleDef": 0.18
+        }
+      },
+      "specialMechanics": {
+        "agiPenalty": {
+          "threshold": 27,
+          "damageMult": 0.2,
+          "descriptionCn": "神罰領域：AGI 不足 27 時，傷害降為 20%"
+        },
+        "weaponAffinity": {
+          "weak": [
+            "one_handed_sword",
+            "mace"
+          ],
+          "resist": [
+            "dagger",
+            "curved_sword"
+          ],
+          "immune": [],
+          "weakMult": 1.5,
+          "resistMult": 0.5,
+          "immuneMult": 0.1,
+          "descriptionCn": "神罰護法：劍/棍有效（+50%），短劍/彎刀無效（-50%）"
+        },
+        "weaponBreak": {
+          "chance": 25,
+          "durabilityDamage": [
+            4,
+            10
+          ],
+          "descriptionCn": "神罰制裁：Boss 命中時 25% 機率損傷武器 4~10 耐久"
+        },
+        "persistentDebuff": {
+          "chance": 30,
+          "effects": [
+            {
+              "stat": "def",
+              "mult": 0.6,
+              "durationMs": 3600000
+            }
+          ],
+          "descriptionCn": "神罰詛咒：30% 機率降低 DEF 40%，持續 60 分鐘"
+        },
+        "weaponCopy": {
+          "copyRate": 0.07
+        }
+      }
+    },
+    "materials": [
+      "mat_floor49_ore",
+      "mat_floor49_crystal"
+    ],
+    "places": [
+      "審判の階段",
+      "裁きの回廊",
+      "天秤の間",
+      "神罰の頂上",
+      "BOSS房"
+    ],
+    "maxExplore": 5
+  },
+  {
+    "floorNumber": 50,
+    "name": "覇王の玉座",
+    "nameCn": "覇王王座",
+    "enemies": [
+      {
+        "name": "覇王の残影",
+        "category": "[Easy]",
+        "hp": 520,
+        "atk": 45,
+        "def": 32,
+        "agi": 22,
+        "cri": 3
+      },
+      {
+        "name": "覇王の衛兵",
+        "category": "[Normal]",
+        "hp": 900,
+        "atk": 58,
+        "def": 40,
+        "agi": 24,
+        "cri": 3
+      },
+      {
+        "name": "覇王の将軍",
+        "category": "[Hard]",
+        "hp": 1660,
+        "atk": 76,
+        "def": 52,
+        "agi": 26,
+        "cri": 2
+      },
+      {
+        "name": "覇王の近衛",
+        "category": "[Hell]",
+        "hp": 3200,
+        "atk": 105,
+        "def": 66,
+        "agi": 30,
+        "cri": 2
+      },
+      {
+        "name": "覇王の王子",
+        "category": "[優樹]",
+        "hp": 6200,
+        "atk": 145,
+        "def": 84,
+        "agi": 34,
+        "cri": 1
+      }
+    ],
+    "boss": {
+      "name": "覇王アインクラッド",
+      "hp": 10000000,
+      "atk": 150,
+      "def": 80,
+      "agi": 32,
+      "cri": 2,
+      "initialWeapon": "覇王の大剣",
+      "phases": [
+        {
+          "hpThreshold": 0.7,
+          "weapon": "覇王の大剣",
+          "specialMove": "覇王撃・オーバーロードスラッシュ",
+          "defBoost": 3,
+          "atkBoost": 8
+        },
+        {
+          "hpThreshold": 0.45,
+          "weapon": "覇王の鎧＋大剣",
+          "specialMove": "覇王結界・オーバーロードシールド",
+          "defBoost": 8,
+          "atkBoost": 4
+        },
+        {
+          "hpThreshold": 0.25,
+          "weapon": "覇王の双大剣",
+          "specialMove": "覇王乱舞・オーバーロードダンス",
+          "defBoost": -4,
+          "atkBoost": 16
+        },
+        {
+          "hpThreshold": 0.1,
+          "weapon": "覇王の力（覇王覚醒）",
+          "specialMove": "覇王崩壊・オーバーロードブレイク",
+          "defBoost": -8,
+          "atkBoost": 30
+        }
+      ],
+      "drops": [
+        {
+          "type": "material",
+          "name": "覇王の紋章",
+          "rarity": 3
+        },
+        {
+          "type": "material",
+          "name": "覇者の結晶",
+          "rarity": 2
+        }
+      ],
+      "lastAttackDrop": {
+        "id": "aincrad_crown",
+        "name": "覇王の冠",
+        "nameCn": "覇王之冠",
+        "bossFloor": 50,
+        "effects": {
+          "bossDamage": 0.35,
+          "battleAtk": 0.3,
+          "battleDef": 0.22,
+          "battleAgi": 0.2
+        }
+      },
+      "specialMechanics": {
+        "agiPenalty": {
+          "threshold": 28,
+          "damageMult": 0.15,
+          "descriptionCn": "覇王領域：AGI 不足 28 時，傷害降為 15%"
+        },
+        "weaponAffinity": {
+          "weak": [
+            "rapier",
+            "katana"
+          ],
+          "resist": [
+            "shield",
+            "two_handed_axe"
+          ],
+          "immune": [
+            "curved_sword"
+          ],
+          "weakMult": 1.5,
+          "resistMult": 0.5,
+          "immuneMult": 0.1,
+          "descriptionCn": "覇王之體：細劍/刀有效（+50%），盾/斧無效（-50%），彎刀免疫（-90%）"
+        },
+        "weaponBreak": {
+          "chance": 30,
+          "durabilityDamage": [
+            5,
+            12
+          ],
+          "descriptionCn": "覇王粉碎：Boss 命中時 30% 機率損傷武器 5~12 耐久"
+        },
+        "persistentDebuff": {
+          "chance": 35,
+          "effects": [
+            {
+              "stat": "atk",
+              "mult": 0.5,
+              "durationMs": 5400000
+            }
+          ],
+          "descriptionCn": "覇王詛咒：35% 機率降低 ATK 50%，持續 90 分鐘"
+        },
+        "weaponCopy": {
+          "copyRate": 0.08
+        }
+      }
+    },
+    "materials": [
+      "mat_floor49_ore",
+      "mat_floor49_crystal"
+    ],
+    "places": [
+      "覇王の道",
+      "覇者の回廊",
+      "大広間",
+      "覇王の玉座",
+      "BOSS房"
+    ],
     "maxExplore": 5
   }
 ]

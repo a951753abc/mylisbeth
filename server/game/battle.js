@@ -144,10 +144,10 @@ battleModule.pveBattleDirectWithSkills = async function (weapon, npc, enemyData,
 };
 
 battleModule.bossBattleWithSkills = function (
-  weapon, npc, bossData, activatedPhases, remainingHp, titleMods = {}, skillCtx = null,
+  weapon, npc, bossData, activatedPhases, remainingHp, titleMods = {}, skillCtx = null, bonusAtk = 0,
 ) {
   const playerSide = buildPvePlayerSide(weapon, npc, titleMods);
-  const bossSide = buildBossFighter(bossData, activatedPhases, remainingHp);
+  const bossSide = buildBossFighter(bossData, activatedPhases, remainingHp, bonusAtk);
   const weaponType = resolveWeaponType(weapon);
   return runPveCombatLoopWithSkills(playerSide, bossSide, skillCtx, weaponType);
 };

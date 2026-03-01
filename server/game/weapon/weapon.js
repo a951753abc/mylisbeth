@@ -38,6 +38,24 @@ const FLOOR_ITEM_STATS = {
   // 樓層 19-20
   mat_floor19_ore: "cri",
   mat_floor19_crystal: "agi",
+  // 樓層 21-30
+  mat_floor21_ore: "atk", mat_floor21_crystal: "def",
+  mat_floor23_ore: "agi", mat_floor23_crystal: "hp",
+  mat_floor25_ore: "atk", mat_floor25_crystal: "cri",
+  mat_floor27_ore: "def", mat_floor27_crystal: "hp",
+  mat_floor29_ore: "atk", mat_floor29_crystal: "agi",
+  // 樓層 31-40
+  mat_floor31_ore: "def", mat_floor31_crystal: "cri",
+  mat_floor33_ore: "agi", mat_floor33_crystal: "atk",
+  mat_floor35_ore: "hp", mat_floor35_crystal: "def",
+  mat_floor37_ore: "atk", mat_floor37_crystal: "hp",
+  mat_floor39_ore: "cri", mat_floor39_crystal: "agi",
+  // 樓層 41-50
+  mat_floor41_ore: "atk", mat_floor41_crystal: "def",
+  mat_floor43_ore: "agi", mat_floor43_crystal: "hp",
+  mat_floor45_ore: "atk", mat_floor45_crystal: "cri",
+  mat_floor47_ore: "def", mat_floor47_crystal: "agi",
+  mat_floor49_ore: "hp", mat_floor49_crystal: "cri",
   // 布料
   mat_fabric_silk: "hp",
   mat_fabric_tough: "def",

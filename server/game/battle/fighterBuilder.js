@@ -57,7 +57,7 @@ function buildPvpFighter(name, weapon, lvBonus, mods) {
  * @param {number[]} activatedPhases - 已啟動的 phase 索引
  * @param {number} remainingHp - Boss 實際剩餘 HP
  */
-function buildBossFighter(bossData, activatedPhases, remainingHp) {
+function buildBossFighter(bossData, activatedPhases, remainingHp, bonusAtk = 0) {
   const { BOSS_COMBAT } = config;
   let totalAtkBoost = 0;
   let totalDefBoost = 0;
@@ -73,7 +73,7 @@ function buildBossFighter(bossData, activatedPhases, remainingHp) {
     name: bossData.name,
     hp: remainingHp,
     stats: {
-      atk: Math.max(1, Math.ceil((bossData.atk + totalAtkBoost) * BOSS_COMBAT.ATK_MULT)),
+      atk: Math.max(1, Math.ceil((bossData.atk + totalAtkBoost + bonusAtk) * BOSS_COMBAT.ATK_MULT)),
       def: Math.max(0, bossData.def + totalDefBoost),
       agi: (bossData.agi || 0) + (BOSS_COMBAT.AGI_BONUS || 0),
       cri: BOSS_COMBAT.BOSS_CRI || 11,
