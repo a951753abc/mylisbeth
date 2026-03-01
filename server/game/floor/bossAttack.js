@@ -37,7 +37,7 @@ async function getOrInitServerState(floorNumber, bossData) {
         startedAt: null,
         expiresAt: null,
         currentWeapon: null,
-        copiedWeaponsAtkSum: 0,
+        copiedWeapons: [],
       },
       floorHistory: [],
     };
@@ -60,7 +60,7 @@ async function resetBoss(floorNumber, bossData) {
         "bossStatus.expiresAt": null,
         "bossStatus.activatedPhases": [],
         "bossStatus.currentWeapon": null,
-        "bossStatus.copiedWeaponsAtkSum": 0,
+        "bossStatus.copiedWeapons": [],
       },
     },
   );
@@ -247,18 +247,23 @@ module.exports = async function bossAttack(cmd, rawUser) {
       ? buildSkillContext(npcSkills, npcProf, weaponType)
       : null;
 
-    // ── weaponCopy：計算已拷貝武器的加成 ──
-    let weaponCopyBonus = 0;
-    const weaponCopyCfg = bossData.specialMechanics?.weaponCopy;
-    if (weaponCopyCfg) {
-      const totalCopiedAtk = state.bossStatus.copiedWeaponsAtkSum || 0;
-      weaponCopyBonus = Math.floor(totalCopiedAtk * weaponCopyCfg.copyRate);
+    // ── weaponCopy：從武器庫隨機抽一把裝備給 Boss ──
+    let weaponCopyData = null;
+    const hasWeaponCopy = !!bossData.specialMechanics?.weaponCopy;
+    if (hasWeaponCopy) {
+      const copiedWeapons = state.bossStatus.copiedWeapons || [];
+      if (copiedWeapons.length === 0) {
+        weaponCopyData = { hasWeapon: false };
+      } else {
+        const picked = copiedWeapons[Math.floor(Math.random() * copiedWeapons.length)];
+        weaponCopyData = { hasWeapon: true, atk: picked.atk || 0, def: picked.def || 0, agi: picked.agi || 0 };
+      }
     }
 
     // 執行 5 回合戰鬥（Boss HP 使用實際剩餘值）
     const battleResult = bossBattleWithSkills(
       weapon, npcForBattle, bossData, activatedPhases,
-      Math.max(1, bossHpBefore), titleMods, skillCtx, weaponCopyBonus,
+      Math.max(1, bossHpBefore), titleMods, skillCtx, weaponCopyData,
     );
 
     // 計算對 Boss 造成的傷害（不超過 Boss 剩餘 HP）
@@ -340,15 +345,6 @@ module.exports = async function bossAttack(cmd, rawUser) {
       }
     }
 
-    // ── weaponCopy：記錄武器 ATK 到 Boss 狀態（累加） ──
-    if (weaponCopyCfg) {
-      await db.update(
-        "server_state",
-        { _id: "aincrad", "bossStatus.active": true },
-        { $inc: { "bossStatus.copiedWeaponsAtkSum": weapon.atk || 0 } },
-      );
-    }
-
     // ── 原子減少 Boss HP ──
 
     const updatedState = await db.findOneAndUpdate(
@@ -360,6 +356,15 @@ module.exports = async function bossAttack(cmd, rawUser) {
 
     if (!updatedState) {
       return { error: getText("BOSS.STATE_ERROR") };
+    }
+
+    // ── weaponCopy：記錄武器三圍到 Boss 武器庫（在 HP 扣減後確認 Boss 仍存活） ──
+    if (hasWeaponCopy && updatedState.bossStatus.active) {
+      await db.update(
+        "server_state",
+        { _id: "aincrad", "bossStatus.active": true },
+        { $push: { "bossStatus.copiedWeapons": { atk: weapon.atk || 0, def: weapon.def || 0, agi: weapon.agi || 0 } } },
+      );
     }
 
     const remainingHp = Math.max(0, updatedState.bossStatus.currentHp);

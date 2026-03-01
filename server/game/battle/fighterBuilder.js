@@ -56,8 +56,12 @@ function buildPvpFighter(name, weapon, lvBonus, mods) {
  * @param {object} bossData - floors.json 的 Boss 定義
  * @param {number[]} activatedPhases - 已啟動的 phase 索引
  * @param {number} remainingHp - Boss 實際剩餘 HP
+ * @param {object|null} weaponCopyData - weaponCopy 機制資料
+ *   null = 一般 Boss（無 weaponCopy）
+ *   { hasWeapon: false } = weaponCopy Boss，武器庫空 → ATK 歸零
+ *   { hasWeapon: true, atk, def, agi } = weaponCopy Boss，裝備抄來的武器
  */
-function buildBossFighter(bossData, activatedPhases, remainingHp, bonusAtk = 0) {
+function buildBossFighter(bossData, activatedPhases, remainingHp, weaponCopyData = null) {
   const { BOSS_COMBAT } = config;
   let totalAtkBoost = 0;
   let totalDefBoost = 0;
@@ -69,13 +73,34 @@ function buildBossFighter(bossData, activatedPhases, remainingHp, bonusAtk = 0) 
     }
   }
 
+  let finalAtk, finalDef, finalAgi;
+
+  if (weaponCopyData && !weaponCopyData.hasWeapon) {
+    // 武器庫空 → Boss 無法攻擊（第一戰完全挨打）
+    finalAtk = 0;
+    finalDef = Math.max(0, bossData.def + totalDefBoost);
+    finalAgi = (bossData.agi || 0) + (BOSS_COMBAT.AGI_BONUS || 0);
+  } else if (weaponCopyData && weaponCopyData.hasWeapon) {
+    // 有武器 → 三圍加到 Boss 基礎值
+    finalAtk = Math.max(1, Math.ceil(
+      (bossData.atk + totalAtkBoost + weaponCopyData.atk) * BOSS_COMBAT.ATK_MULT,
+    ));
+    finalDef = Math.max(0, bossData.def + totalDefBoost + weaponCopyData.def);
+    finalAgi = (bossData.agi || 0) + (BOSS_COMBAT.AGI_BONUS || 0) + weaponCopyData.agi;
+  } else {
+    // 一般 Boss（無 weaponCopy）
+    finalAtk = Math.max(1, Math.ceil((bossData.atk + totalAtkBoost) * BOSS_COMBAT.ATK_MULT));
+    finalDef = Math.max(0, bossData.def + totalDefBoost);
+    finalAgi = (bossData.agi || 0) + (BOSS_COMBAT.AGI_BONUS || 0);
+  }
+
   return {
     name: bossData.name,
     hp: remainingHp,
     stats: {
-      atk: Math.max(1, Math.ceil((bossData.atk + totalAtkBoost + bonusAtk) * BOSS_COMBAT.ATK_MULT)),
-      def: Math.max(0, bossData.def + totalDefBoost),
-      agi: (bossData.agi || 0) + (BOSS_COMBAT.AGI_BONUS || 0),
+      atk: finalAtk,
+      def: finalDef,
+      agi: finalAgi,
       cri: BOSS_COMBAT.BOSS_CRI || 11,
     },
     innateEffects: [],

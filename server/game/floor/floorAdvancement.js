@@ -23,6 +23,7 @@ async function advanceFloor(currentFloor, participants, mvp, lastAttacker, lastA
         "bossStatus.expiresAt": null,
         "bossStatus.activatedPhases": [],
         "bossStatus.currentWeapon": null,
+        "bossStatus.copiedWeapons": [],
       },
       $push: {
         floorHistory: {

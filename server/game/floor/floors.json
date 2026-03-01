@@ -5185,9 +5185,7 @@
           ],
           "descriptionCn": "妖樹侵蝕：Boss 命中時 15% 機率侵蝕武器 2~6 耐久"
         },
-        "weaponCopy": {
-          "copyRate": 0.03
-        }
+        "weaponCopy": true
       }
     },
     "materials": [
@@ -5346,9 +5344,7 @@
           ],
           "descriptionCn": "黑鐵詛咒：20% 機率降低 AGI 30%，持續 30 分鐘"
         },
-        "weaponCopy": {
-          "copyRate": 0.04
-        }
+        "weaponCopy": true
       }
     },
     "materials": [
@@ -5515,9 +5511,7 @@
           ],
           "descriptionCn": "星墜詛咒：25% 機率降低 ATK 30%，持續 45 分鐘"
         },
-        "weaponCopy": {
-          "copyRate": 0.05
-        }
+        "weaponCopy": true
       }
     },
     "materials": [
@@ -5679,9 +5673,7 @@
           ],
           "descriptionCn": "血霧詛咒：25% 機率降低 DEF 35%，持續 45 分鐘"
         },
-        "weaponCopy": {
-          "copyRate": 0.05
-        }
+        "weaponCopy": true
       }
     },
     "materials": [
@@ -5837,9 +5829,7 @@
           ],
           "descriptionCn": "天機粉碎：Boss 命中時 20% 機率損傷武器 3~8 耐久"
         },
-        "weaponCopy": {
-          "copyRate": 0.06
-        }
+        "weaponCopy": true
       }
     },
     "materials": [
@@ -6006,9 +5996,7 @@
           ],
           "descriptionCn": "冥界詛咒：30% 機率降低 ATK 40%，持續 60 分鐘"
         },
-        "weaponCopy": {
-          "copyRate": 0.06
-        }
+        "weaponCopy": true
       }
     },
     "materials": [
@@ -6176,9 +6164,7 @@
           ],
           "descriptionCn": "神罰詛咒：30% 機率降低 DEF 40%，持續 60 分鐘"
         },
-        "weaponCopy": {
-          "copyRate": 0.07
-        }
+        "weaponCopy": true
       }
     },
     "materials": [
@@ -6349,9 +6335,7 @@
           ],
           "descriptionCn": "覇王詛咒：35% 機率降低 ATK 50%，持續 90 分鐘"
         },
-        "weaponCopy": {
-          "copyRate": 0.08
-        }
+        "weaponCopy": true
       }
     },
     "materials": [
