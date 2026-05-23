@@ -25,7 +25,7 @@
     "connect-mongo": "^5.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2",
+    "express": "^4.22.2",
     "express-session": "^1.18.1",
     "lodash": "^4.17.23",
     "mongodb": "^6.12.0",
